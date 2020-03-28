@@ -86,8 +86,3 @@ func proxyOnHttpCallResponse(_, calloutID uint32, numHeaders, bodySize, numTrail
 		panic("invalid context on proxy_on_http_call_response")
 	}
 }
-
-//go:export proxy_on_queue_ready
-func ProxyOnQueueReady(contextID uint32, queueID uint32) {
-	return
-}

@@ -16,9 +16,9 @@ Please open issues/PRs or reach me [@mathetake](https://twitter.com/mathetake).
 - support get/set shared queue
 - support get/set shared data
 - support get/set property
+- support metrics
 - support gRPC
-- support enhance error handling
-- support stream context
+- enhance error handling
 
 ## references
 

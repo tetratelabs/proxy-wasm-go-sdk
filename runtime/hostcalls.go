@@ -16,11 +16,9 @@ func setMap(mapType MapType, headers [][2]string) Status {
 
 // TODO: not tested yet
 func getMapValue(mapType MapType, key string) (string, Status) {
-	k := key[0]
-
 	var rvs int
 	var raw *byte
-	if st := proxyGetHeaderMapValue(mapType, &k, len(key), &raw, &rvs); st != StatusOk {
+	if st := proxyGetHeaderMapValue(mapType, stringToBytePtr(key), len(key), &raw, &rvs); st != StatusOk {
 		return "", st
 	}
 
@@ -34,22 +32,17 @@ func getMapValue(mapType MapType, key string) (string, Status) {
 
 // TODO: not tested yet
 func removeMapValue(mapType MapType, key string) Status {
-	k := key[0]
-	return proxyRemoveHeaderMapValue(mapType, &k, len(key))
+	return proxyRemoveHeaderMapValue(mapType, stringToBytePtr(key), len(key))
 }
 
 // TODO: not tested yet
 func setMapValue(mapType MapType, key, value string) Status {
-	k := key[0]
-	v := value[0]
-	return proxyReplaceHeaderMapValue(mapType, &k, len(key), &v, len(value))
+	return proxyReplaceHeaderMapValue(mapType, stringToBytePtr(key), len(key), stringToBytePtr(value), len(value))
 }
 
 // TODO: not tested yet
 func addMapValue(mapType MapType, key, value string) Status {
-	k := key[0]
-	v := value[0]
-	return proxyAddHeaderMapValue(mapType, &k, len(key), &v, len(value))
+	return proxyAddHeaderMapValue(mapType, stringToBytePtr(key), len(key), stringToBytePtr(value), len(value))
 }
 
 func getMap(mapType MapType) ([][2]string, Status) {
@@ -151,7 +144,7 @@ func setTickPeriodMilliSeconds(millSec uint32) Status {
 func stringToBytePtr(in string) *byte {
 	var ret *byte
 	if len(in) > 0 {
-		b := []byte(in)
+		b := []byte(in) // TODO: zero alloc
 		ret = &b[0]
 	}
 	return ret

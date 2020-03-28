@@ -22,13 +22,21 @@ type RootContext interface {
 	OnConfigure(pluginConfigurationSize int) bool
 	GetConfiguration() ([]byte, Status)
 	SetTickPeriod(period uint32) Status
+	OnQueueReady(queueID uint32)
 	OnTick()
 	OnLog()
 }
 
 type StreamContext interface {
 	Context
-	// TODO:
+	OnNewConnection() Action
+	OnDownstreamData(dataSize int, endOfStream bool) Action
+	GetDownStreamData(start, maxSize int) ([]byte, Status)
+	OnDownStreamClose(peerType PeerType)
+
+	OnUpstreamData(dataSize int, endOfStream bool) Action
+	GetUpstreamData(start, maxSize int) ([]byte, Status)
+	OnUpstreamStreamClose(peerType PeerType)
 	OnLog()
 }
 
@@ -87,10 +95,10 @@ type HttpContext interface {
 type DefaultContext struct{}
 
 var (
+	_ Context       = &DefaultContext{}
+	_ RootContext   = &DefaultContext{}
 	_ StreamContext = &DefaultContext{}
 	_ HttpContext   = &DefaultContext{}
-	_ RootContext   = &DefaultContext{}
-	_ Context       = &DefaultContext{}
 )
 
 // impl Context
@@ -165,6 +173,40 @@ func (d *DefaultContext) SetTickPeriod(milliSec uint32) Status {
 
 // impl RootContext
 func (d *DefaultContext) OnTick() {}
+
+// impl RootContext
+func (d *DefaultContext) OnQueueReady(_ uint32) {}
+
+// impl StreamContext
+func (d *DefaultContext) OnNewConnection() Action {
+	return ActionContinue
+}
+
+// impl StreamContext
+func (d *DefaultContext) OnDownstreamData(dataSize int, endOfStream bool) Action {
+	return ActionContinue
+}
+
+// impl StreamContext
+func (d *DefaultContext) GetDownStreamData(start, maxSize int) ([]byte, Status) {
+	return getBuffer(BufferTypeDownstreamData, start, maxSize)
+}
+
+// impl StreamContext
+func (d *DefaultContext) OnDownStreamClose(_ PeerType) {}
+
+// impl StreamContext
+func (d *DefaultContext) OnUpstreamData(_ int, _ bool) Action {
+	return ActionContinue
+}
+
+// impl StreamContext
+func (d *DefaultContext) GetUpstreamData(start, maxSize int) ([]byte, Status) {
+	return getBuffer(BufferTypeUpstreamData, start, maxSize)
+}
+
+// impl StreamContext
+func (d *DefaultContext) OnUpstreamStreamClose(_ PeerType) {}
 
 // impl HttpContext
 func (d *DefaultContext) OnHttpRequestHeaders(_ int) Action {
