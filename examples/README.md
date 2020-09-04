@@ -1,7 +1,24 @@
 
 Theses are the proxy-wasm-go reimplementation of examples in https://github.com/proxy-wasm/proxy-wasm-rust-sdk/tree/master/examples.
 
-Before you try an example, you must install tinygo(0.12.0 or above) for compiling your programs to wasm binary.
-Please follow the official instruction [here](https://tinygo.org/getting-started/macos/).
+## requirements
 
-Currently they are tested against `docker.io/istio/proxyv2:1.5.0` image
+- TinyGo(0.14.0+): https://tinygo.org/
+- GetEnvoy: https://www.getenvoy.io/install/
+
+To download compatible envoyproxy, run
+```bash
+getenvoy fetch wasm:1.15
+```
+
+## build
+
+```bash
+tinygo build -o ./${example}/wasm.wasm -wasm-abi=generic -target wasm ./${example}/main.go
+```
+
+## run
+
+```bash
+getenvoy run wasm:1.15 -- -c ./${example}/envoy.yaml
+``` 

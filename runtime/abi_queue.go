@@ -14,7 +14,7 @@
 
 package runtime
 
-//go:export proxy_on_queue_ready
+//export proxy_on_queue_ready
 func ProxyOnQueueReady(contextID, queueID uint32) {
 	ctx, ok := currentState.rootContexts[contextID]
 	if !ok {

@@ -22,7 +22,7 @@ func newContext(contextID uint32) runtime.HttpContext {
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpRequestHeaders(_ int) runtime.Action {
+func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) runtime.Action {
 	hs, st := ctx.GetHttpRequestHeaders()
 	if st != runtime.StatusOk {
 		runtime.LogCritical("failed to get request headers")

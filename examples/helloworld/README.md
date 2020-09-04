@@ -3,14 +3,6 @@
 this example handles http request/response headers events and log all headers.
 
 
-### build && run
-```
-tinygo build -o wasm.wasm -wasm-abi=generic -target wasm ./main.go && docker-compose up | grep OnTick
-```
-
-now you can see something like:
-
-
 ```bash
 proxy_1  | [2020-03-25 09:04:56.149][1][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:1077] wasm log my_root_id: OnTick on 1, it's 1585127096149656000
 proxy_1  | [2020-03-25 09:04:56.154][1][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:1077] wasm log my_root_id: OnTick on 1, it's 1585127096154901000

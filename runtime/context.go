@@ -58,7 +58,7 @@ type HttpContext interface {
 	Context
 
 	// request
-	OnHttpRequestHeaders(numHeaders int) Action
+	OnHttpRequestHeaders(numHeaders int, endOfStream bool) Action
 	GetHttpRequestHeaders() ([][2]string, Status)
 	SetHttpRequestHeaders(headers [][2]string) Status
 	GetHttpRequestHeader(key string) (string, Status)
@@ -80,7 +80,7 @@ type HttpContext interface {
 	ResumeHttpRequest() Status
 
 	// response
-	OnHttpResponseHeaders(numHeaders int) Action
+	OnHttpResponseHeaders(numHeaders int, endOfStream bool) Action
 	GetHttpResponseHeaders() ([][2]string, Status)
 	SetHttpResponseHeaders(headers [][2]string) Status
 	GetHttpResponseHeader(key string) (string, Status)
@@ -223,7 +223,7 @@ func (d *DefaultContext) GetUpstreamData(start, maxSize int) ([]byte, Status) {
 func (d *DefaultContext) OnUpstreamStreamClose(_ PeerType) {}
 
 // impl HttpContext
-func (d *DefaultContext) OnHttpRequestHeaders(_ int) Action {
+func (d *DefaultContext) OnHttpRequestHeaders(_ int, _ bool) Action {
 	return ActionContinue
 }
 
@@ -308,7 +308,7 @@ func (d *DefaultContext) ResumeHttpRequest() Status {
 }
 
 // impl HttpContext
-func (d *DefaultContext) OnHttpResponseHeaders(_ int) Action {
+func (d *DefaultContext) OnHttpResponseHeaders(_ int, _ bool) Action {
 	return ActionContinue
 }
 

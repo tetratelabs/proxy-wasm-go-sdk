@@ -14,18 +14,18 @@
 
 package runtime
 
-//go:export proxy_on_request_headers
-func proxyOnRequestHeaders(contextID uint32, numHeaders int) Action {
+//export proxy_on_request_headers
+func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_headers")
 	}
 
 	currentState.setActiveContextID(contextID)
-	return ctx.OnHttpRequestHeaders(numHeaders)
+	return ctx.OnHttpRequestHeaders(numHeaders, endOfStream)
 }
 
-//go:export proxy_on_request_body
+//export proxy_on_request_body
 func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -35,7 +35,7 @@ func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) Action
 	return ctx.OnHttpRequestBody(bodySize, endOfStream)
 }
 
-//go:export proxy_on_request_trailers
+//export proxy_on_request_trailers
 func proxyOnRequestTrailers(contextID uint32, numTrailers int) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -45,17 +45,17 @@ func proxyOnRequestTrailers(contextID uint32, numTrailers int) Action {
 	return ctx.OnHttpRequestTrailers(numTrailers)
 }
 
-//go:export proxy_on_response_headers
-func proxyOnHttpResponseHeaders(contextID uint32, numHeaders int) Action {
+//export proxy_on_response_headers
+func proxyOnHttpResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
 	}
 	currentState.setActiveContextID(contextID)
-	return ctx.OnHttpResponseHeaders(numHeaders)
+	return ctx.OnHttpResponseHeaders(numHeaders, endOfStream)
 }
 
-//go:export proxy_on_response_body
+//export proxy_on_response_body
 func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -65,7 +65,7 @@ func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) Actio
 	return ctx.OnHttpResponseBody(bodySize, endOfStream)
 }
 
-//go:export proxy_on_response_trailers
+//export proxy_on_response_trailers
 func proxyOnResponseTrailers(contextID uint32, numTrailers int) Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -75,7 +75,7 @@ func proxyOnResponseTrailers(contextID uint32, numTrailers int) Action {
 	return ctx.OnHttpResponseTrailers(numTrailers)
 }
 
-//go:export proxy_on_http_call_response
+//export proxy_on_http_call_response
 func proxyOnHttpCallResponse(_, calloutID uint32, numHeaders, bodySize, numTrailers int) {
 	ctxID, ok := currentState.callOuts[calloutID]
 	if !ok {
