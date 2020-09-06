@@ -3,14 +3,6 @@
 this example handles http request/response headers events and log all headers.
 
 
-### build && run
-```
-tinygo build -o wasm.wasm -wasm-abi=generic -target wasm ./main.go && docker-compose up | grep header:
-```
-
-now you can send requests and see headers logged:
-
-
 ```bash
 proxy_1  | [2020-03-25 09:09:24.937][16][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:1077] wasm log my_plugin my_root_id: request header: :authority: localhost:18000
 proxy_1  | [2020-03-25 09:09:24.937][16][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:1077] wasm log my_plugin my_root_id: request header: :path: /

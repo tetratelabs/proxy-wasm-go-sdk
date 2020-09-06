@@ -1,14 +1,6 @@
 ## http_auth_random
 
-this example authorize requests depending
- on the hash values of a response from http://httpbin.org/uuid.
-
-### build && run
-```
-tinygo build -o wasm.wasm -wasm-abi=generic -target wasm ./main.go && docker-compose up
-```
-
-now you can make requests authorized randomly:  
+this example authorize requests depending on the hash values of a response from http://httpbin.org/uuid.
 
 ```bash
 $ curl localhost:18000/uuid -v

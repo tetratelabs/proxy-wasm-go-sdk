@@ -12,13 +12,7 @@ Any comments, questions, issues reports and PRs are welcome.
 Please open issues/PRs or reach me [@mathetake](https://twitter.com/mathetake).
 
 ## TODOs
-- docs
-- support get/set shared queue
-- support get/set shared data
-- support get/set property
-- support metrics
-- support gRPC
-- enhance error handling
+
 
 ## references
 

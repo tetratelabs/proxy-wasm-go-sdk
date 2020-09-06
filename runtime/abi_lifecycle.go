@@ -14,7 +14,7 @@
 
 package runtime
 
-//go:export proxy_on_context_create
+//export proxy_on_context_create
 func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 	if rootContextID == 0 {
 		currentState.createRootContext(contextID)
@@ -27,7 +27,7 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 	}
 }
 
-//go:export proxy_on_done
+//export proxy_on_done
 func proxyOnDone(contextID uint32) bool {
 	if ctx, ok := currentState.streamContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
@@ -43,7 +43,7 @@ func proxyOnDone(contextID uint32) bool {
 	}
 }
 
-//go:export proxy_on_log
+//export proxy_on_log
 func proxyOnLog(contextID uint32) {
 	if ctx, ok := currentState.streamContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
@@ -59,7 +59,7 @@ func proxyOnLog(contextID uint32) {
 	}
 }
 
-//go:export proxy_on_delete
+//export proxy_on_delete
 func proxyOnDelete(contextID uint32) {
 	if _, ok := currentState.streamContexts[contextID]; ok {
 		delete(currentState.streamContexts, contextID)

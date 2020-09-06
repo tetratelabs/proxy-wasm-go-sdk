@@ -95,26 +95,6 @@ func getBuffer(bufType BufferType, start, maxSize int) ([]byte, Status) {
 	}
 }
 
-// TODO: not tested yet
-func getConfiguration() ([]byte, Status) {
-	var retData *byte
-	var retSize int
-	switch st := proxyGetConfiguration(&retData, &retSize); st {
-	case StatusOk:
-		// is this correct handling...?
-		if retData == nil {
-			return nil, StatusNotFound
-		}
-		return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-			Data: uintptr(unsafe.Pointer(retData)),
-			Len:  uintptr(retSize),
-			Cap:  uintptr(retSize),
-		})), st
-	default:
-		return nil, st
-	}
-}
-
 func sendHttpResponse(statusCode uint32, headers [][2]string, body string) Status {
 	shs := serializeMap(headers)
 	hp := &shs[0]
