@@ -34,7 +34,7 @@ type RootContext interface {
 	Context
 	OnVMStart(vmConfigurationSize int) bool
 	OnConfigure(pluginConfigurationSize int) bool
-	GetConfiguration() ([]byte, Status)
+	GetPluginConfiguration(dataSize int) ([]byte, Status)
 	SetTickPeriod(period uint32) Status
 	OnQueueReady(queueID uint32)
 	OnTick()
@@ -102,7 +102,6 @@ type HttpContext interface {
 	ResumeHttpResponse() Status
 
 	SendHttpResponse(statusCode uint32, headers [][2]string, body string) Status
-	ClearHttpRouteCache() Status
 	OnLog()
 }
 
@@ -176,8 +175,8 @@ func (d *DefaultContext) OnConfigure(_ int) bool {
 }
 
 // impl RootContext
-func (d *DefaultContext) GetConfiguration() ([]byte, Status) {
-	return getConfiguration()
+func (d *DefaultContext) GetPluginConfiguration(dataSize int) ([]byte, Status) {
+	return getBuffer(BufferTypePluginConfiguration, 0, dataSize)
 }
 
 // impl RootContext
@@ -304,7 +303,7 @@ func (d *DefaultContext) AddHttpRequestTrailer(key, value string) Status {
 
 // impl HttpContext
 func (d *DefaultContext) ResumeHttpRequest() Status {
-	return proxyContinueRequest()
+	return proxyContinueStream(StreamTypeRequest)
 }
 
 // impl HttpContext
@@ -390,15 +389,10 @@ func (d *DefaultContext) AddHttpResponseTrailer(key, value string) Status {
 
 // impl HttpContext
 func (d *DefaultContext) ResumeHttpResponse() Status {
-	return proxyContinueResponse()
+	return proxyContinueStream(StreamTypeResponse)
 }
 
 // impl HttpContext
 func (d *DefaultContext) SendHttpResponse(statusCode uint32, headers [][2]string, body string) Status {
 	return sendHttpResponse(statusCode, headers, body)
-}
-
-// impl HttpContext
-func (d *DefaultContext) ClearHttpRouteCache() Status {
-	return proxyClearRouteCache()
 }

@@ -17,27 +17,15 @@ package runtime
 //export proxy_log
 func proxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status
 
-//export proxy_get_configuration
-func proxyGetConfiguration(returnBufferData **byte, returnBufferSize *int) Status
-
 //export proxy_set_property
 func proxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int)
 
 //export proxy_get_property
 func proxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int)
 
-//export proxy_continue_request
-func proxyContinueRequest() Status
-
-//export proxy_continue_response
-func proxyContinueResponse() Status
-
 //export proxy_send_local_response
 func proxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int,
 	bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status
-
-//export proxy_clear_route_cache
-func proxyClearRouteCache() Status
 
 //export proxy_get_shared_data
 func proxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *byte, returnCas *uint32) Status
@@ -65,6 +53,12 @@ func proxyAddHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueDa
 
 //export proxy_replace_header_map_value
 func proxyReplaceHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueData *byte, valueSize int) Status
+
+//export proxy_continue_stream
+func proxyContinueStream(streamType StreamType) Status
+
+//export proxy_close_stream
+func proxyCloseStream(streamType StreamType) Status
 
 //export proxy_remove_header_map_value
 func proxyRemoveHeaderMapValue(mapType MapType, keyData *byte, keySize int) Status

@@ -70,4 +70,15 @@ const (
 	BufferTypeDownstreamData       BufferType = 2
 	BufferTypeUpstreamData         BufferType = 3
 	BufferTypeHttpCallResponseBody BufferType = 4
+	BufferTypeGrpcReceiveBuffer    BufferType = 5
+	BufferTypeVmConfiguration      BufferType = 6
+	BufferTypePluginConfiguration  BufferType = 7
+	BufferTypeCallData             BufferType = 8
+)
+
+type StreamType uint32
+
+const (
+	StreamTypeRequest  StreamType = 0
+	StreamTypeResponse StreamType = 1
 )
