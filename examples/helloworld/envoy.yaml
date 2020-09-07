@@ -33,7 +33,7 @@ static_resources:
                           runtime: "envoy.wasm.runtime.v8"
                           code:
                             local:
-                              filename: "./helloworld/wasm.wasm"
+                              filename: "./examples/helloworld/main.go.wasm"
                           allow_precompiled: true
                   - name: envoy.router
                     config: {}
