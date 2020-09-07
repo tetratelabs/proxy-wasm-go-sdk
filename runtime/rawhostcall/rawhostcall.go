@@ -94,3 +94,15 @@ func ProxySetEffectiveContext(contextID uint32) types.Status
 
 //export proxy_done
 func ProxyDone() types.Status
+
+//export proxy_define_metric
+func ProxyDefineMetric(metricType types.MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status
+
+//export proxy_increment_metric
+func ProxyIncrementMetric(metricID uint32, offset int64) types.Status
+
+//export proxy_record_metric
+func ProxyRecordMetric(metricID uint32, value uint64) types.Status
+
+//export proxy_get_metric
+func ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status
