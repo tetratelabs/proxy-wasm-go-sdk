@@ -22,7 +22,7 @@ import (
 )
 
 // since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
-// we have to have separated functions for converting bytes utilities
+// we have to have separated functions for converting bytes
 
 func rawBytePtrToString(raw *byte, size int) string {
 	return *(*string)(unsafe.Pointer(&reflect.SliceHeader{
