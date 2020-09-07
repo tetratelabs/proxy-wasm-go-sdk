@@ -14,8 +14,10 @@
 
 package runtime
 
+import "github.com/mathetake/proxy-wasm-go/runtime/types"
+
 //export proxy_on_new_connection
-func proxyOnNewConnection(contextID uint32) Action {
+func proxyOnNewConnection(contextID uint32) types.Action {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -25,7 +27,7 @@ func proxyOnNewConnection(contextID uint32) Action {
 }
 
 //export proxy_on_downstream_data
-func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) Action {
+func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) types.Action {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -35,7 +37,7 @@ func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) Act
 }
 
 //export on_downstream_connection_close
-func proxyOnDownstreamConnectionClose(contextID uint32, pType PeerType) {
+func proxyOnDownstreamConnectionClose(contextID uint32, pType types.PeerType) {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -45,7 +47,7 @@ func proxyOnDownstreamConnectionClose(contextID uint32, pType PeerType) {
 }
 
 //export proxy_on_upstream_data
-func proxyOnUpstreamData(contextID uint32, dataSize int, endOfStream bool) Action {
+func proxyOnUpstreamData(contextID uint32, dataSize int, endOfStream bool) types.Action {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -55,7 +57,7 @@ func proxyOnUpstreamData(contextID uint32, dataSize int, endOfStream bool) Actio
 }
 
 //export proxy_on_upstream_connection_close
-func proxyOnUpstreamConnectionClose(contextID uint32, pType PeerType) {
+func proxyOnUpstreamConnectionClose(contextID uint32, pType types.PeerType) {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {
 		panic("invalid context")

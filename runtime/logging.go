@@ -17,32 +17,33 @@ package runtime
 import (
 	"reflect"
 	"unsafe"
+
+	"github.com/mathetake/proxy-wasm-go/runtime/hostcall"
+	"github.com/mathetake/proxy-wasm-go/runtime/types"
 )
 
-// any better way to string formatting without system calls....?
-
 func LogTrace(msg string) {
-	proxyLog(LogLevelTrace, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelTrace, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogDebug(msg string) {
-	proxyLog(LogLevelDebug, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelDebug, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogInfo(msg string) {
-	proxyLog(LogLevelInfo, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelInfo, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogWarn(msg string) {
-	proxyLog(LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogError(msg string) {
-	proxyLog(LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogCritical(msg string) {
-	proxyLog(LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func unsafeGetStringBytePtr(msg string) *byte {
