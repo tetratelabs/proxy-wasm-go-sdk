@@ -71,7 +71,7 @@ const (
 	BufferTypeUpstreamData         BufferType = 3
 	BufferTypeHttpCallResponseBody BufferType = 4
 	BufferTypeGrpcReceiveBuffer    BufferType = 5
-	BufferTypeVmConfiguration      BufferType = 6
+	BufferTypeVMConfiguration      BufferType = 6
 	BufferTypePluginConfiguration  BufferType = 7
 	BufferTypeCallData             BufferType = 8
 )

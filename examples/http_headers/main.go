@@ -23,7 +23,7 @@ func newContext(contextID uint32) runtime.HttpContext {
 
 // override
 func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
-	hs, err := ctx.GetHttpRequestHeaders()
+	hs, err := runtime.HostCallGetHttpRequestHeaders()
 	if err != nil {
 		runtime.LogCritical("failed to get request headers: " + err.Error())
 	}
@@ -36,7 +36,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 
 // override
 func (ctx *httpHeaders) OnHttpResponseHeaders(_ int, _ bool) types.Action {
-	hs, err := ctx.GetHttpResponseHeaders()
+	hs, err := runtime.HostCallGetHttpResponseHeaders()
 	if err != nil {
 		runtime.LogCritical("failed to get request headers: " + err.Error())
 	}

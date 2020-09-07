@@ -24,7 +24,7 @@ func newContext(contextID uint32) runtime.HttpContext {
 
 // override default
 func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
-	hs, err := ctx.GetHttpRequestHeaders()
+	hs, err := runtime.HostCallGetHttpRequestHeaders()
 	if err != nil {
 		runtime.LogCritical("failed to get request headers: " + err.Error())
 		return types.ActionContinue
@@ -33,7 +33,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 		runtime.LogInfo("request header: " + h[0] + ": " + h[1])
 	}
 
-	if _, err := ctx.DispatchHttpCall(
+	if _, err := runtime.HostCallDispatchHttpCall(
 		"httpbin", hs, "", [][2]string{}, 50000); err != nil {
 		runtime.LogCritical("dipatch httpcall failed: " + err.Error())
 	}
@@ -42,29 +42,29 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 
 // override default
 func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
-	b, err := ctx.GetHttpCallResponseBody(0, bodySize)
+	b, err := runtime.HostCallGetHttpCallResponseBody(0, bodySize)
 	if err != nil {
 		runtime.LogCritical("failed to get response body: " + err.Error())
-		ctx.ResumeHttpRequest()
+		runtime.HostCallResumeHttpRequest()
 		return
 	}
 
 	s := fnv.New32a()
 	if _, err := s.Write(b); err != nil {
 		runtime.LogCritical("failed to calculate hash: " + err.Error())
-		ctx.ResumeHttpRequest()
+		runtime.HostCallResumeHttpRequest()
 		return
 	}
 
 	if s.Sum32()%2 == 0 {
 		runtime.LogInfo("access granted")
-		ctx.ResumeHttpRequest()
+		runtime.HostCallResumeHttpRequest()
 		return
 	}
 
 	msg := "access forbidden"
 	runtime.LogInfo(msg)
-	ctx.SendHttpResponse(403, [][2]string{
+	runtime.HostCallSendHttpResponse(403, [][2]string{
 		{"powered-by", "proxy-wasm-go!!"},
 	}, msg)
 }
