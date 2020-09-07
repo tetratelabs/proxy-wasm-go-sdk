@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/mathetake/proxy-wasm-go/runtime"
+	"github.com/mathetake/proxy-wasm-go/runtime/types"
 )
 
 func main() {
@@ -22,24 +23,24 @@ func newContext(contextID uint32) runtime.HttpContext {
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) runtime.Action {
+func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 	hs, st := ctx.GetHttpRequestHeaders()
-	if st != runtime.StatusOk {
+	if st != types.StatusOk {
 		runtime.LogCritical("failed to get request headers")
-		return runtime.ActionContinue
+		return types.ActionContinue
 	}
 	for _, h := range hs {
 		runtime.LogInfo("request header: " + h[0] + ": " + h[1])
 	}
 
 	ctx.DispatchHttpCall("httpbin", hs, "", [][2]string{}, 50000)
-	return runtime.ActionPause
+	return types.ActionPause
 }
 
 // override default
 func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
 	b, st := ctx.GetHttpCallResponseBody(0, bodySize)
-	if st != runtime.StatusOk {
+	if st != types.StatusOk {
 		runtime.LogCritical("failed to get response body")
 		ctx.ResumeHttpRequest()
 		return
