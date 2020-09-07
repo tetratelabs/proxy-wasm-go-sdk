@@ -14,7 +14,7 @@
 
 // +build proxytest
 
-package hostcall
+package rawhostcall
 
 import "github.com/mathetake/proxy-wasm-go/runtime/types"
 

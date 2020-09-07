@@ -18,36 +18,38 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/mathetake/proxy-wasm-go/runtime/hostcall"
+	"github.com/mathetake/proxy-wasm-go/runtime/rawhostcall"
 	"github.com/mathetake/proxy-wasm-go/runtime/types"
 )
 
 func LogTrace(msg string) {
-	hostcall.ProxyLog(types.LogLevelTrace, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelTrace, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogDebug(msg string) {
-	hostcall.ProxyLog(types.LogLevelDebug, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelDebug, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogInfo(msg string) {
-	hostcall.ProxyLog(types.LogLevelInfo, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelInfo, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogWarn(msg string) {
-	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogError(msg string) {
-	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func LogCritical(msg string) {
-	hostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
 func unsafeGetStringBytePtr(msg string) *byte {
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&msg))
+
+	// TODO: seems redundant and we should use sliceHeader.Data directly (probably possible)
 	bt := *(*[]byte)(unsafe.Pointer(&reflect.StringHeader{
 		Data: sliceHeader.Data,
 		Len:  sliceHeader.Len,
