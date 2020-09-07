@@ -82,3 +82,11 @@ const (
 	StreamTypeRequest  StreamType = 0
 	StreamTypeResponse StreamType = 1
 )
+
+type MetricType uint32
+
+const (
+	MetricTypeCounter   = 0
+	MetricTypeGauge     = 1
+	MetricTypeHistogram = 2
+)

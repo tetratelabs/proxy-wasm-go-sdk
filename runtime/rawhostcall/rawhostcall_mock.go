@@ -77,15 +77,21 @@ func ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBuff
 func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
 	return 0
 }
-func ProxySetTickPeriodMilliseconds(period uint32) types.Status {
+func ProxySetTickPeriodMilliseconds(period uint32) types.Status { return 0 }
+
+func ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status { return 0 }
+
+func ProxySetEffectiveContext(contextID uint32) types.Status { return 0 }
+
+func ProxyDone() types.Status { return 0 }
+
+func ProxyDefineMetric(metricType types.MetricType,
+	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
 	return 0
 }
-func ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
-	return 0
-}
-func ProxySetEffectiveContext(contextID uint32) types.Status {
-	return 0
-}
-func ProxyDone() types.Status {
-	return 0
-}
+
+func ProxyIncrementMetric(metricID uint32, offset int64) types.Status { return 0 }
+
+func ProxyRecordMetric(metricID uint32, value uint64) types.Status { return 0 }
+
+func ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status { return 0 }
