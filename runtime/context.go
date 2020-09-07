@@ -23,11 +23,11 @@ import (
 
 type Context interface {
 	DispatchHttpCall(upstream string, headers [][2]string,
-		body string, trailers [][2]string, timeoutMillisecond uint32) (calloutID uint32, status types.Status)
+		body string, trailers [][2]string, timeoutMillisecond uint32) (calloutID uint32, status error)
 	OnHttpCallResponse(calloutID uint32, numHeaders, bodySize, numTrailers int)
-	GetHttpCallResponseHeaders() ([][2]string, types.Status)
-	GetHttpCallResponseBody(start, maxSize int) ([]byte, types.Status)
-	GetHttpCallResponseTrailers() ([][2]string, types.Status)
+	GetHttpCallResponseHeaders() ([][2]string, error)
+	GetHttpCallResponseBody(start, maxSize int) ([]byte, error)
+	GetHttpCallResponseTrailers() ([][2]string, error)
 	GetCurrentTime() int64
 	OnDone() bool
 	Done()
@@ -37,8 +37,8 @@ type RootContext interface {
 	Context
 	OnVMStart(vmConfigurationSize int) bool
 	OnConfigure(pluginConfigurationSize int) bool
-	GetPluginConfiguration(dataSize int) ([]byte, types.Status)
-	SetTickPeriod(period uint32) types.Status
+	GetPluginConfiguration(dataSize int) ([]byte, error)
+	SetTickPeriod(period uint32) error
 	OnQueueReady(queueID uint32)
 	OnTick()
 	OnLog()
@@ -48,11 +48,11 @@ type StreamContext interface {
 	Context
 	OnNewConnection() types.Action
 	OnDownstreamData(dataSize int, endOfStream bool) types.Action
-	GetDownStreamData(start, maxSize int) ([]byte, types.Status)
+	GetDownStreamData(start, maxSize int) ([]byte, error)
 	OnDownStreamClose(peerType types.PeerType)
 
 	OnUpstreamData(dataSize int, endOfStream bool) types.Action
-	GetUpstreamData(start, maxSize int) ([]byte, types.Status)
+	GetUpstreamData(start, maxSize int) ([]byte, error)
 	OnUpstreamStreamClose(peerType types.PeerType)
 	OnLog()
 }
@@ -62,49 +62,49 @@ type HttpContext interface {
 
 	// request
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action
-	GetHttpRequestHeaders() ([][2]string, types.Status)
-	SetHttpRequestHeaders(headers [][2]string) types.Status
-	GetHttpRequestHeader(key string) (string, types.Status)
-	RemoveHttpRequestHeader(key string) types.Status
-	SetHttpRequestHeader(key, value string) types.Status
-	AddHttpRequestHeader(key, value string) types.Status
+	GetHttpRequestHeaders() ([][2]string, error)
+	SetHttpRequestHeaders(headers [][2]string) error
+	GetHttpRequestHeader(key string) (string, error)
+	RemoveHttpRequestHeader(key string) error
+	SetHttpRequestHeader(key, value string) error
+	AddHttpRequestHeader(key, value string) error
 
 	OnHttpRequestBody(bodySize int, endOfStream bool) types.Action
-	GetHttpRequestBody(start, maxSize int) ([]byte, types.Status)
+	GetHttpRequestBody(start, maxSize int) ([]byte, error)
 
 	OnHttpRequestTrailers(numTrailers int) types.Action
-	GetHttpRequestTrailers() ([][2]string, types.Status)
-	SetHttpRequestTrailers(headers [][2]string) types.Status
-	GetHttpRequestTrailer(key string) (string, types.Status)
-	RemoveHttpRequestTrailer(key string) types.Status
-	SetHttpRequestTrailer(key, value string) types.Status
-	AddHttpRequestTrailer(key, value string) types.Status
+	GetHttpRequestTrailers() ([][2]string, error)
+	SetHttpRequestTrailers(headers [][2]string) error
+	GetHttpRequestTrailer(key string) (string, error)
+	RemoveHttpRequestTrailer(key string) error
+	SetHttpRequestTrailer(key, value string) error
+	AddHttpRequestTrailer(key, value string) error
 
-	ResumeHttpRequest() types.Status
+	ResumeHttpRequest() error
 
 	// response
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action
-	GetHttpResponseHeaders() ([][2]string, types.Status)
-	SetHttpResponseHeaders(headers [][2]string) types.Status
-	GetHttpResponseHeader(key string) (string, types.Status)
-	RemoveHttpResponseHeader(key string) types.Status
-	SetHttpResponseHeader(key, value string) types.Status
-	AddHttpResponseHeader(key, value string) types.Status
+	GetHttpResponseHeaders() ([][2]string, error)
+	SetHttpResponseHeaders(headers [][2]string) error
+	GetHttpResponseHeader(key string) (string, error)
+	RemoveHttpResponseHeader(key string) error
+	SetHttpResponseHeader(key, value string) error
+	AddHttpResponseHeader(key, value string) error
 
 	OnHttpResponseBody(bodySize int, endOfStream bool) types.Action
-	GetHttpResponseBody(start, maxSize int) ([]byte, types.Status)
+	GetHttpResponseBody(start, maxSize int) ([]byte, error)
 
 	OnHttpResponseTrailers(numTrailers int) types.Action
-	GetHttpResponseTrailers() ([][2]string, types.Status)
-	SetHttpResponseTrailers(headers [][2]string) types.Status
-	GetHttpResponseTrailer(key string) (string, types.Status)
-	RemoveHttpResponseTrailer(key string) types.Status
-	SetHttpResponseTrailer(key, value string) types.Status
-	AddHttpResponseTrailer(key, value string) types.Status
+	GetHttpResponseTrailers() ([][2]string, error)
+	SetHttpResponseTrailers(headers [][2]string) error
+	GetHttpResponseTrailer(key string) (string, error)
+	RemoveHttpResponseTrailer(key string) error
+	SetHttpResponseTrailer(key, value string) error
+	AddHttpResponseTrailer(key, value string) error
 
-	ResumeHttpResponse() types.Status
+	ResumeHttpResponse() error
 
-	SendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status
+	SendHttpResponse(statusCode uint32, headers [][2]string, body string) error
 	OnLog()
 }
 
@@ -126,23 +126,27 @@ func (d *DefaultContext) GetCurrentTime() int64 {
 
 // impl Context
 func (d *DefaultContext) DispatchHttpCall(upstream string,
-	headers [][2]string, body string, trailers [][2]string, timeoutMillisecond uint32) (uint32, types.Status) {
-	return dispatchHttpCall(upstream, headers, body, trailers, timeoutMillisecond)
+	headers [][2]string, body string, trailers [][2]string, timeoutMillisecond uint32) (uint32, error) {
+	ret, st := dispatchHttpCall(upstream, headers, body, trailers, timeoutMillisecond)
+	return ret, types.StatusToError(st)
 }
 
 // impl Context
-func (d *DefaultContext) GetHttpCallResponseHeaders() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpCallResponseHeaders)
+func (d *DefaultContext) GetHttpCallResponseHeaders() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpCallResponseHeaders)
+	return ret, types.StatusToError(st)
 }
 
 // impl Context
-func (d *DefaultContext) GetHttpCallResponseBody(start, maxSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypeHttpCallResponseBody, start, maxSize)
+func (d *DefaultContext) GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeHttpCallResponseBody, start, maxSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl Context
-func (d *DefaultContext) GetHttpCallResponseTrailers() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpCallResponseTrailers)
+func (d *DefaultContext) GetHttpCallResponseTrailers() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpCallResponseTrailers)
+	return ret, types.StatusToError(st)
 }
 
 // impl Context
@@ -160,7 +164,7 @@ func (d *DefaultContext) Done() {
 	case types.StatusOk:
 		return
 	default:
-		panic("unexpected status: " + strconv.FormatUint(uint64(st), 10))
+		panic("unexpected status on proxy_done: " + strconv.FormatUint(uint64(st), 10))
 	}
 }
 
@@ -178,13 +182,14 @@ func (d *DefaultContext) OnConfigure(_ int) bool {
 }
 
 // impl RootContext
-func (d *DefaultContext) GetPluginConfiguration(dataSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypePluginConfiguration, 0, dataSize)
+func (d *DefaultContext) GetPluginConfiguration(dataSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, dataSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl RootContext
-func (d *DefaultContext) SetTickPeriod(milliSec uint32) types.Status {
-	return setTickPeriodMilliSeconds(milliSec)
+func (d *DefaultContext) SetTickPeriod(milliSec uint32) error {
+	return types.StatusToError(setTickPeriodMilliSeconds(milliSec))
 }
 
 // impl RootContext
@@ -204,8 +209,9 @@ func (d *DefaultContext) OnDownstreamData(dataSize int, endOfStream bool) types.
 }
 
 // impl StreamContext
-func (d *DefaultContext) GetDownStreamData(start, maxSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypeDownstreamData, start, maxSize)
+func (d *DefaultContext) GetDownStreamData(start, maxSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl StreamContext
@@ -217,8 +223,9 @@ func (d *DefaultContext) OnUpstreamData(_ int, _ bool) types.Action {
 }
 
 // impl StreamContext
-func (d *DefaultContext) GetUpstreamData(start, maxSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypeUpstreamData, start, maxSize)
+func (d *DefaultContext) GetUpstreamData(start, maxSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl StreamContext
@@ -230,33 +237,35 @@ func (d *DefaultContext) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpRequestHeaders() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpRequestHeaders)
+func (d *DefaultContext) GetHttpRequestHeaders() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpRequestHeaders)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpRequestHeaders(headers [][2]string) types.Status {
-	return setMap(types.MapTypeHttpRequestHeaders, headers)
+func (d *DefaultContext) SetHttpRequestHeaders(headers [][2]string) error {
+	return types.StatusToError(setMap(types.MapTypeHttpRequestHeaders, headers))
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpRequestHeader(key string) (string, types.Status) {
-	return getMapValue(types.MapTypeHttpRequestHeaders, key)
+func (d *DefaultContext) GetHttpRequestHeader(key string) (string, error) {
+	ret, st := getMapValue(types.MapTypeHttpRequestHeaders, key)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) RemoveHttpRequestHeader(key string) types.Status {
-	return removeMapValue(types.MapTypeHttpRequestHeaders, key)
+func (d *DefaultContext) RemoveHttpRequestHeader(key string) error {
+	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestHeaders, key))
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpRequestHeader(key, value string) types.Status {
-	return setMapValue(types.MapTypeHttpRequestHeaders, key, value)
+func (d *DefaultContext) SetHttpRequestHeader(key, value string) error {
+	return types.StatusToError(setMapValue(types.MapTypeHttpRequestHeaders, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) AddHttpRequestHeader(key, value string) types.Status {
-	return addMapValue(types.MapTypeHttpRequestHeaders, key, value)
+func (d *DefaultContext) AddHttpRequestHeader(key, value string) error {
+	return types.StatusToError(addMapValue(types.MapTypeHttpRequestHeaders, key, value))
 }
 
 // impl HttpContext
@@ -265,8 +274,9 @@ func (d *DefaultContext) OnHttpRequestBody(_ int, _ bool) types.Action {
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpRequestBody(start, maxSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypeHttpRequestBody, start, maxSize)
+func (d *DefaultContext) GetHttpRequestBody(start, maxSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeHttpRequestBody, start, maxSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
@@ -275,38 +285,40 @@ func (d *DefaultContext) OnHttpRequestTrailers(numTrailers int) types.Action {
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpRequestTrailers() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpRequestTrailers)
+func (d *DefaultContext) GetHttpRequestTrailers() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpRequestTrailers)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpRequestTrailers(headers [][2]string) types.Status {
-	return setMap(types.MapTypeHttpRequestTrailers, headers)
+func (d *DefaultContext) SetHttpRequestTrailers(headers [][2]string) error {
+	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, headers))
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpRequestTrailer(key string) (string, types.Status) {
-	return getMapValue(types.MapTypeHttpRequestTrailers, key)
+func (d *DefaultContext) GetHttpRequestTrailer(key string) (string, error) {
+	ret, st := getMapValue(types.MapTypeHttpRequestTrailers, key)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) RemoveHttpRequestTrailer(key string) types.Status {
-	return removeMapValue(types.MapTypeHttpRequestTrailers, key)
+func (d *DefaultContext) RemoveHttpRequestTrailer(key string) error {
+	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestTrailers, key))
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpRequestTrailer(key, value string) types.Status {
-	return setMapValue(types.MapTypeHttpRequestTrailers, key, value)
+func (d *DefaultContext) SetHttpRequestTrailer(key, value string) error {
+	return types.StatusToError(setMapValue(types.MapTypeHttpRequestTrailers, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) AddHttpRequestTrailer(key, value string) types.Status {
-	return addMapValue(types.MapTypeHttpRequestTrailers, key, value)
+func (d *DefaultContext) AddHttpRequestTrailer(key, value string) error {
+	return types.StatusToError(addMapValue(types.MapTypeHttpRequestTrailers, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) ResumeHttpRequest() types.Status {
-	return hostcall.ProxyContinueStream(types.StreamTypeRequest)
+func (d *DefaultContext) ResumeHttpRequest() error {
+	return types.StatusToError(hostcall.ProxyContinueStream(types.StreamTypeRequest))
 }
 
 // impl HttpContext
@@ -315,33 +327,35 @@ func (d *DefaultContext) OnHttpResponseHeaders(_ int, _ bool) types.Action {
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpResponseHeaders() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpResponseHeaders)
+func (d *DefaultContext) GetHttpResponseHeaders() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpResponseHeaders)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpResponseHeaders(headers [][2]string) types.Status {
-	return setMap(types.MapTypeHttpResponseHeaders, headers)
+func (d *DefaultContext) SetHttpResponseHeaders(headers [][2]string) error {
+	return types.StatusToError(setMap(types.MapTypeHttpResponseHeaders, headers))
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpResponseHeader(key string) (string, types.Status) {
-	return getMapValue(types.MapTypeHttpResponseHeaders, key)
+func (d *DefaultContext) GetHttpResponseHeader(key string) (string, error) {
+	ret, st := getMapValue(types.MapTypeHttpResponseHeaders, key)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) RemoveHttpResponseHeader(key string) types.Status {
-	return removeMapValue(types.MapTypeHttpResponseHeaders, key)
+func (d *DefaultContext) RemoveHttpResponseHeader(key string) error {
+	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseHeaders, key))
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpResponseHeader(key, value string) types.Status {
-	return setMapValue(types.MapTypeHttpResponseHeaders, key, value)
+func (d *DefaultContext) SetHttpResponseHeader(key, value string) error {
+	return types.StatusToError(setMapValue(types.MapTypeHttpResponseHeaders, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) AddHttpResponseHeader(key, value string) types.Status {
-	return addMapValue(types.MapTypeHttpResponseHeaders, key, value)
+func (d *DefaultContext) AddHttpResponseHeader(key, value string) error {
+	return types.StatusToError(addMapValue(types.MapTypeHttpResponseHeaders, key, value))
 }
 
 // impl HttpContext
@@ -350,8 +364,9 @@ func (d *DefaultContext) OnHttpResponseBody(size int, endOfStream bool) types.Ac
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpResponseBody(start, maxSize int) ([]byte, types.Status) {
-	return getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
+func (d *DefaultContext) GetHttpResponseBody(start, maxSize int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
@@ -360,42 +375,43 @@ func (d *DefaultContext) OnHttpResponseTrailers(numTrailers int) types.Action {
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpResponseTrailers() ([][2]string, types.Status) {
-	return getMap(types.MapTypeHttpResponseTrailers)
-
+func (d *DefaultContext) GetHttpResponseTrailers() ([][2]string, error) {
+	ret, st := getMap(types.MapTypeHttpResponseTrailers)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpResponseTrailers(headers [][2]string) types.Status {
-	return setMap(types.MapTypeHttpResponseTrailers, headers)
+func (d *DefaultContext) SetHttpResponseTrailers(headers [][2]string) error {
+	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, headers))
 }
 
 // impl HttpContext
-func (d *DefaultContext) GetHttpResponseTrailer(key string) (string, types.Status) {
-	return getMapValue(types.MapTypeHttpResponseTrailers, key)
+func (d *DefaultContext) GetHttpResponseTrailer(key string) (string, error) {
+	ret, st := getMapValue(types.MapTypeHttpResponseTrailers, key)
+	return ret, types.StatusToError(st)
 }
 
 // impl HttpContext
-func (d *DefaultContext) RemoveHttpResponseTrailer(key string) types.Status {
-	return removeMapValue(types.MapTypeHttpResponseTrailers, key)
+func (d *DefaultContext) RemoveHttpResponseTrailer(key string) error {
+	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseTrailers, key))
 }
 
 // impl HttpContext
-func (d *DefaultContext) SetHttpResponseTrailer(key, value string) types.Status {
-	return setMapValue(types.MapTypeHttpResponseTrailers, key, value)
+func (d *DefaultContext) SetHttpResponseTrailer(key, value string) error {
+	return types.StatusToError(setMapValue(types.MapTypeHttpResponseTrailers, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) AddHttpResponseTrailer(key, value string) types.Status {
-	return addMapValue(types.MapTypeHttpResponseTrailers, key, value)
+func (d *DefaultContext) AddHttpResponseTrailer(key, value string) error {
+	return types.StatusToError(addMapValue(types.MapTypeHttpResponseTrailers, key, value))
 }
 
 // impl HttpContext
-func (d *DefaultContext) ResumeHttpResponse() types.Status {
-	return hostcall.ProxyContinueStream(types.StreamTypeResponse)
+func (d *DefaultContext) ResumeHttpResponse() error {
+	return types.StatusToError(hostcall.ProxyContinueStream(types.StreamTypeResponse))
 }
 
 // impl HttpContext
-func (d *DefaultContext) SendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status {
-	return sendHttpResponse(statusCode, headers, body)
+func (d *DefaultContext) SendHttpResponse(statusCode uint32, headers [][2]string, body string) error {
+	return types.StatusToError(sendHttpResponse(statusCode, headers, body))
 }

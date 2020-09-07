@@ -24,24 +24,27 @@ func newContext(contextID uint32) runtime.HttpContext {
 
 // override default
 func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
-	hs, st := ctx.GetHttpRequestHeaders()
-	if st != types.StatusOk {
-		runtime.LogCritical("failed to get request headers")
+	hs, err := ctx.GetHttpRequestHeaders()
+	if err != nil {
+		runtime.LogCritical("failed to get request headers: " + err.Error())
 		return types.ActionContinue
 	}
 	for _, h := range hs {
 		runtime.LogInfo("request header: " + h[0] + ": " + h[1])
 	}
 
-	ctx.DispatchHttpCall("httpbin", hs, "", [][2]string{}, 50000)
+	if _, err := ctx.DispatchHttpCall(
+		"httpbin", hs, "", [][2]string{}, 50000); err != nil {
+		runtime.LogCritical("dipatch httpcall failed: " + err.Error())
+	}
 	return types.ActionPause
 }
 
 // override default
 func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
-	b, st := ctx.GetHttpCallResponseBody(0, bodySize)
-	if st != types.StatusOk {
-		runtime.LogCritical("failed to get response body")
+	b, err := ctx.GetHttpCallResponseBody(0, bodySize)
+	if err != nil {
+		runtime.LogCritical("failed to get response body: " + err.Error())
 		ctx.ResumeHttpRequest()
 		return
 	}
