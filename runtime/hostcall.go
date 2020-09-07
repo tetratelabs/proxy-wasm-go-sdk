@@ -42,7 +42,7 @@ func HostCallSendHttpResponse(statusCode uint32, headers [][2]string, body strin
 	)
 }
 
-func HostCallSetEffectiveContext(contextID uint32) types.Status {
+func hostCallSetEffectiveContext(contextID uint32) types.Status {
 	return rawhostcall.ProxySetEffectiveContext(contextID)
 }
 
