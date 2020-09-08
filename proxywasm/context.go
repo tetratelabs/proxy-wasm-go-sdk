@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 type Context interface {
@@ -76,7 +76,7 @@ func (d *DefaultContext) OnVMStart(int) bool   { return true }
 
 // impl StreamContext
 func (d *DefaultContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
-func (d *DefaultContext) OnDownStreamClose(_ types.PeerType)      {}
+func (d *DefaultContext) OnDownStreamClose(types.PeerType)        {}
 func (d *DefaultContext) OnNewConnection() types.Action           { return types.ActionContinue }
 func (d *DefaultContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
 func (d *DefaultContext) OnUpstreamStreamClose(types.PeerType)    {}

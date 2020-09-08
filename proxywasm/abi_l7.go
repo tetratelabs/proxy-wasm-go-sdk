@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 //export proxy_on_request_headers

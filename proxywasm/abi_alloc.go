@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !test
+package proxywasm
 
-package runtime
-
-//export proxy_abi_version_0_1_0
-func proxyABIVersion010() {}
+//export malloc
+func malloc(size uint) *byte {
+	buf := make([]byte, size)
+	return &buf[0]
+}

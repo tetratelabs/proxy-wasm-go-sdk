@@ -12,14 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+// +build proxytest
 
-//export proxy_on_tick
-func proxyOnTick(rootContextID uint32) {
-	ctx, ok := currentState.rootContexts[rootContextID]
-	if !ok {
-		panic("invalid root_context_id")
-	}
-	currentState.setActiveContextID(rootContextID)
-	ctx.OnTick()
+// since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
+// we have to have separated functions for converting bytes
+
+package proxywasm
+
+import (
+	"reflect"
+	"unsafe"
+)
+
+func rawBytePtrToString(raw *byte, size int) string {
+	return *(*string)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(raw)),
+		Len:  size,
+		Cap:  size,
+	}))
+}
+
+func rawBytePtrToByteSlice(raw *byte, size int) []byte {
+	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(raw)),
+		Len:  size,
+		Cap:  size,
+	}))
 }

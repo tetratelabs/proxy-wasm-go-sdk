@@ -12,24 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+package proxywasm
 
-//export proxy_on_vm_start
-func proxyOnVMStart(rootContextID uint32, vmConfigurationSize int) bool {
+//export proxy_on_tick
+func proxyOnTick(rootContextID uint32) {
 	ctx, ok := currentState.rootContexts[rootContextID]
 	if !ok {
-		panic("invalid context on proxy_on_vm_start")
+		panic("invalid root_context_id")
 	}
 	currentState.setActiveContextID(rootContextID)
-	return ctx.OnVMStart(vmConfigurationSize)
-}
-
-//export proxy_on_configure
-func proxyOnConfigure(rootContextID uint32, pluginConfigurationSize int) bool {
-	ctx, ok := currentState.rootContexts[rootContextID]
-	if !ok {
-		panic("invalid context on proxy_on_configure")
-	}
-	currentState.setActiveContextID(rootContextID)
-	return ctx.OnConfigure(pluginConfigurationSize)
+	ctx.OnTick()
 }
