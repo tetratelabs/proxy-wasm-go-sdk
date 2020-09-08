@@ -34,7 +34,7 @@ func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statu
 	bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status
 
 //export proxy_get_shared_data
-func ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *byte, returnCas *uint32) types.Status
+func ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status
 
 //export proxy_set_shared_data
 func ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) types.Status

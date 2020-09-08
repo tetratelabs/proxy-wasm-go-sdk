@@ -23,7 +23,7 @@ var queueID uint32
 
 // override
 func (ctx *queue) OnVMStart(_ int) bool {
-	qID, err := runtime.HostCallProxyRegisterSharedQueue(queueName)
+	qID, err := runtime.HostCallRegisterSharedQueue(queueName)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -45,7 +45,7 @@ func (ctx *queue) OnQueueReady(queueID uint32) {
 // override
 func (ctx *queue) OnHttpRequestHeaders(int, bool) types.Action {
 	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
-		if err := runtime.HostCallProxyEnqueueSharedQueue(queueID, []byte(msg)); err != nil {
+		if err := runtime.HostCallEnqueueSharedQueue(queueID, []byte(msg)); err != nil {
 			runtime.LogCritical("error queueing: " + err.Error())
 		}
 	}
@@ -54,7 +54,7 @@ func (ctx *queue) OnHttpRequestHeaders(int, bool) types.Action {
 
 // override
 func (ctx *queue) OnTick() {
-	data, err := runtime.HostCallProxyDequeueSharedQueue(queueID)
+	data, err := runtime.HostCallDequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:
 		return
