@@ -22,7 +22,7 @@ type metrics struct{ runtime.DefaultContext }
 func (ctx *metrics) OnVMStart(_ int) bool {
 	ct, err := runtime.HostCallDefineMetric(types.MetricTypeCounter, metricsName)
 	if err != nil {
-		panic("error defining metrics: " + err.Error())
+		runtime.LogCritical("error defining metrics: ", err.Error())
 	}
 	counter = ct
 	return true
@@ -32,13 +32,13 @@ func (ctx *metrics) OnVMStart(_ int) bool {
 func (ctx *metrics) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 	prev, err := counter.GetMetric()
 	if err != nil {
-		panic("error retrieving previous metric: " + err.Error())
+		runtime.LogCritical("error retrieving previous metric: ", err.Error())
 	}
 
-	runtime.LogInfo("previous value of " + metricsName + ": " + strconv.Itoa(int(prev)))
+	runtime.LogInfo("previous value of ", metricsName+": ", strconv.Itoa(int(prev)))
 
 	if err := counter.Increment(1); err != nil {
-		panic("error incrementing metrics" + err.Error())
+		runtime.LogCritical("error incrementing metrics", err.Error())
 	}
 	runtime.LogInfo("incremented")
 	return types.ActionContinue
