@@ -8,7 +8,7 @@ import (
 var (
 	ErrorStatusNotFound    = errors.New("not found")
 	ErrorStatusBadArgument = errors.New("bad argument")
-	ErrorStatusEmpty       = errors.New("emtpy")
+	ErrorStatusEmpty       = errors.New("empty")
 	ErrorStatusCasMismatch = errors.New("cas mismatch")
 	ErrorInternalFailure   = errors.New("internal failure")
 )
