@@ -71,7 +71,7 @@ func HostCallDispatchHttpCall(upstream string,
 	u := []byte(upstream)
 	switch st := rawhostcall.ProxyHttpCall(&u[0], len(u),
 		hp, hl, stringToBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
-	case types.StatusOk:
+	case types.StatusOK:
 		currentState.registerCallout(calloutID)
 		return calloutID, nil
 	default:
@@ -96,7 +96,7 @@ func HostCallGetHttpCallResponseTrailers() ([][2]string, error) {
 
 func HostCallDone() {
 	switch st := rawhostcall.ProxyDone(); st {
-	case types.StatusOk:
+	case types.StatusOK:
 		return
 	default:
 		panic("unexpected status on proxy_done: " + strconv.FormatUint(uint64(st), 10))
@@ -235,6 +235,35 @@ func HostCallResumeHttpResponse() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeResponse))
 }
 
+func HostCallProxyRegisterSharedQueue(name string) (uint32, error) {
+	var queueID uint32
+	ptr := unsafeGetStringBytePtr(name)
+	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
+	return queueID, types.StatusToError(st)
+}
+
+// TODO: not sure if the ABI is correct
+func HostCallProxyResolveSharedQueue(vmID, queueName string) (uint32, error) {
+	var ret uint32
+	st := rawhostcall.ProxyResolveSharedQueue(stringToBytePtr(vmID),
+		len(vmID), stringToBytePtr(queueName), len(queueName), &ret)
+	return ret, types.StatusToError(st)
+}
+
+func HostCallProxyDequeueSharedQueue(queueID uint32) ([]byte, error) {
+	var raw *byte
+	var size int
+	st := rawhostcall.ProxyDequeueSharedQueue(queueID, &raw, &size)
+	if st != types.StatusOK {
+		return nil, types.StatusToError(st)
+	}
+	return rawBytePtrToByteSlice(raw, size), nil
+}
+
+func HostCallProxyEnqueueSharedQueue(queueID uint32, data []byte) error {
+	return types.StatusToError(rawhostcall.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+}
+
 func setMap(mapType types.MapType, headers [][2]string) types.Status {
 	shs := serializeMap(headers)
 	hp := &shs[0]
@@ -245,12 +274,12 @@ func setMap(mapType types.MapType, headers [][2]string) types.Status {
 func getMapValue(mapType types.MapType, key string) (string, types.Status) {
 	var rvs int
 	var raw *byte
-	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, stringToBytePtr(key), len(key), &raw, &rvs); st != types.StatusOk {
+	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, stringToBytePtr(key), len(key), &raw, &rvs); st != types.StatusOK {
 		return "", st
 	}
 
 	ret := rawBytePtrToString(raw, rvs)
-	return ret, types.StatusOk
+	return ret, types.StatusOK
 }
 
 func removeMapValue(mapType types.MapType, key string) types.Status {
@@ -270,19 +299,19 @@ func getMap(mapType types.MapType) ([][2]string, types.Status) {
 	var raw *byte
 
 	st := rawhostcall.ProxyGetHeaderMapPairs(mapType, &raw, &rvs)
-	if st != types.StatusOk {
+	if st != types.StatusOK {
 		return nil, st
 	}
 
 	bs := rawBytePtrToByteSlice(raw, rvs)
-	return deserializeMap(bs), types.StatusOk
+	return deserializeMap(bs), types.StatusOK
 }
 
 func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Status) {
 	var retData *byte
 	var retSize int
 	switch st := rawhostcall.ProxyGetBufferBytes(bufType, start, maxSize, &retData, &retSize); st {
-	case types.StatusOk:
+	case types.StatusOK:
 		// is this correct handling...?
 		if retData == nil {
 			return nil, types.StatusNotFound

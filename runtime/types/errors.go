@@ -15,7 +15,7 @@ var (
 
 func StatusToError(status Status) error {
 	switch status {
-	case StatusOk:
+	case StatusOK:
 		return nil
 	case StatusNotFound:
 		return ErrorStatusNotFound

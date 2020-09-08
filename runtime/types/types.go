@@ -43,7 +43,7 @@ const (
 type Status uint32
 
 const (
-	StatusOk              Status = 0
+	StatusOK              Status = 0
 	StatusNotFound        Status = 1
 	StatusBadArgument     Status = 2
 	StatusEmpty           Status = 7
