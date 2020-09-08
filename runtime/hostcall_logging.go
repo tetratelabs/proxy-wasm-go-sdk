@@ -15,30 +15,38 @@
 package runtime
 
 import (
+	"strings"
+
 	"github.com/mathetake/proxy-wasm-go/runtime/rawhostcall"
 	"github.com/mathetake/proxy-wasm-go/runtime/types"
 )
 
-func LogTrace(msg string) {
+func LogTrace(msgs ...string) {
+	msg := strings.Join(msgs, "")
 	rawhostcall.ProxyLog(types.LogLevelTrace, unsafeGetStringBytePtr(msg), len(msg))
 }
 
-func LogDebug(msg string) {
+func LogDebug(msgs ...string) {
+	msg := strings.Join(msgs, "")
 	rawhostcall.ProxyLog(types.LogLevelDebug, unsafeGetStringBytePtr(msg), len(msg))
 }
 
-func LogInfo(msg string) {
+func LogInfo(msgs ...string) {
+	msg := strings.Join(msgs, "")
 	rawhostcall.ProxyLog(types.LogLevelInfo, unsafeGetStringBytePtr(msg), len(msg))
 }
 
-func LogWarn(msg string) {
+func LogWarn(msgs ...string) {
+	msg := strings.Join(msgs, "")
 	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
 }
 
-func LogError(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+func LogError(msgs ...string) {
+	msg := strings.Join(msgs, "")
+	rawhostcall.ProxyLog(types.LogLevelError, unsafeGetStringBytePtr(msg), len(msg))
 }
 
-func LogCritical(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelWarn, unsafeGetStringBytePtr(msg), len(msg))
+func LogCritical(msgs ...string) {
+	msg := strings.Join(msgs, "")
+	rawhostcall.ProxyLog(types.LogLevelCritical, unsafeGetStringBytePtr(msg), len(msg))
 }

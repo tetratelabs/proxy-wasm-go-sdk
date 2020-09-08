@@ -20,11 +20,11 @@ const sharedDataKey = "shared_data_key"
 func (ctx *data) OnVMStart(vid int) bool {
 	_, cas, err := runtime.HostCallGetSharedData(sharedDataKey)
 	if err != nil {
-		runtime.LogCritical("error getting shared data on OnVMStart: " + err.Error())
+		runtime.LogWarn("error getting shared data on OnVMStart: ", err.Error())
 	}
 
 	if err = runtime.HostCallSetSharedData(sharedDataKey, []byte{0}, cas); err != nil {
-		runtime.LogCritical("error setting shared data on OnVMStart: " + err.Error())
+		runtime.LogWarn("error setting shared data on OnVMStart: ", err.Error())
 	}
 	return true
 }
@@ -33,14 +33,16 @@ func (ctx *data) OnVMStart(vid int) bool {
 func (ctx *data) OnHttpRequestHeaders(int, bool) types.Action {
 	value, cas, err := runtime.HostCallGetSharedData(sharedDataKey)
 	if err != nil {
-		runtime.LogCritical("error getting shared data on OnHttpRequestHeaders: " + err.Error())
+		runtime.LogWarn("error getting shared data on OnHttpRequestHeaders: ", err.Error())
+		return types.ActionContinue
 	}
 
 	value[0]++
 	if err := runtime.HostCallSetSharedData(sharedDataKey, value, cas); err != nil {
-		runtime.LogCritical("error setting shared data on OnHttpRequestHeaders: " + err.Error())
+		runtime.LogWarn("error setting shared data on OnHttpRequestHeaders: ", err.Error())
+		return types.ActionContinue
 	}
 
-	runtime.LogInfo("shared value: " + strconv.Itoa(int(value[0])))
+	runtime.LogInfo("shared value: ", strconv.Itoa(int(value[0])))
 	return types.ActionContinue
 }

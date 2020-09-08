@@ -28,25 +28,25 @@ func (ctx *queue) OnVMStart(_ int) bool {
 		panic(err.Error())
 	}
 	queueID = qID
-	runtime.LogInfo("queue registered, name: " + queueName + ", id: " + strconv.Itoa(int(qID)))
+	runtime.LogInfo("queue registered, name: ", queueName, ", id: ", strconv.Itoa(int(qID)))
 
 	if err := runtime.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		panic("failed to set tick period: " + err.Error())
+		runtime.LogCritical("failed to set tick period: ", err.Error())
 	}
-	runtime.LogInfo("set tick period milliseconds: " + strconv.Itoa(tickMilliseconds))
+	runtime.LogInfo("set tick period milliseconds: ", strconv.Itoa(tickMilliseconds))
 	return true
 }
 
 // override
 func (ctx *queue) OnQueueReady(queueID uint32) {
-	runtime.LogInfo("queue ready: " + strconv.Itoa(int(queueID)))
+	runtime.LogInfo("queue ready: ", strconv.Itoa(int(queueID)))
 }
 
 // override
 func (ctx *queue) OnHttpRequestHeaders(int, bool) types.Action {
 	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
 		if err := runtime.HostCallEnqueueSharedQueue(queueID, []byte(msg)); err != nil {
-			runtime.LogCritical("error queueing: " + err.Error())
+			runtime.LogCritical("error queueing: ", err.Error())
 		}
 	}
 	return types.ActionContinue
@@ -59,8 +59,8 @@ func (ctx *queue) OnTick() {
 	case types.ErrorStatusEmpty:
 		return
 	case nil:
-		runtime.LogInfo("dequed data: " + string(data))
+		runtime.LogInfo("dequed data: ", string(data))
 	default:
-		runtime.LogCritical("error retrieving data from queue " + strconv.Itoa(int(queueID)) + ", " + err.Error())
+		runtime.LogCritical("error retrieving data from queue ", strconv.Itoa(int(queueID)), ", ", err.Error())
 	}
 }

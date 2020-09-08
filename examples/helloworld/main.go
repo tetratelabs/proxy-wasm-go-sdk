@@ -24,7 +24,7 @@ func newHelloWorld(contextID uint32) runtime.RootContext {
 func (ctx *helloWorld) OnVMStart(_ int) bool {
 	runtime.LogInfo("proxy_on_vm_start from Go!")
 	if err := runtime.HostCallSetTickPeriodMilliSeconds(1000); err != nil {
-		runtime.LogCritical("failed to set tick period: " + err.Error())
+		runtime.LogCritical("failed to set tick period: ", err.Error())
 	}
 	return true
 }
@@ -32,7 +32,6 @@ func (ctx *helloWorld) OnVMStart(_ int) bool {
 // override
 func (ctx *helloWorld) OnTick() {
 	t := runtime.HostCallGetCurrentTime()
-	msg := "OnTick on " + strconv.FormatUint(uint64(ctx.contextID), 10)
-	msg += ", it's " + strconv.FormatInt(t, 10)
-	runtime.LogInfo(msg)
+	runtime.LogInfo("OnTick on ", strconv.FormatUint(uint64(ctx.contextID), 10),
+		", it's ", strconv.FormatInt(t, 10))
 }
