@@ -235,7 +235,7 @@ func HostCallResumeHttpResponse() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeResponse))
 }
 
-func HostCallProxyRegisterSharedQueue(name string) (uint32, error) {
+func HostCallRegisterSharedQueue(name string) (uint32, error) {
 	var queueID uint32
 	ptr := unsafeGetStringBytePtr(name)
 	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
@@ -243,14 +243,14 @@ func HostCallProxyRegisterSharedQueue(name string) (uint32, error) {
 }
 
 // TODO: not sure if the ABI is correct
-func HostCallProxyResolveSharedQueue(vmID, queueName string) (uint32, error) {
+func HostCallResolveSharedQueue(vmID, queueName string) (uint32, error) {
 	var ret uint32
 	st := rawhostcall.ProxyResolveSharedQueue(stringToBytePtr(vmID),
 		len(vmID), stringToBytePtr(queueName), len(queueName), &ret)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallProxyDequeueSharedQueue(queueID uint32) ([]byte, error) {
+func HostCallDequeueSharedQueue(queueID uint32) ([]byte, error) {
 	var raw *byte
 	var size int
 	st := rawhostcall.ProxyDequeueSharedQueue(queueID, &raw, &size)
@@ -260,8 +260,25 @@ func HostCallProxyDequeueSharedQueue(queueID uint32) ([]byte, error) {
 	return rawBytePtrToByteSlice(raw, size), nil
 }
 
-func HostCallProxyEnqueueSharedQueue(queueID uint32, data []byte) error {
+func HostCallEnqueueSharedQueue(queueID uint32, data []byte) error {
 	return types.StatusToError(rawhostcall.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+}
+
+func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
+	var raw *byte
+	var size int
+
+	st := rawhostcall.ProxyGetSharedData(stringToBytePtr(key), len(key), &raw, &size, &cas)
+	if st != types.StatusOK {
+		return nil, 0, types.StatusToError(st)
+	}
+	return rawBytePtrToByteSlice(raw, size), cas, nil
+}
+
+func HostCallSetSharedData(key string, data []byte, cas uint32) error {
+	st := rawhostcall.ProxySetSharedData(stringToBytePtr(key),
+		len(key), &data[0], len(data), cas)
+	return types.StatusToError(st)
 }
 
 func setMap(mapType types.MapType, headers [][2]string) types.Status {
