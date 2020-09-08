@@ -1,8 +1,8 @@
-package runtime
+package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go/runtime/rawhostcall"
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/rawhostcall"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 type Metric uint32

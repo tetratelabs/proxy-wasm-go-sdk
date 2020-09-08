@@ -3,43 +3,43 @@ package main
 import (
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/runtime"
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 func main() {
-	runtime.SetNewRootContext(func(uint32) runtime.RootContext { return &metrics{} })
-	runtime.SetNewHttpContext(func(uint32) runtime.HttpContext { return &metrics{} })
+	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return &metrics{} })
+	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return &metrics{} })
 }
 
-var counter runtime.Metric
+var counter proxywasm.Metric
 
 const metricsName = "proxy_wasm_go.request_counter"
 
-type metrics struct{ runtime.DefaultContext }
+type metrics struct{ proxywasm.DefaultContext }
 
 // override
-func (ctx *metrics) OnVMStart(_ int) bool {
-	ct, err := runtime.HostCallDefineMetric(types.MetricTypeCounter, metricsName)
+func (ctx *metrics) OnVMStart(int) bool {
+	ct, err := proxywasm.HostCallDefineMetric(types.MetricTypeCounter, metricsName)
 	if err != nil {
-		runtime.LogCritical("error defining metrics: ", err.Error())
+		proxywasm.LogCritical("error defining metrics: ", err.Error())
 	}
 	counter = ct
 	return true
 }
 
 // override
-func (ctx *metrics) OnHttpRequestHeaders(_ int, _ bool) types.Action {
+func (ctx *metrics) OnHttpRequestHeaders(int, bool) types.Action {
 	prev, err := counter.GetMetric()
 	if err != nil {
-		runtime.LogCritical("error retrieving previous metric: ", err.Error())
+		proxywasm.LogCritical("error retrieving previous metric: ", err.Error())
 	}
 
-	runtime.LogInfo("previous value of ", metricsName+": ", strconv.Itoa(int(prev)))
+	proxywasm.LogInfo("previous value of ", metricsName+": ", strconv.Itoa(int(prev)))
 
 	if err := counter.Increment(1); err != nil {
-		runtime.LogCritical("error incrementing metrics", err.Error())
+		proxywasm.LogCritical("error incrementing metrics", err.Error())
 	}
-	runtime.LogInfo("incremented")
+	proxywasm.LogInfo("incremented")
 	return types.ActionContinue
 }

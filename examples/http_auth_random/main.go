@@ -4,38 +4,38 @@ import (
 	"hash/fnv"
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/runtime"
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 func main() {
-	runtime.SetNewHttpContext(newContext)
+	proxywasm.SetNewHttpContext(newContext)
 }
 
 type httpHeaders struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
-	runtime.DefaultContext
+	proxywasm.DefaultContext
 	contextID uint32
 }
 
-func newContext(contextID uint32) runtime.HttpContext {
+func newContext(contextID uint32) proxywasm.HttpContext {
 	return &httpHeaders{contextID: contextID}
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
-	hs, err := runtime.HostCallGetHttpRequestHeaders()
+func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
+	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
 	if err != nil {
-		runtime.LogCritical("failed to get request headers: ", err.Error())
+		proxywasm.LogCritical("failed to get request headers: ", err.Error())
 		return types.ActionContinue
 	}
 	for _, h := range hs {
-		runtime.LogInfo("request header: ", h[0]+": ", h[1])
+		proxywasm.LogInfo("request header: ", h[0]+": ", h[1])
 	}
 
-	if _, err := runtime.HostCallDispatchHttpCall(
+	if _, err := proxywasm.HostCallDispatchHttpCall(
 		"httpbin", hs, "", [][2]string{}, 50000); err != nil {
-		runtime.LogCritical("dipatch httpcall failed: ", err.Error())
+		proxywasm.LogCritical("dipatch httpcall failed: ", err.Error())
 	}
 
 	return types.ActionPause
@@ -43,34 +43,34 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 
 // override default
 func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
-	b, err := runtime.HostCallGetHttpCallResponseBody(0, bodySize)
+	b, err := proxywasm.HostCallGetHttpCallResponseBody(0, bodySize)
 	if err != nil {
-		runtime.LogCritical("failed to get response body: ", err.Error())
-		runtime.HostCallResumeHttpRequest()
+		proxywasm.LogCritical("failed to get response body: ", err.Error())
+		proxywasm.HostCallResumeHttpRequest()
 		return
 	}
 
 	s := fnv.New32a()
 	if _, err := s.Write(b); err != nil {
-		runtime.LogCritical("failed to calculate hash: ", err.Error())
-		runtime.HostCallResumeHttpRequest()
+		proxywasm.LogCritical("failed to calculate hash: ", err.Error())
+		proxywasm.HostCallResumeHttpRequest()
 		return
 	}
 
 	if s.Sum32()%2 == 0 {
-		runtime.LogInfo("access granted")
-		runtime.HostCallResumeHttpRequest()
+		proxywasm.LogInfo("access granted")
+		proxywasm.HostCallResumeHttpRequest()
 		return
 	}
 
 	msg := "access forbidden"
-	runtime.LogInfo(msg)
-	runtime.HostCallSendHttpResponse(403, [][2]string{
+	proxywasm.LogInfo(msg)
+	proxywasm.HostCallSendHttpResponse(403, [][2]string{
 		{"powered-by", "proxy-wasm-go!!"},
 	}, msg)
 }
 
 // override default
 func (ctx *httpHeaders) OnLog() {
-	runtime.LogInfo(strconv.FormatUint(uint64(ctx.contextID), 10), " finished")
+	proxywasm.LogInfo(strconv.FormatUint(uint64(ctx.contextID), 10), " finished")
 }

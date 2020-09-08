@@ -1,33 +1,32 @@
 package main
 
 import (
-	"github.com/mathetake/proxy-wasm-go/runtime"
+	"github.com/mathetake/proxy-wasm-go/proxywasm"
 )
 
 func main() {
-	runtime.SetNewRootContext(func(uint32) runtime.RootContext { return &context{} })
-	runtime.SetNewHttpContext(func(uint32) runtime.HttpContext { return &context{} })
+	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return &context{} })
 }
 
-type context struct{ runtime.DefaultContext }
+type context struct{ proxywasm.DefaultContext }
 
 // override
 func (ctx *context) OnVMStart(vmConfigurationSize int) bool {
-	data, err := runtime.HostCallGetVMConfiguration(vmConfigurationSize)
+	data, err := proxywasm.HostCallGetVMConfiguration(vmConfigurationSize)
 	if err != nil {
-		runtime.LogCritical("error reading vm configuration", err.Error())
+		proxywasm.LogCritical("error reading vm configuration", err.Error())
 	}
 
-	runtime.LogInfo("vm config: \n", string(data))
+	proxywasm.LogInfo("vm config: \n", string(data))
 	return true
 }
 
 func (ctx *context) OnConfigure(pluginConfigurationSize int) bool {
-	data, err := runtime.HostCallGetPluginConfiguration(pluginConfigurationSize)
+	data, err := proxywasm.HostCallGetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
-		runtime.LogCritical("error reading plugin configuration", err.Error())
+		proxywasm.LogCritical("error reading plugin configuration", err.Error())
 	}
 
-	runtime.LogInfo("plugin config: \n", string(data))
+	proxywasm.LogInfo("plugin config: \n", string(data))
 	return true
 }

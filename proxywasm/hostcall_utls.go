@@ -1,4 +1,4 @@
-package runtime
+package proxywasm
 
 import (
 	"reflect"

@@ -17,7 +17,7 @@
 // since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
 // we have to have separated functions for converting bytes
 
-package runtime
+package proxywasm
 
 import (
 	"reflect"

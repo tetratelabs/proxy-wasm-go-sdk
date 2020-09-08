@@ -12,15 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+package proxywasm
 
-//export proxy_on_queue_ready
-func proxyOnQueueReady(contextID, queueID uint32) {
-	ctx, ok := currentState.rootContexts[contextID]
-	if !ok {
-		panic("invalid context")
-	}
-
-	currentState.setActiveContextID(contextID)
-	ctx.OnQueueReady(queueID)
-}
+//export proxy_abi_version_0_1_0
+func proxyABIVersion010() {}

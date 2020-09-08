@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+package proxywasm
 
 import (
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/runtime/rawhostcall"
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/rawhostcall"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 // wrappers on raw runtime/rawhostcall package

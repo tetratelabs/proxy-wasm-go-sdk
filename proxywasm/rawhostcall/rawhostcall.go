@@ -17,7 +17,7 @@
 package rawhostcall
 
 import (
-	"github.com/mathetake/proxy-wasm-go/runtime/types"
+	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
 //export proxy_log
