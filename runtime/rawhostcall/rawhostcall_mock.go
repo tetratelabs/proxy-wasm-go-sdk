@@ -31,10 +31,10 @@ type ProxyWASMHost interface {
 	ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status
 	ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *byte, returnCas *uint32) types.Status
 	ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) types.Status
-	ProxyRegisterSharedQueue(nameData *byte, nameSize uint, returnID *uint32) types.Status
-	ProxyResolveSharedQueue(vmIDData *byte, vmIDSize uint, nameData *byte, nameSize uint, returnID *uint32) types.Status
-	ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *byte) types.Status
-	ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize uint) types.Status
+	ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status
+	ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status
+	ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status
+	ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status
 	ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, returnValueData **byte, returnValueSize *int) types.Status
 	ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, valueData *byte, valueSize int) types.Status
 	ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, valueData *byte, valueSize int) types.Status
@@ -81,19 +81,19 @@ func ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize i
 	return currentHost.ProxySetSharedData(keyData, keySize, valueData, valueSize, cas)
 }
 
-func ProxyRegisterSharedQueue(nameData *byte, nameSize uint, returnID *uint32) types.Status {
+func ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
 	return currentHost.ProxyRegisterSharedQueue(nameData, nameSize, returnID)
 }
 
-func ProxyResolveSharedQueue(vmIDData *byte, vmIDSize uint, nameData *byte, nameSize uint, returnID *uint32) types.Status {
+func ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
 	return currentHost.ProxyResolveSharedQueue(vmIDData, vmIDSize, nameData, nameSize, returnID)
 }
 
-func ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *byte) types.Status {
+func ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status {
 	return currentHost.ProxyDequeueSharedQueue(queueID, returnValueData, returnValueSize)
 }
 
-func ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize uint) types.Status {
+func ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status {
 	return currentHost.ProxyEnqueueSharedQueue(queueID, valueData, valueSize)
 }
 

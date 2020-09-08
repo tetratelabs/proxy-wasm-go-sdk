@@ -37,6 +37,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 		"httpbin", hs, "", [][2]string{}, 50000); err != nil {
 		runtime.LogCritical("dipatch httpcall failed: " + err.Error())
 	}
+
 	return types.ActionPause
 }
 

@@ -40,16 +40,16 @@ func ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, retu
 func ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) types.Status
 
 //export proxy_register_shared_queue
-func ProxyRegisterSharedQueue(nameData *byte, nameSize uint, returnID *uint32) types.Status
+func ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status
 
 //export proxy_resolve_shared_queue
-func ProxyResolveSharedQueue(vmIDData *byte, vmIDSize uint, nameData *byte, nameSize uint, returnID *uint32) types.Status
+func ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status
 
 //export proxy_dequeue_shared_queue
-func ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *byte) types.Status
+func ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status
 
 //export proxy_enqueue_shared_queue
-func ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize uint) types.Status
+func ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status
 
 //export proxy_get_header_map_value
 func ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, returnValueData **byte, returnValueSize *int) types.Status
