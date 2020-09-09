@@ -16,6 +16,7 @@ package proxywasm
 
 import (
 	"encoding/binary"
+	"unsafe"
 )
 
 func deserializeMap(bs []byte) [][2]string {
@@ -32,12 +33,14 @@ func deserializeMap(bs []byte) [][2]string {
 	for i := range ret {
 		keySize := sizes[sizeIndex]
 		sizeIndex++
-		key := string(bs[dataIndex : dataIndex+keySize]) // TODO: zero alloc
+		keyPtr := bs[dataIndex : dataIndex+keySize]
+		key := *(*string)(unsafe.Pointer(&keyPtr))
 		dataIndex += keySize + 1
 
 		valueSize := sizes[sizeIndex]
 		sizeIndex++
-		value := string(bs[dataIndex : dataIndex+valueSize]) // TODO: zero alloc
+		valuePtr := bs[dataIndex : dataIndex+valueSize]
+		value := *(*string)(unsafe.Pointer(&valuePtr))
 		dataIndex += valueSize + 1
 		ret[i] = [2]string{key, value}
 	}
