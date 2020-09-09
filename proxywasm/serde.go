@@ -72,7 +72,7 @@ func serializeMap(ms [][2]string) []byte {
 		}
 		base++ // nil
 
-		for i := 0; i < len([]byte(m[1])); i++ {
+		for i := 0; i < len(m[1]); i++ {
 			ret[base] = m[1][i]
 			base++
 		}
