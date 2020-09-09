@@ -15,7 +15,7 @@
 package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type Context interface {

@@ -16,7 +16,7 @@
 
 package rawhostcall
 
-import "github.com/mathetake/proxy-wasm-go/proxywasm/types"
+import "github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 
 var currentHost ProxyWASMHost
 

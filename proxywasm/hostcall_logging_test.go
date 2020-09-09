@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mathetake/proxy-wasm-go/proxywasm/rawhostcall"
-	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type logHost struct {

@@ -17,8 +17,8 @@ package proxywasm
 import (
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/proxywasm/rawhostcall"
-	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 // wrappers on the rawhostcall package
