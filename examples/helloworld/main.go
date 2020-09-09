@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/proxywasm"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm"
 )
 
 func main() {

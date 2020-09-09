@@ -15,7 +15,7 @@
 package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 //export proxy_on_request_headers
@@ -50,7 +50,7 @@ func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 }
 
 //export proxy_on_response_headers
-func proxyOnHttpResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
+func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
@@ -97,7 +97,7 @@ func proxyOnHttpCallResponse(_, calloutID uint32, numHeaders, bodySize, numTrail
 		hostCallSetEffectiveContext(ctxID)
 		ctx.OnHttpCallResponse(calloutID, numHeaders, bodySize, numTrailers)
 	} else if ctx, ok := currentState.rootContexts[ctxID]; ok {
-		currentState.activeContextID = ctxID
+		currentState.setActiveContextID(ctxID)
 		hostCallSetEffectiveContext(ctxID)
 		ctx.OnHttpCallResponse(calloutID, numHeaders, bodySize, numTrailers)
 	} else {

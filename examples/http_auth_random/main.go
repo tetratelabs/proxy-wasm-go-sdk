@@ -4,8 +4,8 @@ import (
 	"hash/fnv"
 	"strconv"
 
-	"github.com/mathetake/proxy-wasm-go/proxywasm"
-	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 		return types.ActionContinue
 	}
 	for _, h := range hs {
-		proxywasm.LogInfo("request header: ", h[0]+": ", h[1])
+		proxywasm.LogInfo("request header: ", h[0], ": ", h[1])
 	}
 
 	if _, err := proxywasm.HostCallDispatchHttpCall(
@@ -66,7 +66,7 @@ func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int)
 	msg := "access forbidden"
 	proxywasm.LogInfo(msg)
 	proxywasm.HostCallSendHttpResponse(403, [][2]string{
-		{"powered-by", "proxy-wasm-go!!"},
+		{"powered-by", "proxy-wasm-go-sdk!!"},
 	}, msg)
 }
 

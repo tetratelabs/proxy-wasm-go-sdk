@@ -39,7 +39,7 @@ $ curl localhost:18000/uuid -v
 < HTTP/1.1 403 Forbidden
 < content-length: 16
 < content-type: text/plain
-< powered-by: proxy-wasm-go!!
+< powered-by: proxy-wasm-go-sdk!!
 < date: Wed, 25 Mar 2020 09:07:36 GMT
 < server: envoy
 <

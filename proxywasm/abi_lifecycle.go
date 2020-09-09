@@ -23,7 +23,7 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 	} else if currentState.newStreamContext != nil {
 		currentState.createStreamContext(contextID, rootContextID)
 	} else {
-		panic("proxy_on_context_create failed")
+		panic("invalid context id on proxy_on_context_create")
 	}
 }
 

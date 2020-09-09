@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mathetake/proxy-wasm-go/proxywasm"
+	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm"
 )
 
 func main() {
