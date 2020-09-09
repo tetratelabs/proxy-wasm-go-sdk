@@ -56,27 +56,27 @@ func (s *state) createRootContext(contextID uint32) {
 }
 
 func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
-	if _, ok := currentState.rootContexts[rootContextID]; !ok {
+	if _, ok := s.rootContexts[rootContextID]; !ok {
 		panic("invalid root context id")
 	}
 
-	if _, ok := currentState.streamContexts[contextID]; ok {
+	if _, ok := s.streamContexts[contextID]; ok {
 		panic("context id duplicated")
 	}
 
-	currentState.streamContexts[contextID] = currentState.newStreamContext(contextID)
+	s.streamContexts[contextID] = s.newStreamContext(contextID)
 }
 
 func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
-	if _, ok := currentState.rootContexts[rootContextID]; !ok {
+	if _, ok := s.rootContexts[rootContextID]; !ok {
 		panic("invalid root context id")
 	}
 
-	if _, ok := currentState.httpContexts[contextID]; ok {
+	if _, ok := s.httpContexts[contextID]; ok {
 		panic("context id duplicated")
 	}
 
-	currentState.httpContexts[contextID] = currentState.newHttpContext(contextID)
+	s.httpContexts[contextID] = s.newHttpContext(contextID)
 }
 
 func (s *state) registerCallout(calloutID uint32) {
@@ -88,5 +88,6 @@ func (s *state) registerCallout(calloutID uint32) {
 }
 
 func (s *state) setActiveContextID(contextID uint32) {
+	// TODO: should we do this inline (possibly for performance?)
 	s.activeContextID = contextID
 }
