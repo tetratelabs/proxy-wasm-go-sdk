@@ -21,7 +21,7 @@ import (
 	"github.com/mathetake/proxy-wasm-go/proxywasm/types"
 )
 
-// wrappers on raw runtime/rawhostcall package
+// wrappers on the rawhostcall package
 
 func HostCallGetPluginConfiguration(dataSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, dataSize)

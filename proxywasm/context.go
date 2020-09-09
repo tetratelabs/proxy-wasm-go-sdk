@@ -21,12 +21,12 @@ import (
 type Context interface {
 	OnDone() bool
 	OnHttpCallResponse(calloutID uint32, numHeaders, bodySize, numTrailers int)
+	OnLog()
 }
 
 type RootContext interface {
 	Context
 	OnConfigure(pluginConfigurationSize int) bool
-	OnLog()
 	OnQueueReady(queueID uint32)
 	OnTick()
 	OnVMStart(vmConfigurationSize int) bool
@@ -36,7 +36,6 @@ type StreamContext interface {
 	Context
 	OnDownstreamData(dataSize int, endOfStream bool) types.Action
 	OnDownStreamClose(peerType types.PeerType)
-	OnLog()
 	OnNewConnection() types.Action
 	OnUpstreamData(dataSize int, endOfStream bool) types.Action
 	OnUpstreamStreamClose(peerType types.PeerType)
@@ -50,7 +49,6 @@ type HttpContext interface {
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action
 	OnHttpResponseBody(bodySize int, endOfStream bool) types.Action
 	OnHttpResponseTrailers(numTrailers int) types.Action
-	OnLog()
 }
 
 type DefaultContext struct{}
@@ -62,11 +60,10 @@ var (
 	_ HttpContext   = &DefaultContext{}
 )
 
-func (d *DefaultContext) OnLog() {}
-
 // impl Context
 func (d *DefaultContext) OnDone() bool                             { return true }
 func (d *DefaultContext) OnHttpCallResponse(uint32, int, int, int) {}
+func (d *DefaultContext) OnLog()                                   {}
 
 // impl RootContext
 func (d *DefaultContext) OnConfigure(int) bool { return true }

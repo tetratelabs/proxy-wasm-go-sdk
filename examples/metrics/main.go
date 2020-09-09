@@ -35,7 +35,7 @@ func (ctx *metrics) OnHttpRequestHeaders(int, bool) types.Action {
 		proxywasm.LogCritical("error retrieving previous metric: ", err.Error())
 	}
 
-	proxywasm.LogInfo("previous value of ", metricsName+": ", strconv.Itoa(int(prev)))
+	proxywasm.LogInfo("previous value of ", metricsName, ": ", strconv.Itoa(int(prev)))
 
 	if err := counter.Increment(1); err != nil {
 		proxywasm.LogCritical("error incrementing metrics", err.Error())

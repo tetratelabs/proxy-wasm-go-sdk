@@ -30,7 +30,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 		return types.ActionContinue
 	}
 	for _, h := range hs {
-		proxywasm.LogInfo("request header: ", h[0]+": ", h[1])
+		proxywasm.LogInfo("request header: ", h[0], ": ", h[1])
 	}
 
 	if _, err := proxywasm.HostCallDispatchHttpCall(
