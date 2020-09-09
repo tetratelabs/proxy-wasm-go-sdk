@@ -1,4 +1,4 @@
-// Copyright 2020 Takeshi Yoneda(@mathetake)
+// Copyright 2020 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package proxywasm
 
 import (
-	"github.com/mathetake/proxy-wasm-go-sdk/proxywasm/types"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 //export proxy_on_request_headers

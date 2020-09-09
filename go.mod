@@ -1,4 +1,4 @@
-module github.com/mathetake/proxy-wasm-go-sdk
+module github.com/tetratelabs/proxy-wasm-go-sdk
 
 go 1.14
 
