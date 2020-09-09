@@ -68,8 +68,8 @@ func HostCallDispatchHttpCall(upstream string,
 
 	var calloutID uint32
 
-	u := []byte(upstream) // TODO: zero copy
-	switch st := rawhostcall.ProxyHttpCall(&u[0], len(u),
+	u := stringBytePtr(upstream)
+	switch st := rawhostcall.ProxyHttpCall(u, len(upstream),
 		hp, hl, stringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
 	case types.StatusOK:
 		currentState.registerCallout(calloutID)

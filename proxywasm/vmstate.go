@@ -88,6 +88,6 @@ func (s *state) registerCallout(calloutID uint32) {
 }
 
 func (s *state) setActiveContextID(contextID uint32) {
-	// TODO: should we do this inline (possibly for performance?)
+	// TODO: should we do this inline (possibly for performance)?
 	s.activeContextID = contextID
 }

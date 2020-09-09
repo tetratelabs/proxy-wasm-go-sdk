@@ -67,8 +67,9 @@ func TestHostCall_Metric(t *testing.T) {
 		map[string]uint32{},
 	}
 	hostMutex.Lock()
-	rawhostcall.RegisterMockWASMHost(host)
 	defer hostMutex.Unlock()
+
+	rawhostcall.RegisterMockWASMHost(host)
 
 	for _, c := range []struct {
 		name   string
