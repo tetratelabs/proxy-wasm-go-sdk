@@ -1,17 +1,13 @@
 package proxywasm
 
 import (
-	"reflect"
 	"unsafe"
 )
 
-func unsafeGetStringBytePtr(msg string) *byte {
-	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&msg))
-
-	// TODO: seems redundant and we should use sliceHeader.Data directly (probably possible)
-	bt := *(*[]byte)(unsafe.Pointer(&reflect.StringHeader{
-		Data: sliceHeader.Data,
-		Len:  sliceHeader.Len,
-	}))
+func stringBytePtr(msg string) *byte {
+	if len(msg) == 0 {
+		return nil
+	}
+	bt := *(*[]byte)(unsafe.Pointer(&msg))
 	return &bt[0]
 }

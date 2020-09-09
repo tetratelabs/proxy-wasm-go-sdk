@@ -9,7 +9,7 @@ type Metric uint32
 
 func HostCallDefineMetric(metricType types.MetricType, name string) (Metric, error) {
 	var id uint32
-	ptr := unsafeGetStringBytePtr(name)
+	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(metricType, ptr, len(name), &id)
 	return Metric(id), types.StatusToError(st)
 }

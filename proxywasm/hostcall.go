@@ -38,7 +38,7 @@ func HostCallSendHttpResponse(statusCode uint32, headers [][2]string, body strin
 	hp := &shs[0]
 	hl := len(shs)
 	return rawhostcall.ProxySendLocalResponse(statusCode, nil, 0,
-		stringToBytePtr(body), len(body), hp, hl, -1,
+		stringBytePtr(body), len(body), hp, hl, -1,
 	)
 }
 
@@ -68,9 +68,9 @@ func HostCallDispatchHttpCall(upstream string,
 
 	var calloutID uint32
 
-	u := []byte(upstream)
+	u := []byte(upstream) // TODO: zero copy
 	switch st := rawhostcall.ProxyHttpCall(&u[0], len(u),
-		hp, hl, stringToBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
+		hp, hl, stringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
 	case types.StatusOK:
 		currentState.registerCallout(calloutID)
 		return calloutID, nil
@@ -237,7 +237,7 @@ func HostCallResumeHttpResponse() error {
 
 func HostCallRegisterSharedQueue(name string) (uint32, error) {
 	var queueID uint32
-	ptr := unsafeGetStringBytePtr(name)
+	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
 	return queueID, types.StatusToError(st)
 }
@@ -245,8 +245,8 @@ func HostCallRegisterSharedQueue(name string) (uint32, error) {
 // TODO: not sure if the ABI is correct
 func HostCallResolveSharedQueue(vmID, queueName string) (uint32, error) {
 	var ret uint32
-	st := rawhostcall.ProxyResolveSharedQueue(stringToBytePtr(vmID),
-		len(vmID), stringToBytePtr(queueName), len(queueName), &ret)
+	st := rawhostcall.ProxyResolveSharedQueue(stringBytePtr(vmID),
+		len(vmID), stringBytePtr(queueName), len(queueName), &ret)
 	return ret, types.StatusToError(st)
 }
 
@@ -268,7 +268,7 @@ func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
 
-	st := rawhostcall.ProxyGetSharedData(stringToBytePtr(key), len(key), &raw, &size, &cas)
+	st := rawhostcall.ProxyGetSharedData(stringBytePtr(key), len(key), &raw, &size, &cas)
 	if st != types.StatusOK {
 		return nil, 0, types.StatusToError(st)
 	}
@@ -276,7 +276,7 @@ func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
 }
 
 func HostCallSetSharedData(key string, data []byte, cas uint32) error {
-	st := rawhostcall.ProxySetSharedData(stringToBytePtr(key),
+	st := rawhostcall.ProxySetSharedData(stringBytePtr(key),
 		len(key), &data[0], len(data), cas)
 	return types.StatusToError(st)
 }
@@ -291,7 +291,7 @@ func setMap(mapType types.MapType, headers [][2]string) types.Status {
 func getMapValue(mapType types.MapType, key string) (string, types.Status) {
 	var rvs int
 	var raw *byte
-	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, stringToBytePtr(key), len(key), &raw, &rvs); st != types.StatusOK {
+	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, stringBytePtr(key), len(key), &raw, &rvs); st != types.StatusOK {
 		return "", st
 	}
 
@@ -300,15 +300,15 @@ func getMapValue(mapType types.MapType, key string) (string, types.Status) {
 }
 
 func removeMapValue(mapType types.MapType, key string) types.Status {
-	return rawhostcall.ProxyRemoveHeaderMapValue(mapType, stringToBytePtr(key), len(key))
+	return rawhostcall.ProxyRemoveHeaderMapValue(mapType, stringBytePtr(key), len(key))
 }
 
 func setMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyReplaceHeaderMapValue(mapType, stringToBytePtr(key), len(key), stringToBytePtr(value), len(value))
+	return rawhostcall.ProxyReplaceHeaderMapValue(mapType, stringBytePtr(key), len(key), stringBytePtr(value), len(value))
 }
 
 func addMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyAddHeaderMapValue(mapType, stringToBytePtr(key), len(key), stringToBytePtr(value), len(value))
+	return rawhostcall.ProxyAddHeaderMapValue(mapType, stringBytePtr(key), len(key), stringBytePtr(value), len(value))
 }
 
 func getMap(mapType types.MapType) ([][2]string, types.Status) {
@@ -337,13 +337,4 @@ func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Stat
 	default:
 		return nil, st
 	}
-}
-
-func stringToBytePtr(in string) *byte {
-	var ret *byte
-	if len(in) > 0 {
-		b := []byte(in)
-		ret = &b[0]
-	}
-	return ret
 }

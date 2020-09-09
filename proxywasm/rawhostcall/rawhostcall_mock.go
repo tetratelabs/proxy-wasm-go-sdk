@@ -55,6 +55,81 @@ type ProxyWASMHost interface {
 	ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status
 }
 
+type DefaultProxyWAMSHost struct{}
+
+var _ ProxyWASMHost = DefaultProxyWAMSHost{}
+
+func (d DefaultProxyWAMSHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) {
+}
+func (d DefaultProxyWAMSHost) ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) {
+}
+func (d DefaultProxyWAMSHost) ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, valueData *byte, valueSize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, valueData *byte, valueSize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyContinueStream(streamType types.StreamType) types.Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyCloseStream(streamType types.StreamType) types.Status    { return 0 }
+func (d DefaultProxyWAMSHost) ProxyRemoveHeaderMapValue(mapType types.MapType, keyData *byte, keySize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetEffectiveContext(contextID uint32) types.Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyDone() types.Status                                { return 0 }
+func (d DefaultProxyWAMSHost) ProxyDefineMetric(metricType types.MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyRecordMetric(metricID uint32, value uint64) types.Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+	return 0
+}
+
 func ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
 	return currentHost.ProxyLog(logLevel, messageData, messageSize)
 }
