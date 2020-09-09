@@ -12,12 +12,12 @@ type configurationContext struct {
 	onVMStartCalled, onConfigureCalled bool
 }
 
-func (c *configurationContext) OnVMStart(vmConfigurationSize int) bool {
+func (c *configurationContext) OnVMStart(_ int) bool {
 	c.onVMStartCalled = true
 	return true
 }
 
-func (c *configurationContext) OnConfigure(pluginConfigurationSize int) bool {
+func (c *configurationContext) OnConfigure(_ int) bool {
 	c.onConfigureCalled = true
 	return true
 }
