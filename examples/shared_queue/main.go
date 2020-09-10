@@ -30,7 +30,7 @@ type queue struct{ proxywasm.DefaultContext }
 
 const (
 	queueName        = "proxy_wasm_go.queue"
-	tickMilliseconds = 1000
+	tickMilliseconds = 100
 )
 
 var queueID uint32

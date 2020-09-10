@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := build.examples
 
-.PHONY: help build.examples lint test test.sdk test.e2e
+.PHONY: help build.example build.examples lint test test.sdk test.e2e
 help:
 	grep -E '^[a-z0-9A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
@@ -20,7 +20,7 @@ test.sdk:
 	go test -tags=proxytest -race -v ./proxywasm/...
 
 test.e2e:
-	go test -tags=proxytest -race -v ./e2e
+	go test -tags=proxytest -v ./e2e
 
 run:
 	getenvoy run wasm:1.15 -- -c ./examples/${name}/envoy.yaml
