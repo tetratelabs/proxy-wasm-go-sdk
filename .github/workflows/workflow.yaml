@@ -1,0 +1,71 @@
+
+name: build-test
+on: push
+
+jobs:
+  sdk-tests:
+    name: sdk tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: set up go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+
+      - name: run tests
+        run: go test -tags=proxytest -v -race ./proxywasm/...
+
+  build-examples:
+    name: build examples
+    runs-on: ubuntu-latest
+    container:
+      image: tinygo/tinygo:0.14.0
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: set up go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+
+      - name: build examples
+        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasm -wasm-abi=generic p
+
+      - name: upload wasm-binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasm-binaries
+          path: examples
+
+  e2e-tests:
+    name: e2e tests on examples
+    needs: build-examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: download wasm-binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: wasm-binaries
+          path: examples
+
+      - name: set up go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+
+      - name: download getenvoy
+        run: curl -L https://getenvoy.io/cli | sudo bash -s -- -b /usr/local/bin
+
+      - name: download envoy
+        run: getenvoy fetch wasm:1.15
+
+      - name: run e2e test
+        run: go test examples/e2e_test.go -v
+
