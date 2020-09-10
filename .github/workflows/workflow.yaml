@@ -12,7 +12,7 @@ jobs:
       - name: run golangci-lint
         uses: docker://golangci/golangci-lint:v1.31.0
         with:
-          args: golangci-lint run --build-tags proxytest
+          args: make lint
 
       - name: set up go 1.14
         uses: actions/setup-go@v1
@@ -20,7 +20,7 @@ jobs:
           go-version: 1.14
 
       - name: run tests
-        run: go test -tags=proxytest -v -race ./proxywasm/...
+        run: make test.sdk
 
   build-examples:
     name: build examples
@@ -71,5 +71,4 @@ jobs:
         run: getenvoy fetch wasm:1.15
 
       - name: run e2e test
-        run: go test examples/e2e_test.go -v
-
+        run: make test.e2e
