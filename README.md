@@ -56,21 +56,25 @@ The target Envoy version is `release/v1.15`
 build:
 
 ```bash
-find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasm -wasm-abi=generic p
+make build.examples # build all examples
+
+make build.example name=helloworld # build a specific example
 ```
 
 run:
 
 ```bash
-getenvoy run wasm:1.15 -- -c ./examples/${name}/envoy.yaml
+make run name=helloworld
 ``` 
 
 ## sdk development
 
-To run tests:
-
 ```bash
-go test -tags=proxytest -v -race ./...
+make test # run all tests
+
+make test.e2e # run e2e tests only
+
+make test.sdk # run sdk test only
 ```
 
 ## language and compiler limitations/considerations
