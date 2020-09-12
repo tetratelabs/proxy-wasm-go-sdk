@@ -67,22 +67,8 @@ func TestE2E_helloworld(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-
-	var onVMLog, onTickOK bool
-	for _, line := range strings.Split(out, "\n") {
-		if strings.Contains(line, "wasm log helloworld: proxy_on_vm_start from Go!") {
-			fmt.Println(line)
-			onVMLog = true
-		}
-
-		if strings.Contains(line, "wasm log helloworld: OnTick on ") {
-			fmt.Println(line)
-			onTickOK = true
-		}
-	}
-
-	assert.True(t, onVMLog)
-	assert.True(t, onTickOK)
+	assert.True(t, strings.Contains(out, "wasm log helloworld: proxy_on_vm_start from Go!"))
+	assert.True(t, strings.Contains(out, "wasm log helloworld: OnTick on "))
 }
 
 func TestE2E_http_auth_random(t *testing.T) {
@@ -106,20 +92,8 @@ func TestE2E_http_auth_random(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	var accessForbidden bool
-	var accessGranted bool
-	for _, line := range strings.Split(out, "\n") {
-		if strings.Contains(line, "access forbidden") {
-			accessForbidden = true
-		}
-
-		if strings.Contains(line, "access granted") {
-			accessGranted = true
-		}
-	}
-
-	assert.True(t, accessForbidden)
-	assert.True(t, accessGranted)
+	assert.True(t, strings.Contains(out, "access forbidden"))
+	assert.True(t, strings.Contains(out, "access granted"))
 }
 
 func TestE2E_http_headers(t *testing.T) {
@@ -141,25 +115,9 @@ func TestE2E_http_headers(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-
-	var keyLogged, valueLogged, responseHeaderLogged bool
-	for _, line := range strings.Split(out, "\n") {
-		if strings.Contains(line, key) {
-			keyLogged = true
-		}
-
-		if strings.Contains(line, value) {
-			valueLogged = true
-		}
-
-		if strings.Contains(line, "server: envoy") {
-			responseHeaderLogged = true
-		}
-	}
-
-	assert.True(t, keyLogged)
-	assert.True(t, valueLogged)
-	assert.True(t, responseHeaderLogged)
+	assert.True(t, strings.Contains(out, key))
+	assert.True(t, strings.Contains(out, value))
+	assert.True(t, strings.Contains(out, "server: envoy"))
 }
 
 func TestE2E_metrics(t *testing.T) {
@@ -233,9 +191,9 @@ func TestE2E_shared_queue(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "dequed data: hello"))
-	assert.True(t, strings.Contains(out, "dequed data: world"))
-	assert.True(t, strings.Contains(out, "dequed data: proxy-wasm"))
+	assert.True(t, strings.Contains(out, "dequeued data: hello"))
+	assert.True(t, strings.Contains(out, "dequeued data: world"))
+	assert.True(t, strings.Contains(out, "dequeued data: proxy-wasm"))
 }
 
 func TestE2E_vm_plugin_configuration(t *testing.T) {

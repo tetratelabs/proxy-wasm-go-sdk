@@ -73,7 +73,7 @@ func (ctx *queue) OnTick() {
 	case types.ErrorStatusEmpty:
 		return
 	case nil:
-		proxywasm.LogInfo("dequed data: ", string(data))
+		proxywasm.LogInfo("dequeued data: ", string(data))
 	default:
 		proxywasm.LogCritical("error retrieving data from queue ", strconv.Itoa(int(queueID)), ", ", err.Error())
 	}
