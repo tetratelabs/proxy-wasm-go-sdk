@@ -15,8 +15,6 @@
 package proxywasm
 
 import (
-	"math"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -47,9 +45,6 @@ func (m MetricCounter) Get() (uint64, error) {
 }
 
 func (m MetricCounter) Increment(offset uint64) error {
-	if offset > math.MaxInt64 {
-		offset = math.MaxInt64
-	}
 	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), int64(offset)))
 }
 

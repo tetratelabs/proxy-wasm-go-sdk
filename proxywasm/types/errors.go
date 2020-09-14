@@ -20,13 +20,14 @@ import (
 )
 
 var (
-	ErrorStatusNotFound    = errors.New("not found")
-	ErrorStatusBadArgument = errors.New("bad argument")
-	ErrorStatusEmpty       = errors.New("empty")
-	ErrorStatusCasMismatch = errors.New("cas mismatch")
-	ErrorInternalFailure   = errors.New("internal failure")
+	ErrorStatusNotFound    = errors.New("error status returned by host: not found")
+	ErrorStatusBadArgument = errors.New("error status returned by host: bad argument")
+	ErrorStatusEmpty       = errors.New("error status returned by host: empty")
+	ErrorStatusCasMismatch = errors.New("error status returned by host: cas mismatch")
+	ErrorInternalFailure   = errors.New("error status returned by host: internal failure")
 )
 
+//go:inline
 func StatusToError(status Status) error {
 	switch status {
 	case StatusOK:

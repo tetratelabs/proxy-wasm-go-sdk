@@ -23,12 +23,6 @@ import (
 //export proxy_log
 func ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status
 
-//export proxy_set_property
-func ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int)
-
-//export proxy_get_property
-func ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int)
-
 //export proxy_send_local_response
 func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int,
 	bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status
