@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -68,29 +67,74 @@ func TestHostCall_Metric(t *testing.T) {
 	}
 	hostMutex.Lock()
 	defer hostMutex.Unlock()
-
 	rawhostcall.RegisterMockWASMHost(host)
 
-	for _, c := range []struct {
-		name   string
-		offset int64
-	}{
-		{name: "requests", offset: 100},
-		{name: "rate", offset: -100},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			// define metric
-			m, err := HostCallDefineMetric(types.MetricTypeCounter, c.name)
-			require.NoError(t, err)
+	t.Run("counter", func(t *testing.T) {
+		for _, c := range []struct {
+			name   string
+			offset uint64
+		}{
+			{name: "requests", offset: 100},
+		} {
+			t.Run(c.name, func(t *testing.T) {
+				// define metric
+				m, err := DefineCounterMetric(c.name)
+				require.NoError(t, err)
 
-			// increment
-			require.NoError(t, m.Increment(c.offset))
+				// increment
+				require.NoError(t, m.Increment(c.offset))
 
-			// get
-			value, err := m.GetMetric()
-			require.NoError(t, err)
-			assert.Equal(t, uint64(c.offset), value)
-		})
-	}
+				// get
+				value, err := m.Get()
+				require.NoError(t, err)
+				assert.Equal(t, c.offset, value)
+			})
+		}
+	})
 
+	t.Run("gauge", func(t *testing.T) {
+		for _, c := range []struct {
+			name   string
+			offset int64
+		}{
+			{name: "rate", offset: -50},
+		} {
+			t.Run(c.name, func(t *testing.T) {
+				// define metric
+				m, err := DefineGaugeMetric(c.name)
+				require.NoError(t, err)
+
+				// increment
+				require.NoError(t, m.Add(c.offset))
+
+				// get
+				value, err := m.Get()
+				require.NoError(t, err)
+				assert.Equal(t, c.offset, value)
+			})
+		}
+	})
+
+	t.Run("histogram", func(t *testing.T) {
+		for _, c := range []struct {
+			name  string
+			value uint64
+		}{
+			{name: "request count", value: 10000},
+		} {
+			t.Run(c.name, func(t *testing.T) {
+				// define metric
+				m, err := DefineHistogramMetric(c.name)
+				require.NoError(t, err)
+
+				// record
+				require.NoError(t, m.Record(c.value))
+
+				// get
+				value, err := m.Get()
+				require.NoError(t, err)
+				assert.Equal(t, c.value, value)
+			})
+		}
+	})
 }

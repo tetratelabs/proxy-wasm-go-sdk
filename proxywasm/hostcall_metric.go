@@ -15,33 +15,86 @@
 package proxywasm
 
 import (
+	"math"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type Metric uint32
+type (
+	MetricCounter   uint32
+	MetricGauge     uint32
+	MetricHistogram uint32
+)
 
-func HostCallDefineMetric(metricType types.MetricType, name string) (Metric, error) {
+// counter
+
+func DefineCounterMetric(name string) (MetricCounter, error) {
 	var id uint32
 	ptr := stringBytePtr(name)
-	st := rawhostcall.ProxyDefineMetric(metricType, ptr, len(name), &id)
-	return Metric(id), types.StatusToError(st)
+	st := rawhostcall.ProxyDefineMetric(types.MetricTypeCounter, ptr, len(name), &id)
+	return MetricCounter(id), types.StatusToError(st)
 }
 
-func (m Metric) ID() uint32 {
+func (m MetricCounter) ID() uint32 {
 	return uint32(m)
 }
 
-func (m Metric) Increment(offset int64) error {
-	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), offset))
-}
-
-func (m Metric) RecordMetric(value uint64) error {
-	return types.StatusToError(rawhostcall.ProxyRecordMetric(m.ID(), value))
-}
-
-func (m Metric) GetMetric() (uint64, error) {
+func (m MetricCounter) Get() (uint64, error) {
 	var val uint64
 	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
 	return val, types.StatusToError(st)
+}
+
+func (m MetricCounter) Increment(offset uint64) error {
+	if offset > math.MaxInt64 {
+		offset = math.MaxInt64
+	}
+	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), int64(offset)))
+}
+
+// gauge
+
+func DefineGaugeMetric(name string) (MetricGauge, error) {
+	var id uint32
+	ptr := stringBytePtr(name)
+	st := rawhostcall.ProxyDefineMetric(types.MetricTypeGauge, ptr, len(name), &id)
+	return MetricGauge(id), types.StatusToError(st)
+}
+
+func (m MetricGauge) ID() uint32 {
+	return uint32(m)
+}
+
+func (m MetricGauge) Get() (int64, error) {
+	var val uint64
+	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
+	return int64(val), types.StatusToError(st)
+}
+
+func (m MetricGauge) Add(offset int64) error {
+	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), offset))
+}
+
+// histogram
+
+func DefineHistogramMetric(name string) (MetricHistogram, error) {
+	var id uint32
+	ptr := stringBytePtr(name)
+	st := rawhostcall.ProxyDefineMetric(types.MetricTypeHistogram, ptr, len(name), &id)
+	return MetricHistogram(id), types.StatusToError(st)
+}
+
+func (m MetricHistogram) ID() uint32 {
+	return uint32(m)
+}
+
+func (m MetricHistogram) Get() (uint64, error) {
+	var val uint64
+	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
+	return val, types.StatusToError(st)
+}
+
+func (m MetricHistogram) Record(value uint64) error {
+	return types.StatusToError(rawhostcall.ProxyRecordMetric(m.ID(), value))
 }
