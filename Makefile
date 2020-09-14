@@ -20,7 +20,7 @@ test.sdk:
 	go test -tags=proxytest -race -v ./proxywasm/...
 
 test.e2e:
-	go test -tags=proxytest -v ./e2e
+	go test ./e2e
 
 run:
 	getenvoy run wasm:1.15 -- -c ./examples/${name}/envoy.yaml
