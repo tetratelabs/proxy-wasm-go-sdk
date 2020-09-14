@@ -48,7 +48,7 @@ func startExample(t *testing.T, name string) (*exec.Cmd, *bytes.Buffer) {
 		"run",
 		envoyVersion,
 		"--",
-		"--concurrency", "1",
+		"--concurrency", "2",
 		"-c", fmt.Sprintf("./examples/%s/envoy.yaml", name))
 
 	buf := new(bytes.Buffer)
@@ -118,6 +118,40 @@ func TestE2E_http_headers(t *testing.T) {
 	assert.True(t, strings.Contains(out, key))
 	assert.True(t, strings.Contains(out, value))
 	assert.True(t, strings.Contains(out, "server: envoy"))
+}
+
+func TestE2E_network(t *testing.T) {
+	cmd, stdErr := startExample(t, "network")
+	defer func() {
+		require.NoError(t, cmd.Process.Kill())
+	}()
+
+	key := "This-Is-Key"
+	value := "this-is-value"
+
+	doReq := func() {
+		req, err := http.NewRequest("GET", envoyEndpoint, nil)
+		require.NoError(t, err)
+
+		req.Header.Add(key, value)
+		req.Header.Add("Connection", "close")
+
+		r, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		r.Body.Close()
+	}
+
+	doReq()
+
+	time.Sleep(time.Second)
+
+	out := stdErr.String()
+	fmt.Println(out)
+	assert.True(t, strings.Contains(out, key))
+	assert.True(t, strings.Contains(out, value))
+	assert.True(t, strings.Contains(out, "downstream data received"))
+	assert.True(t, strings.Contains(out, "new connection!"))
+	assert.True(t, strings.Contains(out, "downstream connection close!"))
 }
 
 func TestE2E_metrics(t *testing.T) {
