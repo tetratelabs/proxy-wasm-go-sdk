@@ -15,7 +15,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-var counter proxywasm.Metric
+var counter proxywasm.MetricCounter
 
 const metricName = "proxy_wasm_go.request_counter"
 
@@ -23,7 +23,7 @@ type context struct{ proxywasm.DefaultContext }
 
 func (ctx *context) OnVMStart(int) bool {
 	// initialize the new metric	
-	counter, _ = proxywasm.HostCallDefineMetric(types.MetricTypeCounter, metricName)
+	counter, _ = proxywasm.DefineCounterMetric(metricName)
 	return true
 }
 
@@ -87,8 +87,9 @@ make test.sdk # run sdk test only
     [wasm_exec.js](https://github.com/tinygo-org/tinygo/blob/154d4a781f6121bd6f584cca4a88909e0b091f63/targets/wasm_exec.js) 
     which is not available outside of that javascript.
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
-    - The syscall problem maybe solvable by emulating `syscall/js` function
-    through WASI interface (which is implemented by V8 engine running on Envoy), but we haven't tried.
+    - The syscall problem can be solved by one of the followings:
+        - emulate `syscall/js` function through WASI interface (which is implemented by V8 engine running on Envoy)
+        - support WASI target in TinyGo: https://github.com/tinygo-org/tinygo/pull/1373
 - There's performance overhead in using Go/TinyGo due to GC
     - runtime.GC() is called whenever heap allocation happens (see [1](https://tinygo.org/lang-support/#garbage-collection), 
     [2](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_conservative.go#L218-L239)).
