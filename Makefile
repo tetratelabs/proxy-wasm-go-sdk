@@ -23,4 +23,4 @@ test.e2e:
 	go test ./e2e
 
 run:
-	getenvoy run wasm:1.15 -- -c ./examples/${name}/envoy.yaml
+	getenvoy run wasm:1.15 -- -c ./examples/${name}/envoy.yaml --concurrency 2

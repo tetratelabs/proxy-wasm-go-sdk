@@ -36,7 +36,7 @@ func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) typ
 	return ctx.OnDownstreamData(dataSize, endOfStream)
 }
 
-//export on_downstream_connection_close
+//export proxy_on_downstream_connection_close
 func proxyOnDownstreamConnectionClose(contextID uint32, pType types.PeerType) {
 	ctx, ok := currentState.streamContexts[contextID]
 	if !ok {

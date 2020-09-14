@@ -54,34 +54,34 @@ type HttpContext interface {
 type DefaultContext struct{}
 
 var (
-	_ Context       = &DefaultContext{}
-	_ RootContext   = &DefaultContext{}
-	_ StreamContext = &DefaultContext{}
-	_ HttpContext   = &DefaultContext{}
+	_ Context       = DefaultContext{}
+	_ RootContext   = DefaultContext{}
+	_ StreamContext = DefaultContext{}
+	_ HttpContext   = DefaultContext{}
 )
 
 // impl Context
-func (d *DefaultContext) OnDone() bool                             { return true }
-func (d *DefaultContext) OnHttpCallResponse(uint32, int, int, int) {}
-func (d *DefaultContext) OnLog()                                   {}
+func (d DefaultContext) OnDone() bool                             { return true }
+func (d DefaultContext) OnHttpCallResponse(uint32, int, int, int) {}
+func (d DefaultContext) OnLog()                                   {}
 
 // impl RootContext
-func (d *DefaultContext) OnConfigure(int) bool { return true }
-func (d *DefaultContext) OnQueueReady(uint32)  {}
-func (d *DefaultContext) OnTick()              {}
-func (d *DefaultContext) OnVMStart(int) bool   { return true }
+func (d DefaultContext) OnConfigure(int) bool { return true }
+func (d DefaultContext) OnQueueReady(uint32)  {}
+func (d DefaultContext) OnTick()              {}
+func (d DefaultContext) OnVMStart(int) bool   { return true }
 
 // impl StreamContext
-func (d *DefaultContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
-func (d *DefaultContext) OnDownStreamClose(types.PeerType)        {}
-func (d *DefaultContext) OnNewConnection() types.Action           { return types.ActionContinue }
-func (d *DefaultContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
-func (d *DefaultContext) OnUpstreamStreamClose(types.PeerType)    {}
+func (d DefaultContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
+func (d DefaultContext) OnDownStreamClose(types.PeerType)        {}
+func (d DefaultContext) OnNewConnection() types.Action           { return types.ActionContinue }
+func (d DefaultContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
+func (d DefaultContext) OnUpstreamStreamClose(types.PeerType)    {}
 
 // impl HttpContext
-func (d *DefaultContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }
-func (d *DefaultContext) OnHttpRequestBody(int, bool) types.Action     { return types.ActionContinue }
-func (d *DefaultContext) OnHttpRequestTrailers(int) types.Action       { return types.ActionContinue }
-func (d *DefaultContext) OnHttpResponseHeaders(int, bool) types.Action { return types.ActionContinue }
-func (d *DefaultContext) OnHttpResponseBody(int, bool) types.Action    { return types.ActionContinue }
-func (d *DefaultContext) OnHttpResponseTrailers(int) types.Action      { return types.ActionContinue }
+func (d DefaultContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }
+func (d DefaultContext) OnHttpRequestBody(int, bool) types.Action     { return types.ActionContinue }
+func (d DefaultContext) OnHttpRequestTrailers(int) types.Action       { return types.ActionContinue }
+func (d DefaultContext) OnHttpResponseHeaders(int, bool) types.Action { return types.ActionContinue }
+func (d DefaultContext) OnHttpResponseBody(int, bool) types.Action    { return types.ActionContinue }
+func (d DefaultContext) OnHttpResponseTrailers(int) types.Action      { return types.ActionContinue }

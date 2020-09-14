@@ -22,8 +22,8 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return &data{} })
-	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return &data{} })
+	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return data{} })
+	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return data{} })
 }
 
 type data struct{ proxywasm.DefaultContext }
@@ -31,7 +31,7 @@ type data struct{ proxywasm.DefaultContext }
 const sharedDataKey = "shared_data_key"
 
 // override
-func (ctx *data) OnVMStart(vid int) bool {
+func (ctx data) OnVMStart(vid int) bool {
 	_, cas, err := proxywasm.HostCallGetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarn("error getting shared data on OnVMStart: ", err.Error())
@@ -44,7 +44,7 @@ func (ctx *data) OnVMStart(vid int) bool {
 }
 
 // override
-func (ctx *data) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx data) OnHttpRequestHeaders(int, bool) types.Action {
 	value, cas, err := proxywasm.HostCallGetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarn("error getting shared data on OnHttpRequestHeaders: ", err.Error())
