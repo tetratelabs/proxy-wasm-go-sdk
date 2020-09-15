@@ -20,6 +20,7 @@ test.sdk:
 	go test -tags=proxytest -race -v ./proxywasm/...
 
 test.e2e:
+	docker-compose -f ./examples/docker-compose.yaml -d
 	go test ./e2e
 
 run:

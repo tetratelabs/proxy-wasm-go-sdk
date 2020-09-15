@@ -48,7 +48,21 @@ func (ctx network) OnDownstreamData(dataSize int, _ bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx network) OnDownStreamClose(peerType types.PeerType) {
+func (ctx network) OnDownStreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
+}
+
+func (ctx network) OnUpstreamData(dataSize int, _ bool) types.Action {
+	if dataSize == 0 {
+		return types.ActionContinue
+	}
+
+	data, err := proxywasm.HostCallGetUpstreamData(0, dataSize)
+	if err != nil && err != types.ErrorStatusNotFound {
+		proxywasm.LogCritical(err.Error())
+	}
+
+	proxywasm.LogInfo("upstream data received: ", string(data))
+	return types.ActionContinue
 }

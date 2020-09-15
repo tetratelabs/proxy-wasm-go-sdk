@@ -77,14 +77,14 @@ func TestE2E_http_auth_random(t *testing.T) {
 		require.NoError(t, cmd.Process.Kill())
 	}()
 
-	req, err := http.NewRequest("GET", envoyEndpoint+"/uuid", nil)
-	require.NoError(t, err)
-
 	key := "this-is-key"
 	value := "this-is-value"
-	req.Header.Add(key, value)
 
 	for i := 0; i < 25; i++ { // TODO: maybe flaky
+		req, err := http.NewRequest("GET", envoyEndpoint+"/uuid", nil)
+		require.NoError(t, err)
+		req.Header.Add(key, value)
+
 		r, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		r.Body.Close()
@@ -94,6 +94,7 @@ func TestE2E_http_auth_random(t *testing.T) {
 	fmt.Println(out)
 	assert.True(t, strings.Contains(out, "access forbidden"))
 	assert.True(t, strings.Contains(out, "access granted"))
+	assert.True(t, strings.Contains(out, "response header from httpbin: :status: 200"))
 }
 
 func TestE2E_http_headers(t *testing.T) {
@@ -152,6 +153,7 @@ func TestE2E_network(t *testing.T) {
 	assert.True(t, strings.Contains(out, "downstream data received"))
 	assert.True(t, strings.Contains(out, "new connection!"))
 	assert.True(t, strings.Contains(out, "downstream connection close!"))
+	assert.True(t, strings.Contains(out, "upstream data received"))
 }
 
 func TestE2E_metrics(t *testing.T) {

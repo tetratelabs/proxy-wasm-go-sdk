@@ -50,8 +50,8 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: httpbin.org
-                      port_value: 80
+                      address: localhost
+                      port_value: 8000
 
 admin:
   access_log_path: "/dev/null"
