@@ -108,6 +108,12 @@ func HostCallGetDownStreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
+func HostCallSetUpstreamData(offset, size int, data []byte) error {
+	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeUpstreamData,
+		offset, size, &data[0], len(data))
+	return types.StatusToError(st)
+}
+
 func HostCallGetUpstreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
 	return ret, types.StatusToError(st)

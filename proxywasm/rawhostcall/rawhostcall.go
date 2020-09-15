@@ -72,6 +72,9 @@ func ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) t
 //export proxy_get_buffer_bytes
 func ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status
 
+//export proxy_set_buffer_bytes
+func ProxySetBufferBytes(bt types.BufferType, offset int, size int, bufferData *byte, bufferSize int) types.Status
+
 //export proxy_http_call
 func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int,
 	bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32,
