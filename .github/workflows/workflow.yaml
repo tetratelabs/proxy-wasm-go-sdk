@@ -49,6 +49,11 @@ jobs:
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
+    services:
+      httpbin:
+        image: kennethreitz/httpbin
+        ports:
+          - 8000:80
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -71,4 +76,4 @@ jobs:
         run: getenvoy fetch wasm:1.15
 
       - name: run e2e test
-        run: make test.e2e
+        run: go test ./e2e/... -v

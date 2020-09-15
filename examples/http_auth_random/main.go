@@ -57,6 +57,16 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 
 // override default
 func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
+	hs, err := proxywasm.HostCallGetHttpCallResponseHeaders()
+	if err != nil {
+		proxywasm.LogCritical("failed to get response body: ", err.Error())
+		return
+	}
+
+	for _, h := range hs {
+		proxywasm.LogInfo("response header from httpbin: ", h[0], ": ", h[1])
+	}
+
 	b, err := proxywasm.HostCallGetHttpCallResponseBody(0, bodySize)
 	if err != nil {
 		proxywasm.LogCritical("failed to get response body: ", err.Error())

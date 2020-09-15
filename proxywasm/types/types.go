@@ -58,8 +58,8 @@ const (
 	MapTypeHttpRequestTrailers      MapType = 1
 	MapTypeHttpResponseHeaders      MapType = 2
 	MapTypeHttpResponseTrailers     MapType = 3
-	MapTypeHttpCallResponseHeaders  MapType = 7
-	MapTypeHttpCallResponseTrailers MapType = 8
+	MapTypeHttpCallResponseHeaders  MapType = 6
+	MapTypeHttpCallResponseTrailers MapType = 7
 )
 
 type BufferType uint32
