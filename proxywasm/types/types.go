@@ -38,6 +38,7 @@ const (
 	LogLevelWarn     LogLevel = 3
 	LogLevelError    LogLevel = 4
 	LogLevelCritical LogLevel = 5
+	LogLevelMax      LogLevel = 6
 )
 
 type Status uint32

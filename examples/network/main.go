@@ -48,7 +48,7 @@ func (ctx network) OnDownstreamData(dataSize int, _ bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx network) OnDownStreamClose(types.PeerType) {
+func (ctx network) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }

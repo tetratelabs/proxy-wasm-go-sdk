@@ -70,11 +70,9 @@ make run name=helloworld
 ## sdk development
 
 ```bash
-make test # run all tests
+make test # run local tests without running envoy processes
 
-make test.e2e # run e2e tests only
-
-make test.sdk # run sdk test only
+make test.e2e # run e2e tests
 ```
 
 ## language and compiler limitations/considerations

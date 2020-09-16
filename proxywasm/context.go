@@ -35,10 +35,10 @@ type RootContext interface {
 type StreamContext interface {
 	Context
 	OnDownstreamData(dataSize int, endOfStream bool) types.Action
-	OnDownStreamClose(peerType types.PeerType)
+	OnDownstreamClose(peerType types.PeerType)
 	OnNewConnection() types.Action
 	OnUpstreamData(dataSize int, endOfStream bool) types.Action
-	OnUpstreamStreamClose(peerType types.PeerType)
+	OnUpstreamClose(peerType types.PeerType)
 }
 
 type HttpContext interface {
@@ -73,10 +73,10 @@ func (d DefaultContext) OnVMStart(int) bool   { return true }
 
 // impl StreamContext
 func (d DefaultContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
-func (d DefaultContext) OnDownStreamClose(types.PeerType)        {}
+func (d DefaultContext) OnDownstreamClose(types.PeerType)        {}
 func (d DefaultContext) OnNewConnection() types.Action           { return types.ActionContinue }
 func (d DefaultContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
-func (d DefaultContext) OnUpstreamStreamClose(types.PeerType)    {}
+func (d DefaultContext) OnUpstreamClose(types.PeerType)          {}
 
 // impl HttpContext
 func (d DefaultContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }

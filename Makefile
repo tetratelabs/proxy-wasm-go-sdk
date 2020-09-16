@@ -14,10 +14,7 @@ lint:
 	golangci-lint run --build-tags proxytest
 
 test:
-	go test -tags=proxytest -race -v ./...
-
-test.sdk:
-	go test -tags=proxytest -race -v ./proxywasm/...
+	go test -tags=proxytest $(go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
 
 test.e2e:
 	docker-compose -f ./examples/docker-compose.yaml -d
