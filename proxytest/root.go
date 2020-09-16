@@ -12,7 +12,7 @@ import (
 // TODO: simulate OnQueueReady, OnTick
 
 type RootFilterHost struct {
-	baseHost
+	*baseHost
 	context proxywasm.RootContext
 
 	pluginConfiguration, vmConfiguration []byte
@@ -20,7 +20,9 @@ type RootFilterHost struct {
 
 func NewRootFilterHost(ctx proxywasm.RootContext, pluginConfiguration, vmConfiguration []byte,
 ) (*RootFilterHost, func()) {
-	host := &RootFilterHost{context: ctx,
+	host := &RootFilterHost{
+		baseHost:            newBaseHost(),
+		context:             ctx,
 		pluginConfiguration: pluginConfiguration,
 		vmConfiguration:     vmConfiguration,
 	}

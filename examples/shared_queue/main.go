@@ -29,8 +29,8 @@ func main() {
 type queue struct{ proxywasm.DefaultContext }
 
 const (
-	queueName        = "proxy_wasm_go.queue"
-	tickMilliseconds = 100
+	queueName               = "proxy_wasm_go.queue"
+	tickMilliseconds uint32 = 100
 )
 
 var queueID uint32
@@ -47,13 +47,8 @@ func (ctx queue) OnVMStart(int) bool {
 	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCritical("failed to set tick period: ", err.Error())
 	}
-	proxywasm.LogInfo("set tick period milliseconds: ", strconv.Itoa(tickMilliseconds))
+	proxywasm.LogInfo("set tick period milliseconds: ", strconv.Itoa(int(tickMilliseconds)))
 	return true
-}
-
-// override
-func (ctx queue) OnQueueReady(queueID uint32) {
-	proxywasm.LogInfo("queue ready: ", strconv.Itoa(int(queueID)))
 }
 
 // override
