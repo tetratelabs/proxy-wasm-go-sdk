@@ -19,12 +19,20 @@ type baseHost struct {
 
 	queues      map[uint32][][]byte
 	queueNameID map[string]uint32
+
+	sharedDataKVS map[string]*sharedData
+}
+
+type sharedData struct {
+	data []byte
+	cas  uint32
 }
 
 func newBaseHost() *baseHost {
 	return &baseHost{
-		queues:      map[uint32][][]byte{},
-		queueNameID: map[string]uint32{},
+		queues:        map[uint32][][]byte{},
+		queueNameID:   map[string]uint32{},
+		sharedDataKVS: map[string]*sharedData{},
 	}
 }
 
@@ -65,7 +73,7 @@ func (b *baseHost) GetTickPeriod() uint32 {
 	return b.tickPeriod
 }
 
-// TODO: implement http callouts, metrics, shared data
+// TODO: implement http callouts, metrics
 
 func (b *baseHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
 	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
@@ -123,4 +131,54 @@ func (b *baseHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valu
 
 func (b *baseHost) GetQueueSize(queueID uint32) int {
 	return len(b.queues[queueID])
+}
+
+func (b *baseHost) ProxyGetSharedData(keyData *byte, keySize int,
+	returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
+	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(keyData)),
+		Len:  keySize,
+		Cap:  keySize,
+	}))
+
+	value, ok := b.sharedDataKVS[key]
+	if !ok {
+		return types.StatusNotFound
+	}
+
+	*returnValueSize = len(value.data)
+	*returnValueData = &value.data[0]
+	*returnCas = value.cas
+	return types.StatusOK
+}
+
+func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
+	valueData *byte, valueSize int, cas uint32) types.Status {
+	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(keyData)),
+		Len:  keySize,
+		Cap:  keySize,
+	}))
+	value := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(valueData)),
+		Len:  valueSize,
+		Cap:  valueSize,
+	}))
+
+	prev, ok := b.sharedDataKVS[key]
+	if !ok {
+		b.sharedDataKVS[key] = &sharedData{
+			data: value,
+			cas:  cas + 1,
+		}
+		return types.StatusOK
+	}
+
+	if prev.cas != cas {
+		return types.StatusCasMismatch
+	}
+
+	b.sharedDataKVS[key].cas = cas + 1
+	b.sharedDataKVS[key].data = value
+	return types.StatusOK
 }

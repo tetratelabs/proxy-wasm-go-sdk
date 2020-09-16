@@ -31,13 +31,8 @@ type data struct{ proxywasm.DefaultContext }
 const sharedDataKey = "shared_data_key"
 
 // override
-func (ctx data) OnVMStart(vid int) bool {
-	_, cas, err := proxywasm.HostCallGetSharedData(sharedDataKey)
-	if err != nil {
-		proxywasm.LogWarn("error getting shared data on OnVMStart: ", err.Error())
-	}
-
-	if err = proxywasm.HostCallSetSharedData(sharedDataKey, []byte{0}, cas); err != nil {
+func (ctx data) OnVMStart(int) bool {
+	if err := proxywasm.HostCallSetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarn("error setting shared data on OnVMStart: ", err.Error())
 	}
 	return true
