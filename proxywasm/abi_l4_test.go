@@ -23,7 +23,7 @@ func (ctx *l4Context) OnDownstreamData(int, bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx *l4Context) OnDownStreamClose(types.PeerType) { ctx.onDownStreamClose = true }
+func (ctx *l4Context) OnDownstreamClose(types.PeerType) { ctx.onDownStreamClose = true }
 
 func (ctx *l4Context) OnNewConnection() types.Action {
 	ctx.onNewConnection = true
@@ -35,7 +35,7 @@ func (ctx *l4Context) OnUpstreamData(int, bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx *l4Context) OnUpstreamStreamClose(types.PeerType) {
+func (ctx *l4Context) OnUpstreamClose(types.PeerType) {
 	ctx.onUpstreamStreamClose = true
 }
 

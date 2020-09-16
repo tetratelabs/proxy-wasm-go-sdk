@@ -43,7 +43,7 @@ func proxyOnDownstreamConnectionClose(contextID uint32, pType types.PeerType) {
 		panic("invalid context")
 	}
 	currentState.setActiveContextID(contextID)
-	ctx.OnDownStreamClose(pType)
+	ctx.OnDownstreamClose(pType)
 }
 
 //export proxy_on_upstream_data
@@ -63,5 +63,5 @@ func proxyOnUpstreamConnectionClose(contextID uint32, pType types.PeerType) {
 		panic("invalid context")
 	}
 	currentState.setActiveContextID(contextID)
-	ctx.OnUpstreamStreamClose(pType)
+	ctx.OnUpstreamClose(pType)
 }

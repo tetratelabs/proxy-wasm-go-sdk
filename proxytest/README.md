@@ -1,0 +1,10 @@
+##  test framework for proxy-wasm-go-sdk
+
+With `proxytest` build tag, you can test your extension with the official command:
+
+```
+go test -tags=proxytest ./... 
+```
+
+This framework simulates the expected behavior of Envoyproxy, and you can test your extensions without running Envoy. 
+For detail, see `examples/*/main_test.go`.
