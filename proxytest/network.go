@@ -9,7 +9,7 @@ import (
 )
 
 type NetworkFilterHost struct {
-	baseHost
+	*baseHost
 	newContext       func(contextID uint32) proxywasm.StreamContext
 	streams          map[uint32]*streamState
 	currentContextID uint32
@@ -22,6 +22,7 @@ type streamState struct {
 
 func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*NetworkFilterHost, func()) {
 	host := &NetworkFilterHost{
+		baseHost:   newBaseHost(),
 		newContext: f,
 		streams:    map[uint32]*streamState{},
 	}
