@@ -36,8 +36,6 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 ```
 
 
-
-
 ## requirements
 
 - TinyGo(0.14.0+): https://tinygo.org/
@@ -50,6 +48,14 @@ getenvoy fetch wasm:1.15
 
 The target Envoy version is `release/v1.15`
  branch on [envoyproxy/envoy-wasm](https://github.com/envoyproxy/envoy-wasm/tree/release/v1.15).
+ 
+ 
+## setup
+
+- __git clone__ this repository to `${GOPATH}/github.com/tetratelabs/proxy-wasm-sdk-go`
+    - `go get` which may fail because some functions do not have the function body.
+- For IDE and editors, please set `-tags=proxytest` build tag for correct completion and task runners.
+
 
 ## run examples
 
@@ -100,7 +106,6 @@ make test.e2e # run e2e tests
     - In Tinygo, Goroutine is implmeneted through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
     - Make every goroutine exit as soon as possible, otherwise it will block the proxy's worker thread. That is too bad for processing realtime network requests.
     - We strongly recommend that you implement the `OnTick` function for any asynchronous task instead of using Goroutine so we do not block requests.
-
 
 ## references
 
