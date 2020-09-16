@@ -53,7 +53,7 @@ The target Envoy version is `release/v1.15`
 ## setup
 
 - __git clone__ this repository to `${GOPATH}/github.com/tetratelabs/proxy-wasm-sdk-go`
-    - `go get` which may fail because some functions do not have the function body.
+    - `go get` may fail because some functions do not have the function body.
 - For IDE and editors, please set `-tags=proxytest` build tag for correct completion and task runners.
 
 

@@ -22,18 +22,18 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return metrics{} })
-	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return metrics{} })
+	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return metric{} })
+	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return metric{} })
 }
 
 var counter proxywasm.MetricCounter
 
 const metricsName = "proxy_wasm_go.request_counter"
 
-type metrics struct{ proxywasm.DefaultContext }
+type metric struct{ proxywasm.DefaultContext }
 
 // override
-func (ctx metrics) OnVMStart(int) bool {
+func (ctx metric) OnVMStart(int) bool {
 	ct, err := proxywasm.DefineCounterMetric(metricsName)
 	if err != nil {
 		proxywasm.LogCritical("error defining metrics: ", err.Error())
@@ -43,7 +43,7 @@ func (ctx metrics) OnVMStart(int) bool {
 }
 
 // override
-func (ctx metrics) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx metric) OnHttpRequestHeaders(int, bool) types.Action {
 	prev, err := counter.Get()
 	if err != nil {
 		proxywasm.LogCritical("error retrieving previous metric: ", err.Error())

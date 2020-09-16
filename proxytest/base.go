@@ -21,6 +21,10 @@ type baseHost struct {
 	queueNameID map[string]uint32
 
 	sharedDataKVS map[string]*sharedData
+
+	metricIDToValue map[uint32]uint64
+	metricIDToType  map[uint32]types.MetricType
+	metricNameToID  map[string]uint32
 }
 
 type sharedData struct {
@@ -30,9 +34,12 @@ type sharedData struct {
 
 func newBaseHost() *baseHost {
 	return &baseHost{
-		queues:        map[uint32][][]byte{},
-		queueNameID:   map[string]uint32{},
-		sharedDataKVS: map[string]*sharedData{},
+		queues:          map[uint32][][]byte{},
+		queueNameID:     map[string]uint32{},
+		sharedDataKVS:   map[string]*sharedData{},
+		metricIDToValue: map[uint32]uint64{},
+		metricIDToType:  map[uint32]types.MetricType{},
+		metricNameToID:  map[string]uint32{},
 	}
 }
 
@@ -60,7 +67,7 @@ func (b *baseHost) GetLogs(level types.LogLevel) []string {
 func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 
-	// should implement http callout response
+	// TODO: should implement http callout response
 	panic("unimplemented")
 }
 
@@ -73,7 +80,7 @@ func (b *baseHost) GetTickPeriod() uint32 {
 	return b.tickPeriod
 }
 
-// TODO: implement http callouts, metrics
+// TODO: implement http callouts
 
 func (b *baseHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
 	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
@@ -180,5 +187,55 @@ func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
 
 	b.sharedDataKVS[key].cas = cas + 1
 	b.sharedDataKVS[key].data = value
+	return types.StatusOK
+}
+
+func (b *baseHost) ProxyDefineMetric(metricType types.MetricType,
+	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
+	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(metricNameData)),
+		Len:  metricNameSize,
+		Cap:  metricNameSize,
+	}))
+	id, ok := b.metricNameToID[name]
+	if !ok {
+		id = uint32(len(b.metricNameToID))
+		b.metricNameToID[name] = id
+		b.metricIDToValue[id] = 0
+		b.metricIDToType[id] = metricType
+	}
+	*returnMetricIDPtr = id
+	return types.StatusOK
+}
+
+func (b *baseHost) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+	// TODO: check metric type
+
+	val, ok := b.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+
+	b.metricIDToValue[metricID] = val + uint64(offset)
+	return types.StatusOK
+}
+
+func (b *baseHost) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
+	// TODO: check metric type
+
+	_, ok := b.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+	b.metricIDToValue[metricID] = value
+	return types.StatusOK
+}
+
+func (b *baseHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+	value, ok := b.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+	*returnMetricValue = value
 	return types.StatusOK
 }
