@@ -20,6 +20,8 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
+const tickMilliseconds uint32 = 1000
+
 func main() {
 	proxywasm.SetNewRootContext(newHelloWorld)
 }
@@ -37,7 +39,7 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 // override
 func (ctx *helloWorld) OnVMStart(int) bool {
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
-	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(1000); err != nil {
+	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCritical("failed to set tick period: ", err.Error())
 	}
 	return true

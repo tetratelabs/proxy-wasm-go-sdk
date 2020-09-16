@@ -21,11 +21,11 @@ type streamState struct {
 }
 
 func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*NetworkFilterHost, func()) {
-	hostMux.Lock() // acquire the lock of host emulation
 	host := &NetworkFilterHost{
 		newContext: f,
 		streams:    map[uint32]*streamState{},
 	}
+	hostMux.Lock() // acquire the lock of host emulation
 	rawhostcall.RegisterMockWASMHost(host)
 	return host, func() {
 		hostMux.Unlock()
@@ -105,7 +105,7 @@ func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, 
 	case types.BufferTypeDownstreamData:
 		buf = stream.downstream
 	default:
-		// delegate base host implementation
+		// delegate to baseHost
 		return n.getBuffer(bt, start, maxSize, returnBufferData, returnBufferSize)
 	}
 

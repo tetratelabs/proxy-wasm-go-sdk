@@ -14,7 +14,8 @@ var hostMux = sync.Mutex{}
 
 type baseHost struct {
 	rawhostcall.DefaultProxyWAMSHost
-	logs [types.LogLevelMax][]string
+	logs       [types.LogLevelMax][]string
+	tickPeriod uint32
 }
 
 func (b *baseHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
@@ -45,4 +46,13 @@ func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
 	panic("unimplemented")
 }
 
-// TODO: implement http callouts, metrics, times, plugins, queue, shared data
+func (b *baseHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status {
+	b.tickPeriod = period
+	return types.StatusOK
+}
+
+func (b *baseHost) GetTickPeriod() uint32 {
+	return b.tickPeriod
+}
+
+// TODO: implement http callouts, metrics, queue, shared data

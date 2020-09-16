@@ -8,3 +8,6 @@ go test -tags=proxytest ./...
 
 This framework simulates the expected behavior of Envoyproxy, and you can test your extensions without running Envoy. 
 For detail, see `examples/*/main_test.go`.
+
+
+Note that we have not covered ll the functionality, and the API is very likely to change in the future.
