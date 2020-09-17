@@ -25,27 +25,42 @@ import (
 type HttpFilterHost struct {
 	*baseHost
 
-	newContext       func(contextID uint32) proxywasm.HttpContext
-	contexts         map[uint32]*contextState
-	currentContextID uint32
+	newContext func(contextID uint32) proxywasm.HttpContext
+	contexts   map[uint32]*httpContextState
 }
 
-type contextState struct {
+type httpContextState struct {
 	context proxywasm.HttpContext
 	requestHeaders, responseHeaders,
 	requestTrailers, responseTrailers [][2]string
 	requestBody, responseBody []byte
 
-	action types.Action
+	action            types.Action
+	sentLocalResponse *LocalHttpResponse
+}
+
+type LocalHttpResponse struct {
+	StatusCode       uint32
+	StatusCodeDetail string
+	Data             []byte
+	Headers          [][2]string
+	GRPCStatus       int32
 }
 
 func NewHttpFilterHost(f func(contextID uint32) proxywasm.HttpContext) (*HttpFilterHost, func()) {
 	host := &HttpFilterHost{
-		baseHost:   newBaseHost(),
 		newContext: f,
-		contexts:   map[uint32]*contextState{},
+		contexts:   map[uint32]*httpContextState{},
 	}
 
+	host.baseHost = newBaseHost(func(contextID uint32, numHeaders, bodySize, numTrailers int) {
+		ctx, ok := host.contexts[contextID]
+		if !ok {
+			log.Fatalf("invalid context id for callback: %d", contextID)
+		}
+
+		ctx.context.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
+	})
 	hostMux.Lock()
 	rawhostcall.RegisterMockWASMHost(host)
 	return host, func() {
@@ -57,7 +72,7 @@ func (h *HttpFilterHost) InitContext() uint32 {
 	contextID := uint32(len(h.contexts)) + 1
 	ctx := h.newContext(contextID)
 
-	h.contexts[contextID] = &contextState{
+	h.contexts[contextID] = &httpContextState{
 		context: ctx,
 		action:  types.ActionContinue,
 	}
@@ -80,7 +95,7 @@ func (h *HttpFilterHost) PutRequestHeaders(contextID uint32, headers [][2]string
 
 	cs.requestHeaders = headers
 	h.currentContextID = contextID
-	cs.context.OnHttpRequestHeaders(len(headers), false) // TODO: allow for specifying end_of_stream
+	cs.action = cs.context.OnHttpRequestHeaders(len(headers), false) // TODO: allow for specifying end_of_stream
 }
 
 func (h *HttpFilterHost) PutResponseHeaders(contextID uint32, headers [][2]string) {
@@ -91,7 +106,7 @@ func (h *HttpFilterHost) PutResponseHeaders(contextID uint32, headers [][2]strin
 
 	cs.responseHeaders = headers
 	h.currentContextID = contextID
-	cs.context.OnHttpResponseHeaders(len(headers), false) // TODO: allow for specifying end_of_stream
+	cs.action = cs.context.OnHttpResponseHeaders(len(headers), false) // TODO: allow for specifying end_of_stream
 }
 
 func (h *HttpFilterHost) PutRequestTrailers(contextID uint32, headers [][2]string) {
@@ -102,7 +117,7 @@ func (h *HttpFilterHost) PutRequestTrailers(contextID uint32, headers [][2]strin
 
 	cs.requestTrailers = headers
 	h.currentContextID = contextID
-	cs.context.OnHttpRequestTrailers(len(headers))
+	cs.action = cs.context.OnHttpRequestTrailers(len(headers))
 }
 
 func (h *HttpFilterHost) PutResponseTrailers(contextID uint32, headers [][2]string) {
@@ -113,7 +128,7 @@ func (h *HttpFilterHost) PutResponseTrailers(contextID uint32, headers [][2]stri
 
 	cs.responseTrailers = headers
 	h.currentContextID = contextID
-	cs.context.OnHttpResponseTrailers(len(headers))
+	cs.action = cs.context.OnHttpResponseTrailers(len(headers))
 }
 
 func (h *HttpFilterHost) PutRequestBody(contextID uint32, body []byte) {
@@ -124,7 +139,7 @@ func (h *HttpFilterHost) PutRequestBody(contextID uint32, body []byte) {
 
 	cs.requestBody = body
 	h.currentContextID = contextID
-	cs.context.OnHttpRequestBody(len(body), false) // TODO: allow for specifying end_of_stream
+	cs.action = cs.context.OnHttpRequestBody(len(body), false) // TODO: allow for specifying end_of_stream
 }
 
 func (h *HttpFilterHost) PutResponseBody(contextID uint32, body []byte) {
@@ -135,7 +150,7 @@ func (h *HttpFilterHost) PutResponseBody(contextID uint32, body []byte) {
 
 	cs.responseBody = body
 	h.currentContextID = contextID
-	cs.context.OnHttpResponseBody(len(body), false) // TODO: allow for specifying end_of_stream
+	cs.action = cs.context.OnHttpResponseBody(len(body), false) // TODO: allow for specifying end_of_stream
 }
 
 func (h *HttpFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
@@ -337,4 +352,36 @@ func (h *HttpFilterHost) ProxySetHeaderMapPairs(mapType types.MapType, mapData *
 		panic("unimplemented")
 	}
 	return types.StatusOK
+}
+
+func (h *HttpFilterHost) ProxyContinueStream(types.StreamType) types.Status {
+	ctx := h.contexts[h.currentContextID]
+	ctx.action = types.ActionContinue
+	return types.StatusOK
+}
+
+func (h *HttpFilterHost) GetCurrentAction(contextID uint32) types.Action {
+	ctx, ok := h.contexts[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+	return ctx.action
+}
+
+func (h *HttpFilterHost) ProxySendLocalResponse(statusCode uint32,
+	statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int,
+	headersData *byte, headersSize int, grpcStatus int32) types.Status {
+	ctx := h.contexts[h.currentContextID]
+	ctx.sentLocalResponse = &LocalHttpResponse{
+		StatusCode:       statusCode,
+		StatusCodeDetail: proxywasm.RawBytePtrToString(statusCodeDetailData, statusCodeDetailsSize),
+		Data:             proxywasm.RawBytePtrToByteSlice(bodyData, bodySize),
+		Headers:          proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(headersData, headersSize)),
+		GRPCStatus:       grpcStatus,
+	}
+	return types.StatusOK
+}
+
+func (h *HttpFilterHost) GetSentLocalResponse(contextID uint32) *LocalHttpResponse {
+	return h.contexts[contextID].sentLocalResponse
 }

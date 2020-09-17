@@ -24,9 +24,8 @@ import (
 
 type NetworkFilterHost struct {
 	*baseHost
-	newContext       func(contextID uint32) proxywasm.StreamContext
-	streams          map[uint32]*streamState
-	currentContextID uint32
+	newContext func(contextID uint32) proxywasm.StreamContext
+	streams    map[uint32]*streamState
 }
 
 type streamState struct {
@@ -36,10 +35,17 @@ type streamState struct {
 
 func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*NetworkFilterHost, func()) {
 	host := &NetworkFilterHost{
-		baseHost:   newBaseHost(),
 		newContext: f,
 		streams:    map[uint32]*streamState{},
 	}
+
+	host.baseHost = newBaseHost(func(contextID uint32, numHeaders, bodySize, numTrailers int) {
+		stream, ok := host.streams[contextID]
+		if !ok {
+			log.Fatalf("invalid context id for callback: %d", contextID)
+		}
+		stream.ctx.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
+	})
 	hostMux.Lock() // acquire the lock of host emulation
 	rawhostcall.RegisterMockWASMHost(host)
 	return host, func() {
@@ -138,5 +144,12 @@ func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, 
 	return types.StatusOK
 }
 
-// TODO: ProxyGetHeaderMapValue for http callouts (which is delegated to baseHost
-// TODO: ProxyGetHeaderMapPairs for http callouts (which is delegated to baseHost
+func (n *NetworkFilterHost) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+	return n.getMapValue(mapType, keyData, keySize, returnValueData, returnValueSize)
+}
+
+func (n *NetworkFilterHost) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
+	returnValueSize *int) types.Status {
+	return n.getMapPairs(mapType, returnValueData, returnValueSize)
+}

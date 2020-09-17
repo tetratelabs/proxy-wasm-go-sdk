@@ -52,7 +52,7 @@ func (ctx *l7Context) OnHttpResponseTrailers(int) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx *l7Context) OnHttpCallResponse(uint32, int, int, int) {
+func (ctx *l7Context) OnHttpCallResponse(int, int, int) {
 	ctx.onHttpCallResponse = true
 }
 

@@ -35,6 +35,8 @@ func (ctx network) OnNewConnection() types.Action {
 }
 
 func (ctx network) OnDownstreamData(dataSize int, _ bool) types.Action {
+	// TODO: dispatch http call
+
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
@@ -54,6 +56,7 @@ func (ctx network) OnDownstreamClose(types.PeerType) {
 }
 
 func (ctx network) OnUpstreamData(dataSize int, _ bool) types.Action {
+
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
