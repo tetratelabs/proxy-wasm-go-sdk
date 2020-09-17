@@ -19,7 +19,7 @@ import (
 	"unsafe"
 )
 
-func deserializeMap(bs []byte) [][2]string {
+func DeserializeMap(bs []byte) [][2]string {
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
 	sizes := make([]int, numHeaders*2)
 	for i := 0; i < len(sizes); i++ {
@@ -47,7 +47,7 @@ func deserializeMap(bs []byte) [][2]string {
 	return ret
 }
 
-func serializeMap(ms [][2]string) []byte {
+func SerializeMap(ms [][2]string) []byte {
 	size := 4
 	for _, m := range ms {
 		// key/value's bytes + len * 2 (8 bytes) + nil * 2 (2 bytes)

@@ -20,7 +20,7 @@ import (
 
 type Context interface {
 	OnDone() bool
-	OnHttpCallResponse(calloutID uint32, numHeaders, bodySize, numTrailers int)
+	OnHttpCallResponse(numHeaders, bodySize, numTrailers int)
 	OnLog()
 }
 
@@ -61,9 +61,9 @@ var (
 )
 
 // impl Context
-func (d DefaultContext) OnDone() bool                             { return true }
-func (d DefaultContext) OnHttpCallResponse(uint32, int, int, int) {}
-func (d DefaultContext) OnLog()                                   {}
+func (d DefaultContext) OnDone() bool                     { return true }
+func (d DefaultContext) OnHttpCallResponse(int, int, int) {}
+func (d DefaultContext) OnLog()                           {}
 
 // impl RootContext
 func (d DefaultContext) OnConfigure(int) bool { return true }

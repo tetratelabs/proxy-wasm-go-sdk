@@ -34,7 +34,7 @@ func HostCallGetVMConfiguration(dataSize int) ([]byte, error) {
 }
 
 func HostCallSendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status {
-	shs := serializeMap(headers)
+	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
 	return rawhostcall.ProxySendLocalResponse(statusCode, nil, 0,
@@ -58,11 +58,11 @@ func HostCallGetCurrentTime() int64 {
 
 func HostCallDispatchHttpCall(upstream string,
 	headers [][2]string, body string, trailers [][2]string, timeoutMillisecond uint32) (uint32, error) {
-	shs := serializeMap(headers)
+	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
 
-	sts := serializeMap(trailers)
+	sts := SerializeMap(trailers)
 	tp := &sts[0]
 	tl := len(sts)
 
@@ -257,7 +257,7 @@ func HostCallDequeueSharedQueue(queueID uint32) ([]byte, error) {
 	if st != types.StatusOK {
 		return nil, types.StatusToError(st)
 	}
-	return rawBytePtrToByteSlice(raw, size), nil
+	return RawBytePtrToByteSlice(raw, size), nil
 }
 
 func HostCallEnqueueSharedQueue(queueID uint32, data []byte) error {
@@ -272,7 +272,7 @@ func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
 	if st != types.StatusOK {
 		return nil, 0, types.StatusToError(st)
 	}
-	return rawBytePtrToByteSlice(raw, size), cas, nil
+	return RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
 func HostCallSetSharedData(key string, data []byte, cas uint32) error {
@@ -282,7 +282,7 @@ func HostCallSetSharedData(key string, data []byte, cas uint32) error {
 }
 
 func setMap(mapType types.MapType, headers [][2]string) types.Status {
-	shs := serializeMap(headers)
+	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
 	return rawhostcall.ProxySetHeaderMapPairs(mapType, hp, hl)
@@ -295,7 +295,7 @@ func getMapValue(mapType types.MapType, key string) (string, types.Status) {
 		return "", st
 	}
 
-	ret := rawBytePtrToString(raw, rvs)
+	ret := RawBytePtrToString(raw, rvs)
 	return ret, types.StatusOK
 }
 
@@ -320,8 +320,8 @@ func getMap(mapType types.MapType) ([][2]string, types.Status) {
 		return nil, st
 	}
 
-	bs := rawBytePtrToByteSlice(raw, rvs)
-	return deserializeMap(bs), types.StatusOK
+	bs := RawBytePtrToByteSlice(raw, rvs)
+	return DeserializeMap(bs), types.StatusOK
 }
 
 func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Status) {
@@ -333,7 +333,7 @@ func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Stat
 		if retData == nil {
 			return nil, types.StatusNotFound
 		}
-		return rawBytePtrToByteSlice(retData, retSize), st
+		return RawBytePtrToByteSlice(retData, retSize), st
 	default:
 		return nil, st
 	}

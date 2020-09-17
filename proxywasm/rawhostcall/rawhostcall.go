@@ -54,12 +54,6 @@ func ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, v
 //export proxy_replace_header_map_value
 func ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte, keySize int, valueData *byte, valueSize int) types.Status
 
-//export proxy_continue_stream
-func ProxyContinueStream(streamType types.StreamType) types.Status
-
-//export proxy_close_stream
-func ProxyCloseStream(streamType types.StreamType) types.Status
-
 //export proxy_remove_header_map_value
 func ProxyRemoveHeaderMapValue(mapType types.MapType, keyData *byte, keySize int) types.Status
 
@@ -71,6 +65,12 @@ func ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) t
 
 //export proxy_get_buffer_bytes
 func ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status
+
+//export proxy_continue_stream
+func ProxyContinueStream(streamType types.StreamType) types.Status
+
+//export proxy_close_stream
+func ProxyCloseStream(streamType types.StreamType) types.Status
 
 //export proxy_http_call
 func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int,

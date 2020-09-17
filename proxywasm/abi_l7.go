@@ -91,15 +91,15 @@ func proxyOnHttpCallResponse(_, calloutID uint32, numHeaders, bodySize, numTrail
 	if ctx, ok := currentState.streamContexts[ctxID]; ok {
 		currentState.setActiveContextID(ctxID)
 		hostCallSetEffectiveContext(ctxID)
-		ctx.OnHttpCallResponse(calloutID, numHeaders, bodySize, numTrailers)
+		ctx.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
 	} else if ctx, ok := currentState.httpContexts[ctxID]; ok {
 		currentState.setActiveContextID(ctxID)
 		hostCallSetEffectiveContext(ctxID)
-		ctx.OnHttpCallResponse(calloutID, numHeaders, bodySize, numTrailers)
+		ctx.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
 	} else if ctx, ok := currentState.rootContexts[ctxID]; ok {
 		currentState.setActiveContextID(ctxID)
 		hostCallSetEffectiveContext(ctxID)
-		ctx.OnHttpCallResponse(calloutID, numHeaders, bodySize, numTrailers)
+		ctx.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
 	} else {
 		panic("invalid context on proxy_on_http_call_response")
 	}

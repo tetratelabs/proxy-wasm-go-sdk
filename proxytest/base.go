@@ -16,10 +16,9 @@ package proxytest
 
 import (
 	"log"
-	"reflect"
 	"sync"
-	"unsafe"
 
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -28,6 +27,8 @@ var hostMux = sync.Mutex{}
 
 type baseHost struct {
 	rawhostcall.DefaultProxyWAMSHost
+	currentContextID uint32
+
 	logs       [types.LogLevelMax][]string
 	tickPeriod uint32
 
@@ -39,6 +40,13 @@ type baseHost struct {
 	metricIDToValue map[uint32]uint64
 	metricIDToType  map[uint32]types.MetricType
 	metricNameToID  map[string]uint32
+
+	calloutCallbackCaller func(contextID uint32, numHeaders, bodySize, numTrailers int)
+	calloutResponse       map[uint32]struct {
+		headers, trailers [][2]string
+		body              []byte
+	}
+	callouts map[uint32]struct{}
 }
 
 type sharedData struct {
@@ -46,23 +54,25 @@ type sharedData struct {
 	cas  uint32
 }
 
-func newBaseHost() *baseHost {
+func newBaseHost(f func(contextID uint32, numHeaders, bodySize, numTrailers int)) *baseHost {
 	return &baseHost{
-		queues:          map[uint32][][]byte{},
-		queueNameID:     map[string]uint32{},
-		sharedDataKVS:   map[string]*sharedData{},
-		metricIDToValue: map[uint32]uint64{},
-		metricIDToType:  map[uint32]types.MetricType{},
-		metricNameToID:  map[string]uint32{},
+		queues:                map[uint32][][]byte{},
+		queueNameID:           map[string]uint32{},
+		sharedDataKVS:         map[string]*sharedData{},
+		metricIDToValue:       map[uint32]uint64{},
+		metricIDToType:        map[uint32]types.MetricType{},
+		metricNameToID:        map[string]uint32{},
+		calloutCallbackCaller: f,
+		calloutResponse: map[uint32]struct {
+			headers, trailers [][2]string
+			body              []byte
+		}{},
+		callouts: map[uint32]struct{}{},
 	}
 }
 
 func (b *baseHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
-	str := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(messageData)),
-		Len:  messageSize,
-		Cap:  messageSize,
-	}))
+	str := proxywasm.RawBytePtrToString(messageData, messageSize)
 
 	log.Printf("proxy_log: %s", str)
 	// TODO: exit if loglevel == fatal?
@@ -78,13 +88,6 @@ func (b *baseHost) GetLogs(level types.LogLevel) []string {
 	return b.logs[level]
 }
 
-func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
-
-	// TODO: should implement http callout response
-	panic("unimplemented")
-}
-
 func (b *baseHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status {
 	b.tickPeriod = period
 	return types.StatusOK
@@ -94,15 +97,8 @@ func (b *baseHost) GetTickPeriod() uint32 {
 	return b.tickPeriod
 }
 
-// TODO: implement http callouts
-
 func (b *baseHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
-	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(nameData)),
-		Len:  nameSize,
-		Cap:  nameSize,
-	}))
-
+	name := proxywasm.RawBytePtrToString(nameData, nameSize)
 	if id, ok := b.queueNameID[name]; ok {
 		*returnID = id
 		return types.StatusOK
@@ -139,11 +135,7 @@ func (b *baseHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valu
 		return types.StatusNotFound
 	}
 
-	b.queues[queueID] = append(queue, *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(valueData)),
-		Len:  valueSize,
-		Cap:  valueSize,
-	})))
+	b.queues[queueID] = append(queue, proxywasm.RawBytePtrToByteSlice(valueData, valueSize))
 
 	// TODO: should call OnQueueReady?
 
@@ -156,11 +148,7 @@ func (b *baseHost) GetQueueSize(queueID uint32) int {
 
 func (b *baseHost) ProxyGetSharedData(keyData *byte, keySize int,
 	returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
-	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(keyData)),
-		Len:  keySize,
-		Cap:  keySize,
-	}))
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
 
 	value, ok := b.sharedDataKVS[key]
 	if !ok {
@@ -175,16 +163,8 @@ func (b *baseHost) ProxyGetSharedData(keyData *byte, keySize int,
 
 func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
 	valueData *byte, valueSize int, cas uint32) types.Status {
-	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(keyData)),
-		Len:  keySize,
-		Cap:  keySize,
-	}))
-	value := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(valueData)),
-		Len:  valueSize,
-		Cap:  valueSize,
-	}))
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+	value := proxywasm.RawBytePtrToByteSlice(valueData, valueSize)
 
 	prev, ok := b.sharedDataKVS[key]
 	if !ok {
@@ -206,11 +186,7 @@ func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
 
 func (b *baseHost) ProxyDefineMetric(metricType types.MetricType,
 	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
-	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(metricNameData)),
-		Len:  metricNameSize,
-		Cap:  metricNameSize,
-	}))
+	name := proxywasm.RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := b.metricNameToID[name]
 	if !ok {
 		id = uint32(len(b.metricNameToID))
@@ -251,5 +227,105 @@ func (b *baseHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) ty
 		return types.StatusBadArgument
 	}
 	*returnMetricValue = value
+	return types.StatusOK
+}
+
+func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) types.Status {
+	if bt != types.BufferTypeHttpCallResponseBody {
+		panic("unimplemented")
+	}
+
+	res, ok := b.calloutResponse[b.currentContextID]
+	if !ok {
+		log.Fatalf("callout response unregistered for %d", b.currentContextID)
+	}
+
+	*returnBufferData = &res.body[0]
+	*returnBufferSize = len(res.body)
+	return types.StatusOK
+}
+
+func (b *baseHost) getMapValue(mapType types.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+	res, ok := b.calloutResponse[b.currentContextID]
+	if !ok {
+		log.Fatalf("callout response unregistered for %d", b.currentContextID)
+	}
+
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+
+	var hs [][2]string
+	switch mapType {
+	case types.MapTypeHttpCallResponseHeaders:
+		hs = res.headers
+	case types.MapTypeHttpCallResponseTrailers:
+		hs = res.trailers
+	default:
+		panic("unimplemented")
+	}
+
+	for _, h := range hs {
+		if h[0] == key {
+			v := []byte(h[1])
+			*returnValueData = &v[0]
+			*returnValueSize = len(v)
+			return types.StatusOK
+		}
+	}
+
+	return types.StatusNotFound
+}
+
+func (b *baseHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte,
+	bodySize int, trailersData *byte, trailersSize int, timeout uint32, _ *uint32) types.Status {
+	upstream := proxywasm.RawBytePtrToString(upstreamData, upstreamSize)
+	body := proxywasm.RawBytePtrToString(bodyData, bodySize)
+	headers := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(headerData, headerSize))
+	trailers := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(trailersData, trailersSize))
+
+	log.Printf("[http callout to %s] timeout: %d", upstream, timeout)
+	log.Printf("[http callout to %s] headers: %v", upstream, headers)
+	log.Printf("[http callout to %s] body: %s", upstream, body)
+	log.Printf("[http callout to %s] trailers: %v", upstream, trailers)
+
+	b.callouts[b.currentContextID] = struct{}{}
+	return types.StatusOK
+}
+
+func (b *baseHost) PutCalloutResponse(contextID uint32, headers, trailers [][2]string, body []byte) {
+	b.calloutResponse[contextID] = struct {
+		headers, trailers [][2]string
+		body              []byte
+	}{headers: headers, trailers: trailers, body: body}
+
+	b.currentContextID = contextID
+	b.calloutCallbackCaller(contextID, len(headers), len(body), len(trailers))
+	delete(b.calloutResponse, contextID)
+}
+
+func (b *baseHost) IsDispatchCalled(contextID uint32) bool {
+	_, ok := b.callouts[contextID]
+	return ok
+}
+
+func (b *baseHost) getMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
+	res, ok := b.calloutResponse[b.currentContextID]
+	if !ok {
+		log.Fatalf("callout response unregistered for %d", b.currentContextID)
+	}
+
+	var raw []byte
+	switch mapType {
+	case types.MapTypeHttpCallResponseHeaders:
+		raw = proxywasm.SerializeMap(res.headers)
+	case types.MapTypeHttpCallResponseTrailers:
+		raw = proxywasm.SerializeMap(res.trailers)
+	default:
+		panic("unimplemented")
+	}
+
+	*returnValueData = &raw[0]
+	*returnValueSize = len(raw)
 	return types.StatusOK
 }

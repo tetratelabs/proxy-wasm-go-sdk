@@ -22,6 +22,8 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
+const clusterName = "httpbin"
+
 func main() {
 	proxywasm.SetNewHttpContext(newContext)
 }
@@ -48,15 +50,17 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 	}
 
 	if _, err := proxywasm.HostCallDispatchHttpCall(
-		"httpbin", hs, "", [][2]string{}, 50000); err != nil {
+		clusterName, hs, "", [][2]string{}, 50000); err != nil {
 		proxywasm.LogCritical("dipatch httpcall failed: ", err.Error())
 	}
+
+	proxywasm.LogInfo("http call dispatched to ", clusterName)
 
 	return types.ActionPause
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpCallResponse(_ uint32, _ int, bodySize int, _ int) {
+func (ctx *httpHeaders) OnHttpCallResponse(_ int, bodySize int, _ int) {
 	hs, err := proxywasm.HostCallGetHttpCallResponseHeaders()
 	if err != nil {
 		proxywasm.LogCritical("failed to get response body: ", err.Error())

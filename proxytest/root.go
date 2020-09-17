@@ -34,11 +34,14 @@ type RootFilterHost struct {
 func NewRootFilterHost(ctx proxywasm.RootContext, pluginConfiguration, vmConfiguration []byte,
 ) (*RootFilterHost, func()) {
 	host := &RootFilterHost{
-		baseHost:            newBaseHost(),
 		context:             ctx,
 		pluginConfiguration: pluginConfiguration,
 		vmConfiguration:     vmConfiguration,
 	}
+
+	host.baseHost = newBaseHost(func(contextID uint32, numHeaders, bodySize, numTrailers int) {
+		host.context.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
+	})
 	hostMux.Lock() // acquire the lock of host emulation
 	rawhostcall.RegisterMockWASMHost(host)
 	return host, func() {
