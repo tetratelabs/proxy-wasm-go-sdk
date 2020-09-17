@@ -48,18 +48,18 @@ var serdeTestCases = []struct {
 	},
 }
 
-func Test_deserializeMap(t *testing.T) {
+func Test_DeserializeMap(t *testing.T) {
 	for i, c := range serdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			assert.Equal(t, c.maps, deserializeMap(c.bytes))
+			assert.Equal(t, c.maps, DeserializeMap(c.bytes))
 		})
 	}
 }
 
-func Test_serializeMap(t *testing.T) {
+func Test_SerializeMap(t *testing.T) {
 	for i, c := range serdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			assert.Equal(t, c.bytes, serializeMap(c.maps))
+			assert.Equal(t, c.bytes, SerializeMap(c.maps))
 		})
 	}
 }

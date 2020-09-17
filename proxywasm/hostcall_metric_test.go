@@ -18,7 +18,7 @@ type metricProxyWASMHost struct {
 
 func (m metricProxyWASMHost) ProxyDefineMetric(metricType types.MetricType,
 	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
-	name := rawBytePtrToString(metricNameData, metricNameSize)
+	name := RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := m.nameToID[name]
 	if !ok {
 		id = uint32(len(m.nameToID))

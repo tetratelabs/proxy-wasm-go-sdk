@@ -16,10 +16,9 @@ package proxytest
 
 import (
 	"log"
-	"reflect"
 	"sync"
-	"unsafe"
 
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -58,11 +57,7 @@ func newBaseHost() *baseHost {
 }
 
 func (b *baseHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
-	str := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(messageData)),
-		Len:  messageSize,
-		Cap:  messageSize,
-	}))
+	str := proxywasm.RawBytePtrToString(messageData, messageSize)
 
 	log.Printf("proxy_log: %s", str)
 	// TODO: exit if loglevel == fatal?
@@ -78,13 +73,6 @@ func (b *baseHost) GetLogs(level types.LogLevel) []string {
 	return b.logs[level]
 }
 
-func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
-
-	// TODO: should implement http callout response
-	panic("unimplemented")
-}
-
 func (b *baseHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status {
 	b.tickPeriod = period
 	return types.StatusOK
@@ -94,15 +82,8 @@ func (b *baseHost) GetTickPeriod() uint32 {
 	return b.tickPeriod
 }
 
-// TODO: implement http callouts
-
 func (b *baseHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
-	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(nameData)),
-		Len:  nameSize,
-		Cap:  nameSize,
-	}))
-
+	name := proxywasm.RawBytePtrToString(nameData, nameSize)
 	if id, ok := b.queueNameID[name]; ok {
 		*returnID = id
 		return types.StatusOK
@@ -139,11 +120,7 @@ func (b *baseHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valu
 		return types.StatusNotFound
 	}
 
-	b.queues[queueID] = append(queue, *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(valueData)),
-		Len:  valueSize,
-		Cap:  valueSize,
-	})))
+	b.queues[queueID] = append(queue, proxywasm.RawBytePtrToByteSlice(valueData, valueSize))
 
 	// TODO: should call OnQueueReady?
 
@@ -156,11 +133,7 @@ func (b *baseHost) GetQueueSize(queueID uint32) int {
 
 func (b *baseHost) ProxyGetSharedData(keyData *byte, keySize int,
 	returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
-	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(keyData)),
-		Len:  keySize,
-		Cap:  keySize,
-	}))
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
 
 	value, ok := b.sharedDataKVS[key]
 	if !ok {
@@ -175,16 +148,8 @@ func (b *baseHost) ProxyGetSharedData(keyData *byte, keySize int,
 
 func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
 	valueData *byte, valueSize int, cas uint32) types.Status {
-	key := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(keyData)),
-		Len:  keySize,
-		Cap:  keySize,
-	}))
-	value := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(valueData)),
-		Len:  valueSize,
-		Cap:  valueSize,
-	}))
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+	value := proxywasm.RawBytePtrToByteSlice(valueData, valueSize)
 
 	prev, ok := b.sharedDataKVS[key]
 	if !ok {
@@ -206,11 +171,7 @@ func (b *baseHost) ProxySetSharedData(keyData *byte, keySize int,
 
 func (b *baseHost) ProxyDefineMetric(metricType types.MetricType,
 	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
-	name := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(metricNameData)),
-		Len:  metricNameSize,
-		Cap:  metricNameSize,
-	}))
+	name := proxywasm.RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := b.metricNameToID[name]
 	if !ok {
 		id = uint32(len(b.metricNameToID))
@@ -252,4 +213,24 @@ func (b *baseHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) ty
 	}
 	*returnMetricValue = value
 	return types.StatusOK
+}
+
+func (b *baseHost) getBuffer(bt types.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) types.Status {
+
+	// TODO: should implement http callout body
+	panic("unimplemented")
+}
+
+func (b *baseHost) getMapValue(mapType types.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+
+	// TODO: should implement http callout headers/trailers
+	panic("unimplemented")
+}
+
+func (b *baseHost) getMapPairs(mapType types.MapType, returnValueData **byte,
+	returnValueSize *int) types.Status {
+	// TODO: should implement http callout headers/trailers
+	panic("unimplemented")
 }

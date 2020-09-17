@@ -17,7 +17,7 @@ type logHost struct {
 }
 
 func (l logHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
-	actual := rawBytePtrToString(messageData, messageSize)
+	actual := RawBytePtrToString(messageData, messageSize)
 	assert.Equal(l.t, l.expMessage, actual)
 	assert.Equal(l.t, l.expLogLevel, logLevel)
 	return types.StatusOK

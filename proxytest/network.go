@@ -137,3 +137,6 @@ func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, 
 	}
 	return types.StatusOK
 }
+
+// TODO: ProxyGetHeaderMapValue for http callouts (which is delegated to baseHost
+// TODO: ProxyGetHeaderMapPairs for http callouts (which is delegated to baseHost
