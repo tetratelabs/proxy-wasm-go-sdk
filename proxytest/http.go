@@ -229,7 +229,6 @@ func (h *HttpFilterHost) ProxyAddHeaderMapValue(mapType types.MapType, keyData *
 	case types.MapTypeHttpResponseTrailers:
 		ctx.responseTrailers = addMapValue(ctx.responseTrailers, key, value)
 	default:
-		// is it allowed to manipulate callout headers?
 		panic("unimplemented")
 	}
 
@@ -263,7 +262,6 @@ func (h *HttpFilterHost) ProxyReplaceHeaderMapValue(mapType types.MapType, keyDa
 	case types.MapTypeHttpResponseTrailers:
 		ctx.responseTrailers = replaceMapValue(ctx.responseTrailers, key, value)
 	default:
-		// is it allowed to manipulate callout headers?
 		panic("unimplemented")
 	}
 	return types.StatusOK
@@ -293,7 +291,6 @@ func (h *HttpFilterHost) ProxyRemoveHeaderMapValue(mapType types.MapType, keyDat
 	case types.MapTypeHttpResponseTrailers:
 		ctx.responseTrailers = removeHeaderMapValue(ctx.responseTrailers, key)
 	default:
-		// is it allowed to manipulate callout headers?
 		panic("unimplemented")
 	}
 	return types.StatusOK
@@ -348,7 +345,6 @@ func (h *HttpFilterHost) ProxySetHeaderMapPairs(mapType types.MapType, mapData *
 	case types.MapTypeHttpResponseTrailers:
 		ctx.responseTrailers = m
 	default:
-		// is it allowed to manipulate callout headers?
 		panic("unimplemented")
 	}
 	return types.StatusOK
@@ -384,4 +380,8 @@ func (h *HttpFilterHost) ProxySendLocalResponse(statusCode uint32,
 
 func (h *HttpFilterHost) GetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.contexts[contextID].sentLocalResponse
+}
+
+func (h *HttpFilterHost) GetContext(contextID uint32) proxywasm.HttpContext {
+	return h.contexts[contextID].context
 }

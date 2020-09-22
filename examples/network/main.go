@@ -19,22 +19,33 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
+var (
+	connectionCounterName = "proxy_wasm_go.connection_counter"
+	counter               proxywasm.MetricCounter
+)
+
 func main() {
-	proxywasm.SetNewStreamContext(newHelloWorld)
+	proxywasm.SetNewStreamContext(func(contextID uint32) proxywasm.StreamContext { return context{} })
+	proxywasm.SetNewRootContext(func(contextID uint32) proxywasm.RootContext { return context{} })
 }
 
-type network struct{ proxywasm.DefaultContext }
+type context struct{ proxywasm.DefaultContext }
 
-func newHelloWorld(contextID uint32) proxywasm.StreamContext {
-	return network{}
+func (ctx context) OnVMStart(int) bool {
+	var err error
+	counter, err = proxywasm.DefineCounterMetric(connectionCounterName)
+	if err != nil {
+		proxywasm.LogCritical("failed to initialize connection counter: ", err.Error())
+	}
+	return true
 }
 
-func (ctx network) OnNewConnection() types.Action {
+func (ctx context) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
-func (ctx network) OnDownstreamData(dataSize int, _ bool) types.Action {
+func (ctx context) OnDownstreamData(dataSize int, _ bool) types.Action {
 	// TODO: dispatch http call
 
 	if dataSize == 0 {
@@ -50,12 +61,12 @@ func (ctx network) OnDownstreamData(dataSize int, _ bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx network) OnDownstreamClose(types.PeerType) {
+func (ctx context) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }
 
-func (ctx network) OnUpstreamData(dataSize int, _ bool) types.Action {
+func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
 
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -68,4 +79,13 @@ func (ctx network) OnUpstreamData(dataSize int, _ bool) types.Action {
 
 	proxywasm.LogInfo("upstream data received: ", string(data))
 	return types.ActionContinue
+}
+
+func (ctx context) OnDone() bool {
+	err := counter.Increment(1)
+	if err != nil {
+		proxywasm.LogCritical("failed to increment connection counter: ", err.Error())
+	}
+	proxywasm.LogInfo("connection complete!")
+	return true
 }

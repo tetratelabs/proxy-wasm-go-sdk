@@ -30,7 +30,7 @@ type NetworkFilterHost struct {
 
 type streamState struct {
 	upstream, downstream []byte
-	ctx                  proxywasm.StreamContext
+	context              proxywasm.StreamContext
 }
 
 func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*NetworkFilterHost, func()) {
@@ -44,7 +44,7 @@ func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*Ne
 		if !ok {
 			log.Fatalf("invalid context id for callback: %d", contextID)
 		}
-		stream.ctx.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
+		stream.context.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
 	})
 	hostMux.Lock() // acquire the lock of host emulation
 	rawhostcall.RegisterMockWASMHost(host)
@@ -64,7 +64,7 @@ func (n *NetworkFilterHost) PutUpstreamData(contextID uint32, data []byte) {
 	}
 
 	n.currentContextID = contextID
-	action := stream.ctx.OnUpstreamData(len(stream.upstream), false)
+	action := stream.context.OnUpstreamData(len(stream.upstream), false)
 	switch action {
 	case types.ActionPause:
 		return
@@ -86,7 +86,7 @@ func (n *NetworkFilterHost) PutDownstreamData(contextID uint32, data []byte) {
 	}
 
 	n.currentContextID = contextID
-	action := stream.ctx.OnDownstreamData(len(stream.downstream), false)
+	action := stream.context.OnDownstreamData(len(stream.downstream), false)
 	switch action {
 	case types.ActionPause:
 		return
@@ -101,7 +101,7 @@ func (n *NetworkFilterHost) PutDownstreamData(contextID uint32, data []byte) {
 func (n *NetworkFilterHost) InitConnection() (contextID uint32) {
 	contextID = uint32(len(n.streams) + 1)
 	ctx := n.newContext(contextID)
-	n.streams[contextID] = &streamState{ctx: ctx}
+	n.streams[contextID] = &streamState{context: ctx}
 
 	n.currentContextID = contextID
 	ctx.OnNewConnection()
@@ -109,11 +109,16 @@ func (n *NetworkFilterHost) InitConnection() (contextID uint32) {
 }
 
 func (n *NetworkFilterHost) CloseUpstreamConnection(contextID uint32) {
-	n.streams[contextID].ctx.OnUpstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
+	n.streams[contextID].context.OnUpstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
 func (n *NetworkFilterHost) CloseDownstreamConnection(contextID uint32) {
-	n.streams[contextID].ctx.OnDownstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
+	n.streams[contextID].context.OnDownstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
+}
+
+func (n *NetworkFilterHost) CompleteConnection(contextID uint32) {
+	n.streams[contextID].context.OnDone()
+	delete(n.streams, contextID)
 }
 
 func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
@@ -152,4 +157,8 @@ func (n *NetworkFilterHost) ProxyGetHeaderMapValue(mapType types.MapType, keyDat
 func (n *NetworkFilterHost) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
 	returnValueSize *int) types.Status {
 	return n.getMapPairs(mapType, returnValueData, returnValueSize)
+}
+
+func (n *NetworkFilterHost) GetContext(contextID uint32) proxywasm.StreamContext {
+	return n.streams[contextID].context
 }

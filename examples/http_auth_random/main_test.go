@@ -53,12 +53,11 @@ func TestHttpHeaders_OnHttpCallResponse(t *testing.T) {
 	id = host.InitContext()
 	body = []byte(`{"uuid": "aaaaaaaa-1c67-4199-835b-cbefcd4a63d4"}`)
 	host.PutCalloutResponse(id, headers, nil, body)
-	assert.NotNil(t, host.GetSentLocalResponse(id))
+	localResponse := host.GetSentLocalResponse(id) // check local responses
+	assert.NotNil(t, localResponse)
 	logs = host.GetLogs(types.LogLevelInfo)
 	assert.Equal(t, "access forbidden", logs[len(logs)-1])
 
-	localResponse := host.GetSentLocalResponse(id) // check local responses
-	require.NotNil(t, localResponse)
 	assert.Equal(t, uint32(403), localResponse.StatusCode)
 	assert.Equal(t, []byte("access forbidden"), localResponse.Data)
 	require.Len(t, localResponse.Headers, 1)
