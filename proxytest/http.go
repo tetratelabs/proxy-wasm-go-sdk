@@ -381,3 +381,7 @@ func (h *HttpFilterHost) ProxySendLocalResponse(statusCode uint32,
 func (h *HttpFilterHost) GetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.contexts[contextID].sentLocalResponse
 }
+
+func (h *HttpFilterHost) GetContext(contextID uint32) proxywasm.HttpContext {
+	return h.contexts[contextID].context
+}
