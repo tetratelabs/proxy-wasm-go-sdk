@@ -116,6 +116,11 @@ func (n *NetworkFilterHost) CloseDownstreamConnection(contextID uint32) {
 	n.streams[contextID].ctx.OnDownstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
+func (n *NetworkFilterHost) CompleteConnection(contextID uint32) {
+	n.streams[contextID].ctx.OnDone()
+	delete(n.streams, contextID)
+}
+
 func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	stream := n.streams[n.currentContextID]

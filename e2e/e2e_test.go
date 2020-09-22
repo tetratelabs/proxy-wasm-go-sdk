@@ -154,6 +154,7 @@ func TestE2E_network(t *testing.T) {
 	assert.True(t, strings.Contains(out, "new connection!"))
 	assert.True(t, strings.Contains(out, "downstream connection close!"))
 	assert.True(t, strings.Contains(out, "upstream data received"))
+	assert.True(t, strings.Contains(out, "connection complete!"))
 }
 
 func TestE2E_metrics(t *testing.T) {
