@@ -80,3 +80,23 @@ func SerializeMap(ms [][2]string) []byte {
 	}
 	return ret
 }
+
+func SerializePropertyPath(path []string) []byte {
+	// TODO: for static paths, like upstream.address, we'd better pre-define []byte so that
+	// 	we do not incur any serialization cost
+	if len(path) == 0 {
+		return []byte{}
+	}
+
+	var size int
+	for _, p := range path {
+		size += len(p) + 1
+	}
+	ret := make([]byte, 0, size)
+	for _, p := range path {
+		ret = append(ret, p...)
+		ret = append(ret, 0)
+	}
+	ret = ret[:len(ret)-1]
+	return ret
+}

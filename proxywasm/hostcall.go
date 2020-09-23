@@ -281,6 +281,26 @@ func HostCallSetSharedData(key string, data []byte, cas uint32) error {
 	return types.StatusToError(st)
 }
 
+func HostCallGetProperty(path []string) ([]byte, error) {
+	var ret *byte
+	var retSize int
+	raw := SerializePropertyPath(path)
+
+	err := types.StatusToError(rawhostcall.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
+	if err != nil {
+		return nil, err
+	}
+
+	return RawBytePtrToByteSlice(ret, retSize), nil
+
+}
+
+func HostCallSetProperty(path string, data []byte) error {
+	return types.StatusToError(rawhostcall.ProxySetProperty(
+		stringBytePtr(path), len(path), &data[0], len(data),
+	))
+}
+
 func setMap(mapType types.MapType, headers [][2]string) types.Status {
 	shs := SerializeMap(headers)
 	hp := &shs[0]

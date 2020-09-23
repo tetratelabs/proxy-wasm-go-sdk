@@ -67,7 +67,12 @@ func (ctx context) OnDownstreamClose(types.PeerType) {
 }
 
 func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
+	ret, err := proxywasm.HostCallGetProperty([]string{"upstream", "address"})
+	if err != nil {
+		proxywasm.LogCritical(err.Error())
+	}
 
+	proxywasm.LogInfo("remote address: ", string(ret))
 	if dataSize == 0 {
 		return types.ActionContinue
 	}

@@ -100,3 +100,9 @@ func ProxyRecordMetric(metricID uint32, value uint64) types.Status
 
 //export proxy_get_metric
 func ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status
+
+//export proxy_get_property
+func ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) types.Status
+
+//export proxy_set_property
+func ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) types.Status

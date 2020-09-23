@@ -26,8 +26,8 @@ func RegisterMockWASMHost(host ProxyWASMHost) {
 
 type ProxyWASMHost interface {
 	ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status
-	ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int)
-	ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int)
+	ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) types.Status
+	ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) types.Status
 	ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status
 	ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status
 	ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) types.Status
@@ -62,9 +62,11 @@ var _ ProxyWASMHost = DefaultProxyWAMSHost{}
 func (d DefaultProxyWAMSHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
 	return 0
 }
-func (d DefaultProxyWAMSHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) {
+func (d DefaultProxyWAMSHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) types.Status {
+	return 0
 }
-func (d DefaultProxyWAMSHost) ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) {
+func (d DefaultProxyWAMSHost) ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) types.Status {
+	return 0
 }
 func (d DefaultProxyWAMSHost) ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) types.Status {
 	return 0
@@ -134,12 +136,12 @@ func ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types
 	return currentHost.ProxyLog(logLevel, messageData, messageSize)
 }
 
-func ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) {
-	currentHost.ProxySetProperty(pathData, pathSize, valueData, valueSize)
+func ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) types.Status {
+	return currentHost.ProxySetProperty(pathData, pathSize, valueData, valueSize)
 }
 
-func ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) {
-	currentHost.ProxyGetProperty(pathData, pathSize, returnValueData, returnValueSize)
+func ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) types.Status {
+	return currentHost.ProxyGetProperty(pathData, pathSize, returnValueData, returnValueSize)
 }
 
 func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte,
