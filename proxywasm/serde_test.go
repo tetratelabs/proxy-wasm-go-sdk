@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var serdeTestCases = []struct {
+var mapSerdeTestCases = []struct {
 	maps  [][2]string
 	bytes []byte
 }{
@@ -48,18 +48,45 @@ var serdeTestCases = []struct {
 	},
 }
 
-func Test_DeserializeMap(t *testing.T) {
-	for i, c := range serdeTestCases {
+func TestDeserializeMap(t *testing.T) {
+	for i, c := range mapSerdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			assert.Equal(t, c.maps, DeserializeMap(c.bytes))
 		})
 	}
 }
 
-func Test_SerializeMap(t *testing.T) {
-	for i, c := range serdeTestCases {
+func TestSerializeMap(t *testing.T) {
+	for i, c := range mapSerdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			assert.Equal(t, c.bytes, SerializeMap(c.maps))
+		})
+	}
+}
+
+func TestSerializePropertyPath(t *testing.T) {
+	for i, c := range []struct {
+		path []string
+		exp  []byte
+	}{
+		{
+			path: []string{"path", "to", "a"},
+			exp: []byte{
+				'p', 'a', 't', 'h', 0,
+				't', 'o', 0,
+				'a',
+			},
+		},
+		{
+			path: []string{"a", "b"},
+			exp:  []byte{'a', 0, 'b'},
+		},
+		{
+			exp: []byte{},
+		},
+	} {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			assert.Equal(t, c.exp, SerializePropertyPath(c.path))
 		})
 	}
 }

@@ -155,6 +155,7 @@ func TestE2E_network(t *testing.T) {
 	assert.True(t, strings.Contains(out, "downstream connection close!"))
 	assert.True(t, strings.Contains(out, "upstream data received"))
 	assert.True(t, strings.Contains(out, "connection complete!"))
+	assert.True(t, strings.Contains(out, "remote address: 127.0.0.1:8099"))
 }
 
 func TestE2E_metrics(t *testing.T) {
