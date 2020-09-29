@@ -44,16 +44,9 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version | envoyproxy/envoy-wasm| istio/proxyv2|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| master |  0.2.0|  N/A  |   v1.17.2 |
-| v0.0.3 |  0.2.0|  N/A  |   v1.17.2 |
+| master |  0.2.0|  N/A  |   v1.17.x |
+| v0.0.3 |  0.2.0|  N/A  |   v1.17.x |
 | v0.0.2 | 0.1.0|release/v1.15 | N/A |
-
-
-## setup
-
-- __git clone__ this repository to `${GOPATH}/github.com/tetratelabs/proxy-wasm-go-sdk`
-    - `go get` may fail because some functions do not have the function body.
-- For IDE and editors, please set `-tags=proxytest` build tag for correct completion and task runners.
 
 
 ## run examples
