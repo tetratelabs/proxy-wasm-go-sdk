@@ -26,18 +26,13 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.15.0
+      image: getenvoy/extension-tinygo-builder:latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: set up go 1.15
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.15
-
       - name: build examples
-        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasm -wasm-abi=generic p
+        run: make build.examples
 
       - name: upload wasm-binaries
         uses: actions/upload-artifact@v2

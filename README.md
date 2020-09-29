@@ -38,7 +38,21 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 
 ### requirements
 
-- TinyGo(0.15.0+): https://tinygo.org
+proxy-wasm-go-sdk depends on the latest TinyGo which supports WASI target([tinygo-org/tinygo#1373](https://github.com/tinygo-org/tinygo/pull/1373)).
+In order to install that, simply run (Ubuntu/Debian):
+
+```shell
+# this corresponds to https://github.com/tinygo-org/tinygo/commit/f50ad3585d084b17f7754f4b3cb0d42661fee036
+wget https://19227-136505169-gh.circle-artifacts.com/0/tmp/tinygo_amd64.deb
+dpkg -i tinygo_amd64.deb
+```
+
+Alternatively, you can use the pre-built docker container `getenvoy/extention-tingyo-builder:wasi-dev` for any platform.
+
+TinyGo's official release of WASI target will be soon, and after that you could
+ just follow https://tinygo.org/getting-started/ to install the requirement. Stay tuned!
+
+
 
 ### compatible Envoy builds
 
