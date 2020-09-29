@@ -53,7 +53,7 @@ jobs:
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: mathetake/proxy-wasm-go-ci:istio-${{ matrix.istio-version }}
+      image: getenvoy/proxy-wasm-go-sdk-ci:istio-${{ matrix.istio-version }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
