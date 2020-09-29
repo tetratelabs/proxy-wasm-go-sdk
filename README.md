@@ -36,20 +36,18 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 ```
 
 
-## requirements
+### requirements
 
-- TinyGo(0.14.0+): https://tinygo.org/
-- GetEnvoy: https://www.getenvoy.io/install/ (for running examples)
+- TinyGo(0.15.0+): https://tinygo.org
 
-To download compatible envoyproxy, run
-```bash
-getenvoy fetch wasm:1.15
-```
+### compatible Envoy builds
 
-The target Envoy version is `release/v1.15`
- branch on [envoyproxy/envoy-wasm](https://github.com/envoyproxy/envoy-wasm/tree/release/v1.15).
- 
- 
+| proxy-wasm-go-sdk| proxy-wasm ABI version | envoyproxy/envoy-wasm| istio/proxyv2|
+|:-------------:|:-------------:|:-------------:|:-------------:|
+| master |  0.2.0|  N/A  |   v1.17.2 |
+| v0.0.2 | 0.1.0|release/v1.15 | N/A |
+
+
 ## setup
 
 - __git clone__ this repository to `${GOPATH}/github.com/tetratelabs/proxy-wasm-go-sdk`
