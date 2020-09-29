@@ -38,16 +38,12 @@ func TestMain(m *testing.M) {
 }
 
 const (
-	envoyVersion       = "wasm:1.15"
 	envoyEndpoint      = "http://localhost:18000"
 	envoyAdminEndpoint = "http://localhost:8001"
 )
 
 func startExample(t *testing.T, name string) (*exec.Cmd, *bytes.Buffer) {
-	cmd := exec.Command("getenvoy",
-		"run",
-		envoyVersion,
-		"--",
+	cmd := exec.Command("envoy",
 		"--concurrency", "2",
 		"-c", fmt.Sprintf("./examples/%s/envoy.yaml", name))
 

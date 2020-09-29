@@ -14,10 +14,10 @@ jobs:
         with:
           args: make lint
 
-      - name: set up go 1.14
+      - name: set up go 1.15
         uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: 1.15
 
       - name: run tests
         run: make test.sdk
@@ -26,15 +26,15 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.14.0
+      image: tinygo/tinygo:0.15.0
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: set up go 1.14
+      - name: set up go 1.15
         uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: 1.15
 
       - name: build examples
         run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasm -wasm-abi=generic p
@@ -49,11 +49,8 @@ jobs:
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
-    services:
-      httpbin:
-        image: kennethreitz/httpbin
-        ports:
-          - 8000:80
+    container:
+      image: mathetake/proxy-wasm-go-ci:istio-1.7.2
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -63,17 +60,6 @@ jobs:
         with:
           name: wasm-binaries
           path: examples
-
-      - name: set up go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-
-      - name: download getenvoy
-        run: curl -L https://getenvoy.io/cli | sudo bash -s -- -b /usr/local/bin
-
-      - name: download envoy
-        run: getenvoy fetch wasm:1.15
 
       - name: run e2e test
         run: go test ./e2e/... -v

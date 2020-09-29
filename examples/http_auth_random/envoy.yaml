@@ -3,7 +3,7 @@ static_resources:
     - name: main
       address:
         socket_address:
-          address: 127.0.0.1
+          address: 0.0.0.0
           port_value: 18000
       filter_chains:
         - filters:
@@ -50,8 +50,8 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: localhost
-                      port_value: 8000
+                      address: httpbin.org
+                      port_value: 80
 
 admin:
   access_log_path: "/dev/null"
