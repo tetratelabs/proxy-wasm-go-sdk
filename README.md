@@ -45,6 +45,7 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 | proxy-wasm-go-sdk| proxy-wasm ABI version | envoyproxy/envoy-wasm| istio/proxyv2|
 |:-------------:|:-------------:|:-------------:|:-------------:|
 | master |  0.2.0|  N/A  |   v1.17.2 |
+| v0.0.3 |  0.2.0|  N/A  |   v1.17.2 |
 | v0.0.2 | 0.1.0|release/v1.15 | N/A |
 
 
