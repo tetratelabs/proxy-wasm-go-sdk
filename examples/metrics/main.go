@@ -15,8 +15,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -36,7 +34,7 @@ type metric struct{ proxywasm.DefaultContext }
 func (ctx metric) OnVMStart(int) bool {
 	ct, err := proxywasm.DefineCounterMetric(metricsName)
 	if err != nil {
-		proxywasm.LogCritical("error defining metrics: ", err.Error())
+		proxywasm.LogCriticalf("error defining metrics: %v", err)
 	}
 	counter = ct
 	return true
@@ -46,13 +44,13 @@ func (ctx metric) OnVMStart(int) bool {
 func (ctx metric) OnHttpRequestHeaders(int, bool) types.Action {
 	prev, err := counter.Get()
 	if err != nil {
-		proxywasm.LogCritical("error retrieving previous metric: ", err.Error())
+		proxywasm.LogCriticalf("error retrieving previous metric: %v", err)
 	}
 
-	proxywasm.LogInfo("previous value of ", metricsName, ": ", strconv.Itoa(int(prev)))
+	proxywasm.LogInfof("previous value of %s: %d", metricsName, prev)
 
 	if err := counter.Increment(1); err != nil {
-		proxywasm.LogCritical("error incrementing metrics", err.Error())
+		proxywasm.LogCriticalf("error incrementing metrics %v", err)
 	}
 	proxywasm.LogInfo("incremented")
 	return types.ActionContinue

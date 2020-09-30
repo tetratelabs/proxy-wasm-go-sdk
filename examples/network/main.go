@@ -35,7 +35,7 @@ func (ctx context) OnVMStart(int) bool {
 	var err error
 	counter, err = proxywasm.DefineCounterMetric(connectionCounterName)
 	if err != nil {
-		proxywasm.LogCritical("failed to initialize connection counter: ", err.Error())
+		proxywasm.LogCriticalf("failed to initialize connection counter: %v", err)
 	}
 	return true
 }
@@ -57,7 +57,7 @@ func (ctx context) OnDownstreamData(dataSize int, _ bool) types.Action {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfo("downstream data received: ", string(data))
+	proxywasm.LogInfof("downstream data received: %s", string(data))
 	return types.ActionContinue
 }
 
@@ -72,7 +72,7 @@ func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfo("remote address: ", string(ret))
+	proxywasm.LogInfof("remote address: %s", string(ret))
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
@@ -82,14 +82,14 @@ func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfo("upstream data received: ", string(data))
+	proxywasm.LogInfof("upstream data received: %s", string(data))
 	return types.ActionContinue
 }
 
 func (ctx context) OnDone() bool {
 	err := counter.Increment(1)
 	if err != nil {
-		proxywasm.LogCritical("failed to increment connection counter: ", err.Error())
+		proxywasm.LogCriticalf("failed to increment connection counter: %v", err)
 	}
 	proxywasm.LogInfo("connection complete!")
 	return true

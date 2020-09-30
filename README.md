@@ -35,10 +35,22 @@ func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
 
 ```
 
-
 ### requirements
 
-- TinyGo(0.15.0+): https://tinygo.org
+proxy-wasm-go-sdk depends on the latest TinyGo which supports WASI target([tinygo-org/tinygo#1373](https://github.com/tinygo-org/tinygo/pull/1373)).
+In order to install that, simply run (Ubuntu/Debian):
+
+```shell
+# this corresponds to https://github.com/tinygo-org/tinygo/commit/f50ad3585d084b17f7754f4b3cb0d42661fee036
+wget https://19227-136505169-gh.circle-artifacts.com/0/tmp/tinygo_amd64.deb
+dpkg -i tinygo_amd64.deb
+```
+
+Alternatively, you can use the pre-built docker container `getenvoy/extention-tingyo-builder:wasi-dev` for any platform.
+
+TinyGo's official release of WASI target will be soon, and after that you could
+ just follow https://tinygo.org/getting-started/ to install the requirement. Stay tuned!
+
 
 ### compatible Envoy builds
 
@@ -73,19 +85,13 @@ make test # run local tests without running envoy processes
 make test.e2e # run e2e tests
 ```
 
-## language and compiler limitations/considerations
+## compiler limitations and considerations
 
-- You can only use really limited set of existing libraries. 
+- Some of existing libraries are not available (importable but runtime panic / non-importable)
     - There are two reasons for this:
-        1. TinyGo [uses](https://github.com/tinygo-org/tinygo/blob/release/loader/loader.go#L79-L83) the official parser, lexer, etc., 
-    which forces your program to implicitly import `syscall/js` package if you import packages using system calls. 
-    The package expects the host environment to have the `syscall/js` specific ABI as in 
-    [wasm_exec.js](https://github.com/tinygo-org/tinygo/blob/154d4a781f6121bd6f584cca4a88909e0b091f63/targets/wasm_exec.js) 
-    which is not available outside of that javascript.
+        1. TinyGo's WASI target does not support some of syscall: For example, we cannot import `crypto/rand` package.
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
-    - The syscall problem can be solved by one of the followings:
-        - emulate `syscall/js` function through WASI interface (which is implemented by V8 engine running on Envoy)
-        - support WASI target in TinyGo: https://github.com/tinygo-org/tinygo/pull/1373
+    - These issues will be mitigated as the TinyGo improves.
 - There's performance overhead in using Go/TinyGo due to GC
     - runtime.GC() is called whenever heap allocation happens (see [1](https://tinygo.org/lang-support/#garbage-collection), 
     [2](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_conservative.go#L218-L239)).

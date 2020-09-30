@@ -28,19 +28,19 @@ type context struct{ proxywasm.DefaultContext }
 func (ctx context) OnVMStart(vmConfigurationSize int) bool {
 	data, err := proxywasm.HostCallGetVMConfiguration(vmConfigurationSize)
 	if err != nil {
-		proxywasm.LogCritical("error reading vm configuration", err.Error())
+		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
 	}
 
-	proxywasm.LogInfo("vm config: \n", string(data))
+	proxywasm.LogInfof("vm config: %s\n", string(data))
 	return true
 }
 
 func (ctx context) OnConfigure(pluginConfigurationSize int) bool {
 	data, err := proxywasm.HostCallGetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
-		proxywasm.LogCritical("error reading plugin configuration", err.Error())
+		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 	}
 
-	proxywasm.LogInfo("plugin config: \n", string(data))
+	proxywasm.LogInfof("plugin config: %s\n", string(data))
 	return true
 }

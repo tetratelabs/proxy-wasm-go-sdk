@@ -15,8 +15,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -39,11 +37,11 @@ func newContext(contextID uint32) proxywasm.HttpContext {
 func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
 	if err != nil {
-		proxywasm.LogCritical("failed to get request headers: ", err.Error())
+		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 	}
 
 	for _, h := range hs {
-		proxywasm.LogInfo("request header: ", h[0], ": ", h[1])
+		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 	return types.ActionContinue
 }
@@ -52,16 +50,16 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 func (ctx *httpHeaders) OnHttpResponseHeaders(int, bool) types.Action {
 	hs, err := proxywasm.HostCallGetHttpResponseHeaders()
 	if err != nil {
-		proxywasm.LogCritical("failed to get request headers: ", err.Error())
+		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 	}
 
 	for _, h := range hs {
-		proxywasm.LogInfo("response header: ", h[0], ": ", h[1])
+		proxywasm.LogInfof("response header: %s: %s", h[0], h[1])
 	}
 	return types.ActionContinue
 }
 
 // override
 func (ctx *httpHeaders) OnLog() {
-	proxywasm.LogInfo(strconv.FormatUint(uint64(ctx.contextID), 10), " finished")
+	proxywasm.LogInfof("%d finished", ctx.contextID)
 }
