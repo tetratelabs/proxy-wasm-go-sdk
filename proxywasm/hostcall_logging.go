@@ -15,38 +15,62 @@
 package proxywasm
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func LogTrace(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogTrace(msg string) {
 	rawhostcall.ProxyLog(types.LogLevelTrace, stringBytePtr(msg), len(msg))
 }
 
-func LogDebug(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogTracef(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	rawhostcall.ProxyLog(types.LogLevelTrace, stringBytePtr(msg), len(msg))
+}
+
+func LogDebug(msg string) {
 	rawhostcall.ProxyLog(types.LogLevelDebug, stringBytePtr(msg), len(msg))
 }
 
-func LogInfo(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogDebugf(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	rawhostcall.ProxyLog(types.LogLevelDebug, stringBytePtr(msg), len(msg))
+}
+
+func LogInfo(msg string) {
 	rawhostcall.ProxyLog(types.LogLevelInfo, stringBytePtr(msg), len(msg))
 }
 
-func LogWarn(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogInfof(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	rawhostcall.ProxyLog(types.LogLevelInfo, stringBytePtr(msg), len(msg))
+}
+
+func LogWarn(msg string) {
 	rawhostcall.ProxyLog(types.LogLevelWarn, stringBytePtr(msg), len(msg))
 }
 
-func LogError(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogWarnf(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	rawhostcall.ProxyLog(types.LogLevelWarn, stringBytePtr(msg), len(msg))
+}
+
+func LogError(msg string) {
 	rawhostcall.ProxyLog(types.LogLevelError, stringBytePtr(msg), len(msg))
 }
 
-func LogCritical(msgs ...string) {
-	msg := strings.Join(msgs, "")
+func LogErrorf(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	rawhostcall.ProxyLog(types.LogLevelError, stringBytePtr(msg), len(msg))
+}
+
+func LogCritical(msg string) {
+	rawhostcall.ProxyLog(types.LogLevelCritical, stringBytePtr(msg), len(msg))
+}
+
+func LogCriticalf(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
 	rawhostcall.ProxyLog(types.LogLevelCritical, stringBytePtr(msg), len(msg))
 }

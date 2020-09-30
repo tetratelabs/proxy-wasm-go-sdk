@@ -16,7 +16,6 @@ package main
 
 import (
 	"hash/fnv"
-	"strconv"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -42,19 +41,19 @@ func newContext(contextID uint32) proxywasm.HttpContext {
 func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
 	if err != nil {
-		proxywasm.LogCritical("failed to get request headers: ", err.Error())
+		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 		return types.ActionContinue
 	}
 	for _, h := range hs {
-		proxywasm.LogInfo("request header: ", h[0], ": ", h[1])
+		proxywasm.LogInfof("request header from: %s: %s", h[0], h[1])
 	}
 
 	if _, err := proxywasm.HostCallDispatchHttpCall(
 		clusterName, hs, "", [][2]string{}, 50000); err != nil {
-		proxywasm.LogCritical("dipatch httpcall failed: ", err.Error())
+		proxywasm.LogCriticalf("dipatch httpcall failed: %v", err)
 	}
 
-	proxywasm.LogInfo("http call dispatched to ", clusterName)
+	proxywasm.LogInfof("http call dispatched to %s", clusterName)
 
 	return types.ActionPause
 }
@@ -63,24 +62,25 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 func (ctx *httpHeaders) OnHttpCallResponse(_ int, bodySize int, _ int) {
 	hs, err := proxywasm.HostCallGetHttpCallResponseHeaders()
 	if err != nil {
-		proxywasm.LogCritical("failed to get response body: ", err.Error())
+
+		proxywasm.LogCriticalf("failed to get response body: %v", err)
 		return
 	}
 
 	for _, h := range hs {
-		proxywasm.LogInfo("response header from httpbin: ", h[0], ": ", h[1])
+		proxywasm.LogInfof("response header from %s: %s: %s", clusterName, h[0], h[1])
 	}
 
 	b, err := proxywasm.HostCallGetHttpCallResponseBody(0, bodySize)
 	if err != nil {
-		proxywasm.LogCritical("failed to get response body: ", err.Error())
+		proxywasm.LogCriticalf("failed to get response body: %v", err)
 		proxywasm.HostCallResumeHttpRequest()
 		return
 	}
 
 	s := fnv.New32a()
 	if _, err := s.Write(b); err != nil {
-		proxywasm.LogCritical("failed to calculate hash: ", err.Error())
+		proxywasm.LogCriticalf("failed to calculate hash: %v", err)
 		proxywasm.HostCallResumeHttpRequest()
 		return
 	}
@@ -100,5 +100,5 @@ func (ctx *httpHeaders) OnHttpCallResponse(_ int, bodySize int, _ int) {
 
 // override default
 func (ctx *httpHeaders) OnLog() {
-	proxywasm.LogInfo(strconv.FormatUint(uint64(ctx.contextID), 10), " finished")
+	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

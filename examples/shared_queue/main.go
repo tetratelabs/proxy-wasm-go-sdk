@@ -15,8 +15,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -42,12 +40,12 @@ func (ctx queue) OnVMStart(int) bool {
 		panic(err.Error())
 	}
 	queueID = qID
-	proxywasm.LogInfo("queue registered, name: ", queueName, ", id: ", strconv.Itoa(int(qID)))
+	proxywasm.LogInfof("queue registered, name: %s, id: %d", queueName, qID)
 
 	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		proxywasm.LogCritical("failed to set tick period: ", err.Error())
+		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
-	proxywasm.LogInfo("set tick period milliseconds: ", strconv.Itoa(int(tickMilliseconds)))
+	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
 	return true
 }
 
@@ -55,7 +53,7 @@ func (ctx queue) OnVMStart(int) bool {
 func (ctx queue) OnHttpRequestHeaders(int, bool) types.Action {
 	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
 		if err := proxywasm.HostCallEnqueueSharedQueue(queueID, []byte(msg)); err != nil {
-			proxywasm.LogCritical("error queueing: ", err.Error())
+			proxywasm.LogCriticalf("error queueing: %v", err)
 		}
 	}
 	return types.ActionContinue
@@ -68,8 +66,8 @@ func (ctx queue) OnTick() {
 	case types.ErrorStatusEmpty:
 		return
 	case nil:
-		proxywasm.LogInfo("dequeued data: ", string(data))
+		proxywasm.LogInfof("dequeued data: %s", string(data))
 	default:
-		proxywasm.LogCritical("error retrieving data from queue ", strconv.Itoa(int(queueID)), ", ", err.Error())
+		proxywasm.LogCriticalf("error retrieving data from queue %d: %v", queueID, err)
 	}
 }

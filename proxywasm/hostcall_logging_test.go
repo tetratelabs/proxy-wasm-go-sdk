@@ -37,6 +37,16 @@ func TestHostCall_Logging(t *testing.T) {
 		LogTrace("trace")
 	})
 
+	t.Run("tracef", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "trace: log",
+			expLogLevel:          types.LogLevelTrace,
+		})
+		LogTracef("trace: %s", "log")
+	})
+
 	t.Run("debug", func(t *testing.T) {
 		rawhostcall.RegisterMockWASMHost(logHost{
 			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
@@ -44,7 +54,17 @@ func TestHostCall_Logging(t *testing.T) {
 			expMessage:           "abc",
 			expLogLevel:          types.LogLevelDebug,
 		})
-		LogDebug("a", "b", "c")
+		LogDebug("abc")
+	})
+
+	t.Run("debugf", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "debug: log",
+			expLogLevel:          types.LogLevelDebug,
+		})
+		LogDebugf("debug: %s", "log")
 	})
 
 	t.Run("info", func(t *testing.T) {
@@ -54,7 +74,17 @@ func TestHostCall_Logging(t *testing.T) {
 			expMessage:           "info",
 			expLogLevel:          types.LogLevelInfo,
 		})
-		LogInfo("in", "f", "o")
+		LogInfo("info")
+	})
+
+	t.Run("infof", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "info: log: 10",
+			expLogLevel:          types.LogLevelInfo,
+		})
+		LogInfof("info: %s: %d", "log", 10)
 	})
 
 	t.Run("warn", func(t *testing.T) {
@@ -67,6 +97,16 @@ func TestHostCall_Logging(t *testing.T) {
 		LogWarn("warn")
 	})
 
+	t.Run("warnf", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "warn: log: 10",
+			expLogLevel:          types.LogLevelWarn,
+		})
+		LogWarnf("warn: %s: %d", "log", 10)
+	})
+
 	t.Run("error", func(t *testing.T) {
 		rawhostcall.RegisterMockWASMHost(logHost{
 			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
@@ -77,6 +117,16 @@ func TestHostCall_Logging(t *testing.T) {
 		LogError("error")
 	})
 
+	t.Run("warnf", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "warn: log: 10",
+			expLogLevel:          types.LogLevelWarn,
+		})
+		LogWarnf("warn: %s: %d", "log", 10)
+	})
+
 	t.Run("critical", func(t *testing.T) {
 		rawhostcall.RegisterMockWASMHost(logHost{
 			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
@@ -84,6 +134,16 @@ func TestHostCall_Logging(t *testing.T) {
 			expMessage:           "critical error",
 			expLogLevel:          types.LogLevelCritical,
 		})
-		LogCritical("critical", " error")
+		LogCritical("critical error")
+	})
+
+	t.Run("criticalf", func(t *testing.T) {
+		rawhostcall.RegisterMockWASMHost(logHost{
+			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+			t:                    t,
+			expMessage:           "critical: log: 10",
+			expLogLevel:          types.LogLevelCritical,
+		})
+		LogCriticalf("critical: %s: %d", "log", 10)
 	})
 }
