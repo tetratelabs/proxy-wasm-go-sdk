@@ -48,15 +48,16 @@ dpkg -i tinygo_amd64.deb
 
 Alternatively, you can use the pre-built docker container `getenvoy/extention-tingyo-builder:wasi-dev` for any platform.
 
-TinyGo's official release of WASI target will be soon, and after that you could
- just follow https://tinygo.org/getting-started/ to install the requirement. Stay tuned!
+TinyGo's official release of WASI target will come soon, and after that you could
+ just follow https://tinygo.org/getting-started/ to install the requirement on any platform. Stay tuned!
 
 
 ### compatible Envoy builds
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version | envoyproxy/envoy-wasm| istio/proxyv2|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| master |  0.2.0|  N/A  |   v1.17.x |
+| main |  0.2.0|  N/A  |   v1.17.x |
+| v0.0.4 |  0.2.0|  N/A  |   v1.17.x |
 | v0.0.3 |  0.2.0|  N/A  |   v1.17.x |
 | v0.0.2 | 0.1.0|release/v1.15 | N/A |
 
@@ -93,7 +94,7 @@ make test.e2e # run e2e tests
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
     - These issues will be mitigated as the TinyGo improves.
 - There's performance overhead in using Go/TinyGo due to GC
-    - runtime.GC() is called whenever heap allocation happens (see [1](https://tinygo.org/lang-support/#garbage-collection), 
+    - runtime.GC() is called whenever the heap runs out (see [1](https://tinygo.org/lang-support/#garbage-collection),
     [2](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_conservative.go#L218-L239)).
     - TinyGo allows us to disable GC, but we cannot do that since we need to use maps (implicitly causes allocation)
      for saving the plugin's [state](https://github.com/tetratelabs/proxy-wasm-go-sdk/blob/master/proxywasm/vmstate.go#L17-L22).
