@@ -15,7 +15,7 @@
 # docker image for running e2e tests using istio/proxyv2 binary
 # TODO: build on GHA
 
-FROM istio/proxyv2:1.7.2
+FROM istio/proxyv2:1.7.3
 
 FROM golang:1.15
 

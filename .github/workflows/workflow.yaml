@@ -43,7 +43,7 @@ jobs:
   e2e-tests:
     strategy:
       matrix:
-        istio-version: [ 1.7.0, 1.7.1, 1.7.2 ]
+        istio-version: [ 1.7.0, 1.7.1, 1.7.2, 1.7.3 ]
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
