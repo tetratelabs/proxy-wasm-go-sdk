@@ -4,14 +4,22 @@ This example reads the json string from Envoy's configuration yaml at the startu
 
 
 ```
-[2020-09-08 15:22:54.778][448422][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:997] wasm log my_root_id: vm config:
-{
+wasm log my_root_id: vm config: {
   "name": "vm configuration"
 }
 
-[2020-09-08 15:22:54.778][448422][info][wasm] [external/envoy/source/extensions/common/wasm/context.cc:997] wasm log my_root_id: plugin config:
-{
+
+wasm log my_root_id: plugin config: {
   "name": "plugin configuration"
 }
 
+
+wasm log my_root_id: vm config: {
+  "name": "vm configuration"
+}
+
+
+wasm log my_root_id: plugin config: {
+  "name": "plugin configuration"
+}
 ```

@@ -41,7 +41,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 	}
 
 	for _, h := range hs {
-		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
+		proxywasm.LogInfof("request header --> %s: %s", h[0], h[1])
 	}
 	return types.ActionContinue
 }
@@ -54,7 +54,7 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(int, bool) types.Action {
 	}
 
 	for _, h := range hs {
-		proxywasm.LogInfof("response header: %s: %s", h[0], h[1])
+		proxywasm.LogInfof("response header <-- %s: %s", h[0], h[1])
 	}
 	return types.ActionContinue
 }
