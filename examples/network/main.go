@@ -46,8 +46,6 @@ func (ctx context) OnNewConnection() types.Action {
 }
 
 func (ctx context) OnDownstreamData(dataSize int, _ bool) types.Action {
-	// TODO: dispatch http call
-
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
@@ -57,7 +55,7 @@ func (ctx context) OnDownstreamData(dataSize int, _ bool) types.Action {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfof("downstream data received: %s", string(data))
+	proxywasm.LogInfof(">>>>>> downstream data received >>>>>>\n%s", string(data))
 	return types.ActionContinue
 }
 
@@ -67,22 +65,23 @@ func (ctx context) OnDownstreamClose(types.PeerType) {
 }
 
 func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
+	if dataSize == 0 {
+		return types.ActionContinue
+	}
+
 	ret, err := proxywasm.HostCallGetProperty([]string{"upstream", "address"})
 	if err != nil {
 		proxywasm.LogCritical(err.Error())
 	}
 
 	proxywasm.LogInfof("remote address: %s", string(ret))
-	if dataSize == 0 {
-		return types.ActionContinue
-	}
 
 	data, err := proxywasm.HostCallGetUpstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfof("upstream data received: %s", string(data))
+	proxywasm.LogInfof("<<<<<< upstream data received <<<<<<\n%s", string(data))
 	return types.ActionContinue
 }
 
