@@ -20,7 +20,7 @@ jobs:
           go-version: 1.15
 
       - name: run tests
-        run: make test.sdk
+        run: make test
 
   build-examples:
     name: build examples

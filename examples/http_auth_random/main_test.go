@@ -10,7 +10,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
+func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 	host, done := proxytest.NewHttpFilterHost(newContext)
 	defer done()
 
@@ -27,7 +27,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	assert.Equal(t, "request header: key: value", logs[len(logs)-2])
 }
 
-func TestHttpHeaders_OnHttpCallResponse(t *testing.T) {
+func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	host, done := proxytest.NewHttpFilterHost(newContext)
 	defer done()
 
