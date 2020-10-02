@@ -16,7 +16,7 @@ lint:
 	golangci-lint run --build-tags proxytest
 
 test:
-	go test -tags=proxytest $(go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
+	go test -tags=proxytest $(shell go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
 
 test.e2e:
 	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} go test -v ./e2e

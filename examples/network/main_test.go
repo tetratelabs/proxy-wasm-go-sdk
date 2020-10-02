@@ -62,7 +62,7 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 	host.PutDownstreamData(contextID, data) // OnDownstreamData is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
-	assert.Equal(t, "downstream data received: "+msg, logs[len(logs)-1])
+	assert.Equal(t, ">>>>>> downstream data received >>>>>>\n"+msg, logs[len(logs)-1])
 }
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
@@ -76,7 +76,7 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 	host.PutUpstreamData(contextID, data) // OnUpstreamData is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
-	assert.Equal(t, "upstream data received: "+msg, logs[len(logs)-1])
+	assert.Equal(t, "<<<<<< upstream data received <<<<<<\n"+msg, logs[len(logs)-1])
 }
 
 func TestNetwork_counter(t *testing.T) {

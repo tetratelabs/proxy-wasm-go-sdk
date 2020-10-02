@@ -27,25 +27,25 @@ func main() {
 	proxywasm.SetNewHttpContext(newContext)
 }
 
-type httpHeaders struct {
+type httpAuthRandom struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultContext
 	contextID uint32
 }
 
 func newContext(contextID uint32) proxywasm.HttpContext {
-	return &httpHeaders{contextID: contextID}
+	return &httpAuthRandom{contextID: contextID}
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *httpAuthRandom) OnHttpRequestHeaders(int, bool) types.Action {
 	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 		return types.ActionContinue
 	}
 	for _, h := range hs {
-		proxywasm.LogInfof("request header from: %s: %s", h[0], h[1])
+		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 
 	if _, err := proxywasm.HostCallDispatchHttpCall(
@@ -59,7 +59,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 }
 
 // override default
-func (ctx *httpHeaders) OnHttpCallResponse(_ int, bodySize int, _ int) {
+func (ctx *httpAuthRandom) OnHttpCallResponse(_ int, bodySize int, _ int) {
 	hs, err := proxywasm.HostCallGetHttpCallResponseHeaders()
 	if err != nil {
 
@@ -99,6 +99,6 @@ func (ctx *httpHeaders) OnHttpCallResponse(_ int, bodySize int, _ int) {
 }
 
 // override default
-func (ctx *httpHeaders) OnLog() {
+func (ctx *httpAuthRandom) OnLog() {
 	proxywasm.LogInfof("%d finished", ctx.contextID)
 }
