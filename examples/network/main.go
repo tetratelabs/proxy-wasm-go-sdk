@@ -59,7 +59,6 @@ func (ctx *networkContext) OnNewConnection() types.Action {
 
 func (ctx *networkContext) OnDownstreamData(dataSize int, _ bool) types.Action {
 	if dataSize == 0 {
-		panic("aa")
 		return types.ActionContinue
 	}
 

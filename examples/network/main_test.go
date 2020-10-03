@@ -25,8 +25,10 @@ import (
 )
 
 func TestNetwork_OnNewConnection(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil,
-		newRootContext, newNetworkContext, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // call OnVMStart: init metric
@@ -38,8 +40,10 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 }
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil,
-		newRootContext, newNetworkContext, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	contextID := host.NetworkFilterInitConnection()        // OnNewConnection is called
@@ -51,8 +55,10 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 }
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil,
-		newRootContext, newNetworkContext, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	contextID := host.NetworkFilterInitConnection() // OnNewConnection is called
@@ -66,8 +72,10 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 }
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil,
-		newRootContext, newNetworkContext, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	contextID := host.NetworkFilterInitConnection() // OnNewConnection is called
@@ -81,8 +89,10 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 }
 
 func TestNetwork_counter(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil,
-		newRootContext, newNetworkContext, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // call OnVMStart: init metric

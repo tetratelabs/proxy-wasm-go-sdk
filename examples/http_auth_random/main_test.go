@@ -11,7 +11,9 @@ import (
 )
 
 func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil, nil, nil, newContext)
+	opt := proxytest.NewEmulatorOption().
+		WithNewHttpContext(newContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 
 	contextID := host.HttpFilterInitContext()
@@ -32,7 +34,9 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 }
 
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
-	host := proxytest.NewHostEmulator(nil, nil, nil, nil, newContext)
+	opt := proxytest.NewEmulatorOption().
+		WithNewHttpContext(newContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 
 	// http://httpbin.org/uuid

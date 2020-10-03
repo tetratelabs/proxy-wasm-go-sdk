@@ -55,13 +55,8 @@ var (
 	nextContextID = rootContextID + 1
 )
 
-func NewHostEmulator(pluginConfiguration,
-	vmConfiguration []byte,
-	newRootContext func(uint32) proxywasm.RootContext,
-	newStreamContext func(uint32) proxywasm.StreamContext,
-	newHttpContext func(uint32) proxywasm.HttpContext,
-) HostEmulator {
-	root := newRootHostEmulator(pluginConfiguration, vmConfiguration)
+func NewHostEmulator(opt *EmulatorOption) HostEmulator {
+	root := newRootHostEmulator(opt.pluginConfiguration, opt.vmConfiguration)
 	network := newNetworkHostEmulator()
 	http := newHttpHostEmulator()
 	emulator := &hostEmulator{
@@ -75,9 +70,9 @@ func NewHostEmulator(pluginConfiguration,
 	rawhostcall.RegisterMockWASMHost(emulator)
 
 	// set up state
-	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewStreamContext(newStreamContext)
-	proxywasm.SetNewHttpContext(newHttpContext)
+	proxywasm.SetNewRootContext(opt.newRootContext)
+	proxywasm.SetNewStreamContext(opt.newStreamContext)
+	proxywasm.SetNewHttpContext(opt.newHttpContext)
 
 	// create root context: TODO: support multiple root contexts
 	proxywasm.ProxyOnContextCreate(rootContextID, 0)

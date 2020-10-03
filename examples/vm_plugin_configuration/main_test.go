@@ -29,7 +29,10 @@ import (
 func TestContext_OnPluginStart(t *testing.T) {
 	pluginConfigData := `{"name": "tinygo plugin configuration"}`
 
-	host := proxytest.NewHostEmulator([]byte(pluginConfigData), nil, newRootContext, nil, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithPluginConfiguration([]byte(pluginConfigData)).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation
 
 	host.StartPlugin() // invoke OnPluginStart
@@ -42,7 +45,10 @@ func TestContext_OnPluginStart(t *testing.T) {
 
 func TestContext_OnVMStart(t *testing.T) {
 	vmConfigData := `{"name": "tinygo vm configuration"}`
-	host := proxytest.NewHostEmulator(nil, []byte(vmConfigData), newRootContext, nil, nil)
+	opt := proxytest.NewEmulatorOption().
+		WithVMConfiguration([]byte(vmConfigData)).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // invoke OnVMStart
