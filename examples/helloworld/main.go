@@ -26,7 +26,7 @@ func main() {
 
 type helloWorld struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
-	proxywasm.DefaultContext
+	proxywasm.DefaultRootContext
 	contextID uint32
 }
 
@@ -37,7 +37,7 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 // override
 func (ctx *helloWorld) OnVMStart(int) bool {
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
-	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
+	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 	return true
@@ -45,6 +45,6 @@ func (ctx *helloWorld) OnVMStart(int) bool {
 
 // override
 func (ctx *helloWorld) OnTick() {
-	t := proxywasm.HostCallGetCurrentTime()
+	t := proxywasm.GetCurrentTime()
 	proxywasm.LogInfof("OnTick on %d, it's %d", ctx.contextID, t)
 }

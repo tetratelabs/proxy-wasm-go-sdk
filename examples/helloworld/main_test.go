@@ -3,6 +3,9 @@ package main
 import (
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
@@ -11,23 +14,29 @@ import (
 )
 
 func TestHelloWorld_OnTick(t *testing.T) {
-	ctx := newHelloWorld(100)
-	host, done := proxytest.NewRootFilterHost(ctx, nil, nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
-	ctx.OnTick()
+	opt := proxytest.NewEmulatorOption().
+		WithNewRootContext(newHelloWorld)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+
+	host.StartVM() // call OnVMStart
+
+	time.Sleep(time.Duration(tickMilliseconds) * 4 * time.Millisecond)
 
 	logs := host.GetLogs(types.LogLevelInfo)
+	require.Greater(t, len(logs), 0)
 	msg := logs[len(logs)-1]
 
 	assert.True(t, strings.Contains(msg, "OnTick on"))
 }
 
 func TestHelloWorld_OnVMStart(t *testing.T) {
-	ctx := newHelloWorld(0)
-	host, done := proxytest.NewRootFilterHost(ctx, nil, nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewRootContext(newHelloWorld)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	host.StartVM()
+	host.StartVM() // call OnVMStart
 	logs := host.GetLogs(types.LogLevelInfo)
 	msg := logs[len(logs)-1]
 

@@ -21,7 +21,7 @@ func proxyOnVMStart(rootContextID uint32, vmConfigurationSize int) bool {
 		panic("invalid context on proxy_on_vm_start")
 	}
 	currentState.setActiveContextID(rootContextID)
-	return ctx.OnVMStart(vmConfigurationSize)
+	return ctx.context.OnVMStart(vmConfigurationSize)
 }
 
 //export proxy_on_configure
@@ -31,5 +31,5 @@ func proxyOnConfigure(rootContextID uint32, pluginConfigurationSize int) bool {
 		panic("invalid context on proxy_on_configure")
 	}
 	currentState.setActiveContextID(rootContextID)
-	return ctx.OnConfigure(pluginConfigurationSize)
+	return ctx.context.OnPluginStart(pluginConfigurationSize)
 }

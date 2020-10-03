@@ -18,112 +18,31 @@ import (
 	"log"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type NetworkFilterHost struct {
-	*baseHost
-	newContext func(contextID uint32) proxywasm.StreamContext
-	streams    map[uint32]*streamState
+type networkHostEmulator struct {
+	streamStates map[uint32]*streamState
 }
 
 type streamState struct {
 	upstream, downstream []byte
-	context              proxywasm.StreamContext
 }
 
-func NewNetworkFilterHost(f func(contextID uint32) proxywasm.StreamContext) (*NetworkFilterHost, func()) {
-	host := &NetworkFilterHost{
-		newContext: f,
-		streams:    map[uint32]*streamState{},
+func newNetworkHostEmulator() *networkHostEmulator {
+	host := &networkHostEmulator{
+		streamStates: map[uint32]*streamState{},
 	}
 
-	host.baseHost = newBaseHost(func(contextID uint32, numHeaders, bodySize, numTrailers int) {
-		stream, ok := host.streams[contextID]
-		if !ok {
-			log.Fatalf("invalid context id for callback: %d", contextID)
-		}
-		stream.context.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
-	})
-	hostMux.Lock() // acquire the lock of host emulation
-	rawhostcall.RegisterMockWASMHost(host)
-	return host, func() {
-		hostMux.Unlock()
-	}
+	return host
 }
 
-func (n *NetworkFilterHost) PutUpstreamData(contextID uint32, data []byte) {
-	stream, ok := n.streams[contextID]
-	if !ok {
-		log.Fatalf("invalid context id: %d", contextID)
-	}
-
-	if len(data) > 0 {
-		stream.upstream = append(stream.upstream, data...)
-	}
-
-	n.currentContextID = contextID
-	action := stream.context.OnUpstreamData(len(stream.upstream), false)
-	switch action {
-	case types.ActionPause:
-		return
-	case types.ActionContinue:
-		// TODO: verify the behavior is correct
-		stream.upstream = []byte{}
-	default:
-		log.Fatalf("invalid action type: %d", action)
-	}
-}
-
-func (n *NetworkFilterHost) PutDownstreamData(contextID uint32, data []byte) {
-	stream, ok := n.streams[contextID]
-	if !ok {
-		log.Fatalf("invalid context id: %d", contextID)
-	}
-	if len(data) > 0 {
-		stream.downstream = append(stream.downstream, data...)
-	}
-
-	n.currentContextID = contextID
-	action := stream.context.OnDownstreamData(len(stream.downstream), false)
-	switch action {
-	case types.ActionPause:
-		return
-	case types.ActionContinue:
-		// TODO: verify the behavior is correct
-		stream.downstream = []byte{}
-	default:
-		log.Fatalf("invalid action type: %d", action)
-	}
-}
-
-func (n *NetworkFilterHost) InitConnection() (contextID uint32) {
-	contextID = uint32(len(n.streams) + 1)
-	ctx := n.newContext(contextID)
-	n.streams[contextID] = &streamState{context: ctx}
-
-	n.currentContextID = contextID
-	ctx.OnNewConnection()
-	return
-}
-
-func (n *NetworkFilterHost) CloseUpstreamConnection(contextID uint32) {
-	n.streams[contextID].context.OnUpstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
-}
-
-func (n *NetworkFilterHost) CloseDownstreamConnection(contextID uint32) {
-	n.streams[contextID].context.OnDownstreamClose(types.PeerTypeLocal) // peerType will be removed in the next ABI
-}
-
-func (n *NetworkFilterHost) CompleteConnection(contextID uint32) {
-	n.streams[contextID].context.OnDone()
-	delete(n.streams, contextID)
-}
-
-func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
+// impl host rawhostcall.ProxyWASMHost: delegated from hostEmulator
+func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
-	stream := n.streams[n.currentContextID]
+
+	active := proxywasm.VMStateGetActiveContextID()
+	stream := n.streamStates[active]
 	var buf []byte
 	switch bt {
 	case types.BufferTypeUpstreamData:
@@ -131,8 +50,7 @@ func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, 
 	case types.BufferTypeDownstreamData:
 		buf = stream.downstream
 	default:
-		// delegate to baseHost
-		return n.getBuffer(bt, start, maxSize, returnBufferData, returnBufferSize)
+		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
 	if start >= len(buf) {
@@ -149,16 +67,72 @@ func (n *NetworkFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, 
 	return types.StatusOK
 }
 
-func (n *NetworkFilterHost) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
-	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
-	return n.getMapValue(mapType, keyData, keySize, returnValueData, returnValueSize)
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, data []byte) {
+	stream, ok := n.streamStates[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+
+	if len(data) > 0 {
+		stream.upstream = append(stream.upstream, data...)
+	}
+
+	action := proxywasm.ProxyOnUpstreamData(contextID, len(stream.upstream), false)
+	switch action {
+	case types.ActionPause:
+		return
+	case types.ActionContinue:
+		// TODO: verify the behavior is correct
+		stream.upstream = []byte{}
+	default:
+		log.Fatalf("invalid action type: %d", action)
+	}
 }
 
-func (n *NetworkFilterHost) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
-	returnValueSize *int) types.Status {
-	return n.getMapPairs(mapType, returnValueData, returnValueSize)
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, data []byte) {
+	stream, ok := n.streamStates[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+	if len(data) > 0 {
+		stream.downstream = append(stream.downstream, data...)
+	}
+
+	action := proxywasm.ProxyOnDownstreamData(contextID, len(stream.downstream), false)
+	switch action {
+	case types.ActionPause:
+		return
+	case types.ActionContinue:
+		// TODO: verify the behavior is correct
+		stream.downstream = []byte{}
+	default:
+		log.Fatalf("invalid action type: %d", action)
+	}
 }
 
-func (n *NetworkFilterHost) GetContext(contextID uint32) proxywasm.StreamContext {
-	return n.streams[contextID].context
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
+	contextID = getNextContextID()
+	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
+	proxywasm.ProxyOnNewConnection(contextID)
+	n.streamStates[contextID] = &streamState{}
+	return
+}
+
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterCloseUpstreamConnection(contextID uint32) {
+	proxywasm.ProxyOnUpstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
+}
+
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterCloseDownstreamConnection(contextID uint32) {
+	proxywasm.ProxyOnDownstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
+}
+
+// impl host HostEmulator
+func (n *networkHostEmulator) NetworkFilterCompleteConnection(contextID uint32) {
+	proxywasm.ProxyOnDone(contextID)
+	delete(n.streamStates, contextID)
 }

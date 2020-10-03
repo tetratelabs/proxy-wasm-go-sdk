@@ -22,6 +22,5 @@ func proxyOnQueueReady(contextID, queueID uint32) {
 	}
 
 	currentState.setActiveContextID(contextID)
-	hostCallSetEffectiveContext(contextID)
-	ctx.OnQueueReady(queueID)
+	ctx.context.OnQueueReady(queueID)
 }

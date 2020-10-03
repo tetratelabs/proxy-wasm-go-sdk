@@ -20,6 +20,5 @@ func proxyOnTick(rootContextID uint32) {
 	if !ok {
 		panic("invalid root_context_id")
 	}
-	currentState.setActiveContextID(rootContextID)
-	ctx.OnTick()
+	ctx.context.OnTick()
 }

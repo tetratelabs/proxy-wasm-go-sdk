@@ -25,7 +25,7 @@ func main() {
 
 type httpHeaders struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
-	proxywasm.DefaultContext
+	proxywasm.DefaultHttpContext
 	contextID uint32
 }
 
@@ -35,7 +35,7 @@ func newContext(contextID uint32) proxywasm.HttpContext {
 
 // override
 func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
-	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
+	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 	}
@@ -48,7 +48,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 
 // override
 func (ctx *httpHeaders) OnHttpResponseHeaders(int, bool) types.Action {
-	hs, err := proxywasm.HostCallGetHttpResponseHeaders()
+	hs, err := proxywasm.GetHttpResponseHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 	}
@@ -60,6 +60,6 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(int, bool) types.Action {
 }
 
 // override
-func (ctx *httpHeaders) OnLog() {
+func (ctx *httpHeaders) OnHttpStreamDone() {
 	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

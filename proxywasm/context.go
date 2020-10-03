@@ -18,70 +18,65 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type Context interface {
-	OnDone() bool
-	OnHttpCallResponse(numHeaders, bodySize, numTrailers int)
-	OnLog()
-}
-
 type RootContext interface {
-	Context
-	OnConfigure(pluginConfigurationSize int) bool
 	OnQueueReady(queueID uint32)
 	OnTick()
 	OnVMStart(vmConfigurationSize int) bool
+	OnPluginStart(pluginConfigurationSize int) bool
+	OnVMDone() bool
 }
 
 type StreamContext interface {
-	Context
 	OnDownstreamData(dataSize int, endOfStream bool) types.Action
 	OnDownstreamClose(peerType types.PeerType)
 	OnNewConnection() types.Action
 	OnUpstreamData(dataSize int, endOfStream bool) types.Action
 	OnUpstreamClose(peerType types.PeerType)
+	OnStreamDone()
 }
 
 type HttpContext interface {
-	Context
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action
 	OnHttpRequestBody(bodySize int, endOfStream bool) types.Action
 	OnHttpRequestTrailers(numTrailers int) types.Action
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action
 	OnHttpResponseBody(bodySize int, endOfStream bool) types.Action
 	OnHttpResponseTrailers(numTrailers int) types.Action
+	OnHttpStreamDone()
 }
 
-type DefaultContext struct{}
-
-var (
-	_ Context       = DefaultContext{}
-	_ RootContext   = DefaultContext{}
-	_ StreamContext = DefaultContext{}
-	_ HttpContext   = DefaultContext{}
+type (
+	DefaultRootContext   struct{}
+	DefaultStreamContext struct{}
+	DefaultHttpContext   struct{}
 )
 
-// impl Context
-func (d DefaultContext) OnDone() bool                     { return true }
-func (d DefaultContext) OnHttpCallResponse(int, int, int) {}
-func (d DefaultContext) OnLog()                           {}
+var (
+	_ RootContext   = &DefaultRootContext{}
+	_ StreamContext = &DefaultStreamContext{}
+	_ HttpContext   = &DefaultHttpContext{}
+)
 
 // impl RootContext
-func (d DefaultContext) OnConfigure(int) bool { return true }
-func (d DefaultContext) OnQueueReady(uint32)  {}
-func (d DefaultContext) OnTick()              {}
-func (d DefaultContext) OnVMStart(int) bool   { return true }
+func (*DefaultRootContext) OnQueueReady(uint32)    {}
+func (*DefaultRootContext) OnTick()                {}
+func (*DefaultRootContext) OnVMStart(int) bool     { return true }
+func (*DefaultRootContext) OnPluginStart(int) bool { return true }
+func (*DefaultRootContext) OnVMDone() bool         { return true }
 
 // impl StreamContext
-func (d DefaultContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
-func (d DefaultContext) OnDownstreamClose(types.PeerType)        {}
-func (d DefaultContext) OnNewConnection() types.Action           { return types.ActionContinue }
-func (d DefaultContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
-func (d DefaultContext) OnUpstreamClose(types.PeerType)          {}
+func (*DefaultStreamContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
+func (*DefaultStreamContext) OnDownstreamClose(types.PeerType)        {}
+func (*DefaultStreamContext) OnNewConnection() types.Action           { return types.ActionContinue }
+func (*DefaultStreamContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
+func (*DefaultStreamContext) OnUpstreamClose(types.PeerType)          {}
+func (*DefaultStreamContext) OnStreamDone()                           {}
 
 // impl HttpContext
-func (d DefaultContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }
-func (d DefaultContext) OnHttpRequestBody(int, bool) types.Action     { return types.ActionContinue }
-func (d DefaultContext) OnHttpRequestTrailers(int) types.Action       { return types.ActionContinue }
-func (d DefaultContext) OnHttpResponseHeaders(int, bool) types.Action { return types.ActionContinue }
-func (d DefaultContext) OnHttpResponseBody(int, bool) types.Action    { return types.ActionContinue }
-func (d DefaultContext) OnHttpResponseTrailers(int) types.Action      { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpRequestBody(int, bool) types.Action     { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpRequestTrailers(int) types.Action       { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpResponseHeaders(int, bool) types.Action { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpResponseBody(int, bool) types.Action    { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpResponseTrailers(int) types.Action      { return types.ActionContinue }
+func (*DefaultHttpContext) OnHttpStreamDone()                            {}

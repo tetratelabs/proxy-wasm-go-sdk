@@ -27,69 +27,100 @@ type (
 
 // counter
 
-func DefineCounterMetric(name string) (MetricCounter, error) {
+func DefineCounterMetric(name string) MetricCounter {
 	var id uint32
 	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeCounter, ptr, len(name), &id)
-	return MetricCounter(id), types.StatusToError(st)
+	if err := types.StatusToError(st); err != nil {
+		LogCriticalf("define metric of name %s: %v", name, types.StatusToError(st))
+	}
+	return MetricCounter(id)
 }
 
 func (m MetricCounter) ID() uint32 {
 	return uint32(m)
 }
 
-func (m MetricCounter) Get() (uint64, error) {
+func (m MetricCounter) Get() uint64 {
 	var val uint64
 	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
-	return val, types.StatusToError(st)
+	if err := types.StatusToError(st); err != nil {
+		LogCriticalf("get metric of  %d: %v", m.ID(), types.StatusToError(st))
+		panic("") // abort
+	}
+	return val
 }
 
-func (m MetricCounter) Increment(offset uint64) error {
-	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), int64(offset)))
+func (m MetricCounter) Increment(offset uint64) {
+	if err := types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), int64(offset))); err != nil {
+		LogCriticalf("increment %d by %d: %v", m.ID(), offset, err)
+		panic("") // abort
+	}
 }
 
 // gauge
 
-func DefineGaugeMetric(name string) (MetricGauge, error) {
+func DefineGaugeMetric(name string) MetricGauge {
 	var id uint32
 	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeGauge, ptr, len(name), &id)
-	return MetricGauge(id), types.StatusToError(st)
+	if err := types.StatusToError(st); err != nil {
+		LogCriticalf("error define metric of name %s: %v", name, types.StatusToError(st))
+		panic("") // abort
+	}
+	return MetricGauge(id)
 }
 
 func (m MetricGauge) ID() uint32 {
 	return uint32(m)
 }
 
-func (m MetricGauge) Get() (int64, error) {
+func (m MetricGauge) Get() int64 {
 	var val uint64
-	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
-	return int64(val), types.StatusToError(st)
+	if err := types.StatusToError(rawhostcall.ProxyGetMetric(m.ID(), &val)); err != nil {
+		LogCriticalf("get metric of  %d: %v", m.ID(), err)
+		panic("") // abort
+	}
+	return int64(val)
 }
 
-func (m MetricGauge) Add(offset int64) error {
-	return types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), offset))
+func (m MetricGauge) Add(offset int64) {
+	if err := types.StatusToError(rawhostcall.ProxyIncrementMetric(m.ID(), offset)); err != nil {
+		LogCriticalf("error adding %d by %d: %v", m.ID(), offset, err)
+		panic("") // abort
+	}
 }
 
 // histogram
 
-func DefineHistogramMetric(name string) (MetricHistogram, error) {
+func DefineHistogramMetric(name string) MetricHistogram {
 	var id uint32
 	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeHistogram, ptr, len(name), &id)
-	return MetricHistogram(id), types.StatusToError(st)
+	if err := types.StatusToError(st); err != nil {
+		LogCriticalf("error define metric of name %s: %v", name, types.StatusToError(st))
+		panic("") // abort
+	}
+	return MetricHistogram(id)
 }
 
 func (m MetricHistogram) ID() uint32 {
 	return uint32(m)
 }
 
-func (m MetricHistogram) Get() (uint64, error) {
+func (m MetricHistogram) Get() uint64 {
 	var val uint64
 	st := rawhostcall.ProxyGetMetric(m.ID(), &val)
-	return val, types.StatusToError(st)
+	if err := types.StatusToError(st); err != nil {
+		LogCriticalf("get metric of  %d: %v", m.ID(), types.StatusToError(st))
+		panic("") // abort
+	}
+	return val
 }
 
-func (m MetricHistogram) Record(value uint64) error {
-	return types.StatusToError(rawhostcall.ProxyRecordMetric(m.ID(), value))
+func (m MetricHistogram) Record(value uint64) {
+	if err := types.StatusToError(rawhostcall.ProxyRecordMetric(m.ID(), value)); err != nil {
+		LogCriticalf("error adding %d: %v", m.ID(), err)
+		panic("") // abort
+	}
 }

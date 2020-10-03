@@ -10,7 +10,7 @@ import (
 )
 
 type l4Context struct {
-	DefaultContext
+	DefaultStreamContext
 	onDownstreamData,
 	onDownStreamClose,
 	onNewConnection,
@@ -44,8 +44,8 @@ func Test_l4(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{streamContexts: map[uint32]StreamContext{cID: &l4Context{}}}
-	ctx, ok := currentState.streamContexts[cID].(*l4Context)
+	currentState = &state{streams: map[uint32]StreamContext{cID: &l4Context{}}}
+	ctx, ok := currentState.streams[cID].(*l4Context)
 	require.True(t, ok)
 
 	proxyOnNewConnection(cID)

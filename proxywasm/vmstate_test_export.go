@@ -12,6 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package proxytest
+// +build proxytest
 
-// TODO:
+package proxywasm
+
+func VMStateReset() {
+	// (@mathetake) I assume that the currentState be protected by lock on hostMux
+	currentState = &state{
+		rootContexts:     make(map[uint32]*rootContextState),
+		httpStreams:      make(map[uint32]HttpContext),
+		streams:          make(map[uint32]StreamContext),
+		contextIDToRooID: make(map[uint32]uint32),
+	}
+}
+
+func VMStateGetActiveContextID() uint32 {
+	return currentState.activeContextID
+}

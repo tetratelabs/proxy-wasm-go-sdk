@@ -16,60 +16,320 @@ package proxytest
 
 import (
 	"log"
+	"time"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-// TODO: simulate OnQueueReady, OnTick
+type (
+	rootHostEmulator struct {
+		logs       [types.LogLevelMax][]string
+		tickPeriod uint32
 
-type RootFilterHost struct {
-	*baseHost
-	context proxywasm.RootContext
+		queues      map[uint32][][]byte
+		queueNameID map[string]uint32
 
-	pluginConfiguration, vmConfiguration []byte
+		sharedDataKVS map[string]*sharedData
+
+		metricIDToValue map[uint32]uint64
+		metricIDToType  map[uint32]types.MetricType
+		metricNameToID  map[string]uint32
+
+		httpContextIDToCalloutInfos map[uint32][]HttpCalloutAttribute // key: contextID
+		httpCalloutIDToContextID    map[uint32]uint32                 // key: calloutID
+		httpCalloutResponse         map[uint32]struct {               // key: calloutID
+			headers, trailers [][2]string
+			body              []byte
+		}
+
+		pluginConfiguration, vmConfiguration []byte
+
+		activeCalloutID *uint32
+	}
+
+	HttpCalloutAttribute struct {
+		CalloutID         uint32
+		Upstream          string
+		Headers, Trailers [][2]string
+		Body              []byte
+	}
+)
+
+type sharedData struct {
+	data []byte
+	cas  uint32
 }
 
-func NewRootFilterHost(ctx proxywasm.RootContext, pluginConfiguration, vmConfiguration []byte,
-) (*RootFilterHost, func()) {
-	host := &RootFilterHost{
-		context:             ctx,
+func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostEmulator {
+	host := &rootHostEmulator{
+		queues:                      map[uint32][][]byte{},
+		queueNameID:                 map[string]uint32{},
+		sharedDataKVS:               map[string]*sharedData{},
+		metricIDToValue:             map[uint32]uint64{},
+		metricIDToType:              map[uint32]types.MetricType{},
+		metricNameToID:              map[string]uint32{},
+		httpContextIDToCalloutInfos: map[uint32][]HttpCalloutAttribute{},
+		httpCalloutIDToContextID:    map[uint32]uint32{},
+		httpCalloutResponse: map[uint32]struct {
+			headers, trailers [][2]string
+			body              []byte
+		}{},
+
 		pluginConfiguration: pluginConfiguration,
 		vmConfiguration:     vmConfiguration,
 	}
+	return host
+}
 
-	host.baseHost = newBaseHost(func(contextID uint32, numHeaders, bodySize, numTrailers int) {
-		host.context.OnHttpCallResponse(numHeaders, bodySize, numTrailers)
-	})
-	hostMux.Lock() // acquire the lock of host emulation
-	rawhostcall.RegisterMockWASMHost(host)
-	return host, func() {
-		hostMux.Unlock()
+func (r *rootHostEmulator) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
+	str := proxywasm.RawBytePtrToString(messageData, messageSize)
+
+	log.Printf("proxy_%s_log: %s", logLevel, str)
+	r.logs[logLevel] = append(r.logs[logLevel], str)
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxySetTickPeriodMilliseconds(period uint32) types.Status {
+	r.tickPeriod = period
+
+	now := time.Now()
+	go func() {
+		for {
+			time.Sleep(time.Millisecond * time.Duration(r.tickPeriod))
+			log.Printf("proxy_on_tick called: %v\n", time.Since(now))
+			now = time.Now()
+			proxywasm.ProxyOnTick(rootContextID)
+		}
+	}()
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
+	name := proxywasm.RawBytePtrToString(nameData, nameSize)
+	if id, ok := r.queueNameID[name]; ok {
+		*returnID = id
+		return types.StatusOK
 	}
+
+	id := uint32(len(r.queues))
+	r.queues[id] = [][]byte{}
+	r.queueNameID[name] = id
+	*returnID = id
+	return types.StatusOK
 }
 
-func (n *RootFilterHost) ConfigurePlugin() {
-	size := len(n.pluginConfiguration)
-	n.context.OnConfigure(size)
+func (r *rootHostEmulator) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status {
+	queue, ok := r.queues[queueID]
+	if !ok {
+		log.Printf("queue %d is not found", queueID)
+		return types.StatusNotFound
+	} else if len(queue) == 0 {
+		log.Printf("queue %d is empty", queueID)
+		return types.StatusEmpty
+	}
+
+	data := queue[0]
+	*returnValueData = &data[0]
+	*returnValueSize = len(data)
+	r.queues[queueID] = queue[1:]
+	return types.StatusOK
 }
 
-func (n *RootFilterHost) StartVM() {
-	size := len(n.vmConfiguration)
-	n.context.OnVMStart(size)
+func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status {
+	queue, ok := r.queues[queueID]
+	if !ok {
+		log.Printf("queue %d is not found", queueID)
+		return types.StatusNotFound
+	}
+
+	r.queues[queueID] = append(queue, proxywasm.RawBytePtrToByteSlice(valueData, valueSize))
+
+	// note that this behavior is not accurate for some old host implementations:
+	//	see: https://github.com/proxy-wasm/proxy-wasm-cpp-host/pull/36
+	proxywasm.ProxyOnQueueReady(rootContextID, queueID) // Note that this behavior is not accurate on Istio before 1.8.x
+	return types.StatusOK
 }
 
-func (n *RootFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
+func (r *rootHostEmulator) ProxyGetSharedData(keyData *byte, keySize int,
+	returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+
+	value, ok := r.sharedDataKVS[key]
+	if !ok {
+		return types.StatusNotFound
+	}
+
+	*returnValueSize = len(value.data)
+	*returnValueData = &value.data[0]
+	*returnCas = value.cas
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxySetSharedData(keyData *byte, keySize int,
+	valueData *byte, valueSize int, cas uint32) types.Status {
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+	value := proxywasm.RawBytePtrToByteSlice(valueData, valueSize)
+
+	prev, ok := r.sharedDataKVS[key]
+	if !ok {
+		r.sharedDataKVS[key] = &sharedData{
+			data: value,
+			cas:  cas + 1,
+		}
+		return types.StatusOK
+	}
+
+	if prev.cas != cas {
+		return types.StatusCasMismatch
+	}
+
+	r.sharedDataKVS[key].cas = cas + 1
+	r.sharedDataKVS[key].data = value
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyDefineMetric(metricType types.MetricType,
+	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
+	name := proxywasm.RawBytePtrToString(metricNameData, metricNameSize)
+	id, ok := r.metricNameToID[name]
+	if !ok {
+		id = uint32(len(r.metricNameToID))
+		r.metricNameToID[name] = id
+		r.metricIDToValue[id] = 0
+		r.metricIDToType[id] = metricType
+	}
+	*returnMetricIDPtr = id
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+	val, ok := r.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+
+	r.metricIDToValue[metricID] = val + uint64(offset)
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
+	_, ok := r.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+	r.metricIDToValue[metricID] = value
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+	value, ok := r.metricIDToValue[metricID]
+	if !ok {
+		return types.StatusBadArgument
+	}
+	*returnMetricValue = value
+	return types.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte,
+	bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
+	upstream := proxywasm.RawBytePtrToString(upstreamData, upstreamSize)
+	body := proxywasm.RawBytePtrToString(bodyData, bodySize)
+	headers := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(headerData, headerSize))
+	trailers := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(trailersData, trailersSize))
+
+	log.Printf("[http callout to %s] timeout: %d", upstream, timeout)
+	log.Printf("[http callout to %s] headers: %v", upstream, headers)
+	log.Printf("[http callout to %s] body: %s", upstream, body)
+	log.Printf("[http callout to %s] trailers: %v", upstream, trailers)
+
+	calloutID := uint32(len(r.httpCalloutIDToContextID))
+	contextID := proxywasm.VMStateGetActiveContextID()
+	r.httpCalloutIDToContextID[calloutID] = contextID
+	r.httpContextIDToCalloutInfos[contextID] = append(r.httpContextIDToCalloutInfos[contextID], HttpCalloutAttribute{
+		CalloutID: calloutID,
+		Upstream:  upstream,
+		Headers:   headers,
+		Trailers:  trailers,
+	})
+	*calloutIDPtr = calloutID
+	return types.StatusOK
+}
+
+// delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
+	activeID := proxywasm.VMStateGetActiveContextID()
+	res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+	if !ok {
+		log.Fatalf("callout response unregistered for %d", activeID)
+	}
+
+	var raw []byte
+	switch mapType {
+	case types.MapTypeHttpCallResponseHeaders:
+		raw = proxywasm.SerializeMap(res.headers)
+	case types.MapTypeHttpCallResponseTrailers:
+		raw = proxywasm.SerializeMap(res.trailers)
+	default:
+		panic("unreachable: maybe a bug in this host emulation or SDK")
+	}
+
+	*returnValueData = &raw[0]
+	*returnValueSize = len(raw)
+	return types.StatusOK
+}
+
+// delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType types.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+	activeID := proxywasm.VMStateGetActiveContextID()
+	res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+	if !ok {
+		log.Fatalf("callout response unregistered for %d", activeID)
+	}
+
+	key := proxywasm.RawBytePtrToString(keyData, keySize)
+
+	var hs [][2]string
+	switch mapType {
+	case types.MapTypeHttpCallResponseHeaders:
+		hs = res.headers
+	case types.MapTypeHttpCallResponseTrailers:
+		hs = res.trailers
+	default:
+		panic("unimplemented")
+	}
+
+	for _, h := range hs {
+		if h[0] == key {
+			v := []byte(h[1])
+			*returnValueData = &v[0]
+			*returnValueSize = len(v)
+			return types.StatusOK
+		}
+	}
+
+	return types.StatusNotFound
+}
+
+// delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	var buf []byte
 	switch bt {
 	case types.BufferTypePluginConfiguration:
-		buf = n.pluginConfiguration
+		buf = r.pluginConfiguration
 	case types.BufferTypeVMConfiguration:
-		buf = n.vmConfiguration
+		buf = r.vmConfiguration
+	case types.BufferTypeHttpCallResponseBody:
+		activeID := proxywasm.VMStateGetActiveContextID()
+		res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+		if !ok {
+			log.Fatalf("callout response unregistered for %d", activeID)
+		}
+		buf = res.body
 	default:
-		// delegate to baseHost
-		return n.getBuffer(bt, start, maxSize, returnBufferData, returnBufferSize)
+		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
 	if start >= len(buf) {
@@ -84,4 +344,50 @@ func (n *RootFilterHost) ProxyGetBufferBytes(bt types.BufferType, start int, max
 		*returnBufferSize = maxSize
 	}
 	return types.StatusOK
+}
+
+func (r *rootHostEmulator) GetLogs(level types.LogLevel) []string {
+	if level >= types.LogLevelMax {
+		log.Fatalf("invalid log level: %d", level)
+	}
+	return r.logs[level]
+}
+
+func (r *rootHostEmulator) GetTickPeriod() uint32 {
+	return r.tickPeriod
+}
+
+func (r *rootHostEmulator) GetQueueSize(queueID uint32) int {
+	return len(r.queues[queueID])
+}
+
+func (r *rootHostEmulator) GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute {
+	infos := r.httpContextIDToCalloutInfos[contextID]
+	return infos
+}
+
+func (r *rootHostEmulator) StartVM() {
+	proxywasm.ProxyOnVMStart(rootContextID, len(r.vmConfiguration))
+}
+
+func (r *rootHostEmulator) StartPlugin() {
+	proxywasm.ProxyOnConfigure(rootContextID, len(r.pluginConfiguration))
+}
+
+func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailers [][2]string, body []byte) {
+	r.httpCalloutResponse[calloutID] = struct {
+		headers, trailers [][2]string
+		body              []byte
+	}{headers: headers, trailers: trailers, body: body}
+
+	// rootContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
+	r.activeCalloutID = &calloutID
+	proxywasm.ProxyOnHttpCallResponse(rootContextID, calloutID, len(headers), len(body), len(trailers))
+	r.activeCalloutID = nil
+	delete(r.httpCalloutResponse, calloutID)
+	delete(r.httpCalloutIDToContextID, calloutID)
+}
+
+func (r *rootHostEmulator) FinishVM() {
+	proxywasm.ProxyOnDone(rootContextID)
 }

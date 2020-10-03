@@ -29,7 +29,7 @@ func main() {
 
 type httpAuthRandom struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
-	proxywasm.DefaultContext
+	proxywasm.DefaultHttpContext
 	contextID uint32
 }
 
@@ -39,7 +39,7 @@ func newContext(contextID uint32) proxywasm.HttpContext {
 
 // override default
 func (ctx *httpAuthRandom) OnHttpRequestHeaders(int, bool) types.Action {
-	hs, err := proxywasm.HostCallGetHttpRequestHeaders()
+	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
 		return types.ActionContinue
@@ -48,19 +48,18 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(int, bool) types.Action {
 		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 
-	if _, err := proxywasm.HostCallDispatchHttpCall(
-		clusterName, hs, "", [][2]string{}, 50000); err != nil {
+	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, "", [][2]string{},
+		50000, httpCallResponseCallback); err != nil {
 		proxywasm.LogCriticalf("dipatch httpcall failed: %v", err)
+		return types.ActionContinue
 	}
 
 	proxywasm.LogInfof("http call dispatched to %s", clusterName)
-
 	return types.ActionPause
 }
 
-// override default
-func (ctx *httpAuthRandom) OnHttpCallResponse(_ int, bodySize int, _ int) {
-	hs, err := proxywasm.HostCallGetHttpCallResponseHeaders()
+func httpCallResponseCallback(_ int, bodySize int, _ int) {
+	hs, err := proxywasm.GetHttpCallResponseHeaders()
 	if err != nil {
 
 		proxywasm.LogCriticalf("failed to get response body: %v", err)
@@ -71,34 +70,29 @@ func (ctx *httpAuthRandom) OnHttpCallResponse(_ int, bodySize int, _ int) {
 		proxywasm.LogInfof("response header from %s: %s: %s", clusterName, h[0], h[1])
 	}
 
-	b, err := proxywasm.HostCallGetHttpCallResponseBody(0, bodySize)
+	b, err := proxywasm.GetHttpCallResponseBody(0, bodySize)
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get response body: %v", err)
-		proxywasm.HostCallResumeHttpRequest()
+		proxywasm.ResumeHttpRequest()
 		return
 	}
 
 	s := fnv.New32a()
 	if _, err := s.Write(b); err != nil {
 		proxywasm.LogCriticalf("failed to calculate hash: %v", err)
-		proxywasm.HostCallResumeHttpRequest()
+		proxywasm.ResumeHttpRequest()
 		return
 	}
 
 	if s.Sum32()%2 == 0 {
 		proxywasm.LogInfo("access granted")
-		proxywasm.HostCallResumeHttpRequest()
+		proxywasm.ResumeHttpRequest()
 		return
 	}
 
 	msg := "access forbidden"
 	proxywasm.LogInfo(msg)
-	proxywasm.HostCallSendHttpResponse(403, [][2]string{
+	proxywasm.SendHttpResponse(403, [][2]string{
 		{"powered-by", "proxy-wasm-go-sdk!!"},
 	}, msg)
-}
-
-// override default
-func (ctx *httpAuthRandom) OnLog() {
-	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

@@ -14,9 +14,10 @@ func Test_proxyOnContextCreate(t *testing.T) {
 
 	var cnt int
 	currentState = &state{
-		rootContexts:   map[uint32]RootContext{},
-		httpContexts:   map[uint32]HttpContext{},
-		streamContexts: map[uint32]StreamContext{},
+		rootContexts:     map[uint32]*rootContextState{},
+		httpStreams:      map[uint32]HttpContext{},
+		streams:          map[uint32]StreamContext{},
+		contextIDToRooID: map[uint32]uint32{},
 	}
 
 	SetNewRootContext(func(contextID uint32) RootContext {
@@ -42,42 +43,24 @@ func Test_proxyOnContextCreate(t *testing.T) {
 	require.Equal(t, 1101, cnt)
 }
 
-func Test_proxyOnDelete(t *testing.T) {
-	currentStateMux.Lock()
-	defer currentStateMux.Unlock()
-
-	currentState = &state{
-		rootContexts:   map[uint32]RootContext{},
-		httpContexts:   map[uint32]HttpContext{},
-		streamContexts: map[uint32]StreamContext{},
-	}
-
-	var id uint32 = 100
-	var ctx = &DefaultContext{}
-	currentState.streamContexts[id] = ctx
-	proxyOnDelete(id)
-	assert.Nil(t, currentState.streamContexts[id])
-
-	currentState.httpContexts[id] = ctx
-	proxyOnDelete(id)
-	assert.Nil(t, currentState.httpContexts[id])
-
-	currentState.rootContexts[id] = ctx
-	proxyOnDelete(id)
-	assert.Nil(t, currentState.rootContexts[id])
-}
-
 type lifecycleContext struct {
-	DefaultContext
-	onDone, onLog bool
+	DefaultRootContext
+	DefaultHttpContext
+	DefaultStreamContext
+	onStreamDone, onHttpStreamDone, onVMDone bool
 }
 
-func (ctx *lifecycleContext) OnLog() {
-	ctx.onLog = true
-}
-func (ctx *lifecycleContext) OnDone() bool {
-	ctx.onDone = true
+func (ctx *lifecycleContext) OnVMDone() bool {
+	ctx.onVMDone = true
 	return true
+}
+
+func (ctx *lifecycleContext) OnStreamDone() {
+	ctx.onStreamDone = true
+}
+
+func (ctx *lifecycleContext) OnHttpStreamDone() {
+	ctx.onHttpStreamDone = true
 }
 
 func Test_onDone(t *testing.T) {
@@ -85,61 +68,22 @@ func Test_onDone(t *testing.T) {
 	defer currentStateMux.Unlock()
 
 	currentState = &state{
-		rootContexts:   map[uint32]RootContext{},
-		httpContexts:   map[uint32]HttpContext{},
-		streamContexts: map[uint32]StreamContext{},
+		rootContexts: map[uint32]*rootContextState{},
+		httpStreams:  map[uint32]HttpContext{},
+		streams:      map[uint32]StreamContext{},
 	}
 
 	var id uint32 = 1
 	ctx := &lifecycleContext{}
-	currentState.rootContexts[id] = ctx
+	currentState.httpStreams[id] = ctx
 	proxyOnDone(id)
-	assert.True(t, ctx.onDone)
+	assert.True(t, ctx.onHttpStreamDone)
 	assert.Equal(t, id, currentState.activeContextID)
 
 	id = 2
 	ctx = &lifecycleContext{}
-	currentState.httpContexts[id] = ctx
+	currentState.streams[id] = ctx
 	proxyOnDone(id)
-	assert.True(t, ctx.onDone)
-	assert.Equal(t, id, currentState.activeContextID)
-
-	id = 3
-	ctx = &lifecycleContext{}
-	currentState.rootContexts[id] = ctx
-	proxyOnDone(id)
-	assert.True(t, ctx.onDone)
-	assert.Equal(t, id, currentState.activeContextID)
-}
-
-func Test_onLog(t *testing.T) {
-	currentStateMux.Lock()
-	defer currentStateMux.Unlock()
-
-	currentState = &state{
-		rootContexts:   map[uint32]RootContext{},
-		httpContexts:   map[uint32]HttpContext{},
-		streamContexts: map[uint32]StreamContext{},
-	}
-
-	var id uint32 = 1
-	ctx := &lifecycleContext{}
-	currentState.rootContexts[id] = ctx
-	proxyOnLog(id)
-	assert.True(t, ctx.onLog)
-	assert.Equal(t, id, currentState.activeContextID)
-
-	id = 2
-	ctx = &lifecycleContext{}
-	currentState.httpContexts[id] = ctx
-	proxyOnLog(id)
-	assert.True(t, ctx.onLog)
-	assert.Equal(t, id, currentState.activeContextID)
-
-	id = 3
-	ctx = &lifecycleContext{}
-	currentState.rootContexts[id] = ctx
-	proxyOnLog(id)
-	assert.True(t, ctx.onLog)
+	assert.True(t, ctx.onStreamDone)
 	assert.Equal(t, id, currentState.activeContextID)
 }

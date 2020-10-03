@@ -19,14 +19,21 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return context{} })
+	proxywasm.SetNewRootContext(newRootContext)
 }
 
-type context struct{ proxywasm.DefaultContext }
+type context struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultRootContext
+}
+
+func newRootContext(contextID uint32) proxywasm.RootContext {
+	return &context{}
+}
 
 // override
 func (ctx context) OnVMStart(vmConfigurationSize int) bool {
-	data, err := proxywasm.HostCallGetVMConfiguration(vmConfigurationSize)
+	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
 	}
@@ -35,8 +42,8 @@ func (ctx context) OnVMStart(vmConfigurationSize int) bool {
 	return true
 }
 
-func (ctx context) OnConfigure(pluginConfigurationSize int) bool {
-	data, err := proxywasm.HostCallGetPluginConfiguration(pluginConfigurationSize)
+func (ctx context) OnPluginStart(pluginConfigurationSize int) bool {
+	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 	}

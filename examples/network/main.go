@@ -25,58 +25,72 @@ var (
 )
 
 func main() {
-	proxywasm.SetNewStreamContext(func(contextID uint32) proxywasm.StreamContext { return context{} })
-	proxywasm.SetNewRootContext(func(contextID uint32) proxywasm.RootContext { return context{} })
+	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewStreamContext(newNetworkContext)
 }
 
-type context struct{ proxywasm.DefaultContext }
+type rootContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultRootContext
+}
 
-func (ctx context) OnVMStart(int) bool {
-	var err error
-	counter, err = proxywasm.DefineCounterMetric(connectionCounterName)
-	if err != nil {
-		proxywasm.LogCriticalf("failed to initialize connection counter: %v", err)
-	}
+func newRootContext(uint32) proxywasm.RootContext {
+	return &rootContext{}
+}
+
+func (ctx *rootContext) OnVMStart(int) bool {
+	counter = proxywasm.DefineCounterMetric(connectionCounterName)
 	return true
 }
 
-func (ctx context) OnNewConnection() types.Action {
+type networkContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultStreamContext
+}
+
+func newNetworkContext(uint32) proxywasm.StreamContext {
+	return &networkContext{}
+}
+
+func (ctx *networkContext) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
-func (ctx context) OnDownstreamData(dataSize int, _ bool) types.Action {
+func (ctx *networkContext) OnDownstreamData(dataSize int, _ bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
 
-	data, err := proxywasm.HostCallGetDownStreamData(0, dataSize)
+	data, err := proxywasm.GetDownStreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
-		proxywasm.LogCritical(err.Error())
+		proxywasm.LogCriticalf("failed to get downstream data: %v", err)
+		return types.ActionContinue
 	}
 
 	proxywasm.LogInfof(">>>>>> downstream data received >>>>>>\n%s", string(data))
 	return types.ActionContinue
 }
 
-func (ctx context) OnDownstreamClose(types.PeerType) {
+func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }
 
-func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
+func (ctx *networkContext) OnUpstreamData(dataSize int, _ bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
 
-	ret, err := proxywasm.HostCallGetProperty([]string{"upstream", "address"})
+	ret, err := proxywasm.GetProperty([]string{"upstream", "address"})
 	if err != nil {
-		proxywasm.LogCritical(err.Error())
+		proxywasm.LogCriticalf("failed to get downstream data: %v", err)
+		return types.ActionContinue
 	}
 
 	proxywasm.LogInfof("remote address: %s", string(ret))
 
-	data, err := proxywasm.HostCallGetUpstreamData(0, dataSize)
+	data, err := proxywasm.GetUpstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCritical(err.Error())
 	}
@@ -85,11 +99,7 @@ func (ctx context) OnUpstreamData(dataSize int, _ bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx context) OnDone() bool {
-	err := counter.Increment(1)
-	if err != nil {
-		proxywasm.LogCriticalf("failed to increment connection counter: %v", err)
-	}
+func (ctx *networkContext) OnStreamDone() {
+	counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")
-	return true
 }

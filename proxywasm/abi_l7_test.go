@@ -3,16 +3,15 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type l7Context struct {
-	DefaultContext
+	DefaultHttpContext
 	onHttpRequestHeaders,
 	onHttpRequestBody,
 	onHttpRequestTrailers,
@@ -61,8 +60,8 @@ func Test_l7(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{httpContexts: map[uint32]HttpContext{cID: &l7Context{}}}
-	ctx, ok := currentState.httpContexts[cID].(*l7Context)
+	currentState = &state{httpStreams: map[uint32]HttpContext{cID: &l7Context{}}}
+	ctx, ok := currentState.httpStreams[cID].(*l7Context)
 	require.True(t, ok)
 
 	proxyOnRequestHeaders(cID, 0, false)
@@ -85,8 +84,8 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	rawhostcall.RegisterMockWASMHost(rawhostcall.DefaultProxyWAMSHost{})
 
 	var (
-		ctxID     uint32 = 100
-		callOutID uint32 = 10
+		rootContextID uint32 = 1
+		callOutID     uint32 = 10
 	)
 
 	currentStateMux.Lock()
@@ -94,34 +93,31 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 
 	ctx := &l7Context{}
 	currentState = &state{
-		rootContexts: map[uint32]RootContext{ctxID: ctx},
-		callOuts:     map[uint32]uint32{callOutID: ctxID},
+		rootContexts: map[uint32]*rootContextState{rootContextID: {
+			httpCallbacks: map[uint32]*struct {
+				callback        HttpCalloutCallBack
+				callerContextID uint32
+			}{callOutID: {callback: ctx.OnHttpCallResponse}},
+		}},
 	}
 
-	proxyOnHttpCallResponse(0, callOutID, 0, 0, 0)
-	_, ok := currentState.callOuts[callOutID]
+	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
+	_, ok := currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
 	assert.True(t, ctx.onHttpCallResponse)
 
 	ctx = &l7Context{}
 	currentState = &state{
-		httpContexts: map[uint32]HttpContext{ctxID: ctx},
-		callOuts:     map[uint32]uint32{callOutID: ctxID},
+		rootContexts: map[uint32]*rootContextState{rootContextID: {
+			httpCallbacks: map[uint32]*struct {
+				callback        HttpCalloutCallBack
+				callerContextID uint32
+			}{callOutID: {callback: ctx.OnHttpCallResponse}},
+		}},
 	}
 
-	proxyOnHttpCallResponse(0, callOutID, 0, 0, 0)
-	_, ok = currentState.callOuts[callOutID]
-	require.False(t, ok)
-	assert.True(t, ctx.onHttpCallResponse)
-
-	ctx = &l7Context{}
-	currentState = &state{
-		streamContexts: map[uint32]StreamContext{ctxID: ctx},
-		callOuts:       map[uint32]uint32{callOutID: ctxID},
-	}
-
-	proxyOnHttpCallResponse(0, callOutID, 0, 0, 0)
-	_, ok = currentState.callOuts[callOutID]
+	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
+	_, ok = currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
 	assert.True(t, ctx.onHttpCallResponse)
 }

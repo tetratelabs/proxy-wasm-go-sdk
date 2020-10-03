@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,31 +12,40 @@ import (
 )
 
 func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
-	host, done := proxytest.NewHttpFilterHost(newContext)
-	defer done()
-	id := host.InitContext()
+	opt := proxytest.NewEmulatorOption().
+		WithNewHttpContext(newContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done()
+	id := host.HttpFilterInitContext()
 
 	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
-	host.PutRequestHeaders(id, hs) // call OnHttpRequestHeaders
+	host.HttpFilterPutRequestHeaders(id, hs) // call OnHttpRequestHeaders
+
+	host.HttpFilterCompleteHttpStream(id)
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)
 
-	assert.Equal(t, "request header --> key2: value2", logs[len(logs)-1])
-	assert.Equal(t, "request header --> key1: value1", logs[len(logs)-2])
+	assert.Equal(t, fmt.Sprintf("%d finished", id), logs[len(logs)-1])
+	assert.Equal(t, "request header --> key2: value2", logs[len(logs)-2])
+	assert.Equal(t, "request header --> key1: value1", logs[len(logs)-3])
 }
 
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
-	host, done := proxytest.NewHttpFilterHost(newContext)
-	defer done()
-	id := host.InitContext()
+	opt := proxytest.NewEmulatorOption().
+		WithNewHttpContext(newContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done()
+	id := host.HttpFilterInitContext()
 
 	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
-	host.PutResponseHeaders(id, hs) // call OnHttpResponseHeaders
+	host.HttpFilterPutResponseHeaders(id, hs) // call OnHttpRequestHeaders
+	host.HttpFilterCompleteHttpStream(id)     // call OnHttpStreamDone
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)
 
-	assert.Equal(t, "response header <-- key2: value2", logs[len(logs)-1])
-	assert.Equal(t, "response header <-- key1: value1", logs[len(logs)-2])
+	assert.Equal(t, fmt.Sprintf("%d finished", id), logs[len(logs)-1])
+	assert.Equal(t, "response header <-- key2: value2", logs[len(logs)-2])
+	assert.Equal(t, "response header <-- key1: value1", logs[len(logs)-3])
 }

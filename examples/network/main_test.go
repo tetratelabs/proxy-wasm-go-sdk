@@ -21,30 +21,33 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func newStreamContext(uint32) proxywasm.StreamContext {
-	return context{}
-}
-
 func TestNetwork_OnNewConnection(t *testing.T) {
-	host, done := proxytest.NewNetworkFilterHost(newStreamContext)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	_ = host.InitConnection() // OnNewConnection is called
+	host.StartVM() // call OnVMStart: init metric
+
+	_ = host.NetworkFilterInitConnection() // OnNewConnection is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
 	assert.Equal(t, logs[0], "new connection!")
 }
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
-	host, done := proxytest.NewNetworkFilterHost(newStreamContext)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	contextID := host.InitConnection()        // OnNewConnection is called
-	host.CloseDownstreamConnection(contextID) // OnDownstreamClose is called
+	contextID := host.NetworkFilterInitConnection()        // OnNewConnection is called
+	host.NetworkFilterCloseDownstreamConnection(contextID) // OnDownstreamClose is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
 	require.Len(t, logs, 2)
@@ -52,47 +55,55 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 }
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
-	host, done := proxytest.NewNetworkFilterHost(newStreamContext)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	contextID := host.InitConnection() // OnNewConnection is called
+	contextID := host.NetworkFilterInitConnection() // OnNewConnection is called
 
 	msg := "this is downstream data"
 	data := []byte(msg)
-	host.PutDownstreamData(contextID, data) // OnDownstreamData is called
+	host.NetworkFilterPutDownstreamData(contextID, data) // OnDownstreamData is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
 	assert.Equal(t, ">>>>>> downstream data received >>>>>>\n"+msg, logs[len(logs)-1])
 }
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
-	host, done := proxytest.NewNetworkFilterHost(newStreamContext)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	contextID := host.InitConnection() // OnNewConnection is called
+	contextID := host.NetworkFilterInitConnection() // OnNewConnection is called
 
 	msg := "this is upstream data"
 	data := []byte(msg)
-	host.PutUpstreamData(contextID, data) // OnUpstreamData is called
+	host.NetworkFilterPutUpstreamData(contextID, data) // OnUpstreamData is called
 
 	logs := host.GetLogs(types.LogLevelInfo) // retrieve logs emitted to Envoy
 	assert.Equal(t, "<<<<<< upstream data received <<<<<<\n"+msg, logs[len(logs)-1])
 }
 
 func TestNetwork_counter(t *testing.T) {
-	host, done := proxytest.NewNetworkFilterHost(newStreamContext)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	opt := proxytest.NewEmulatorOption().
+		WithNewStreamContext(newNetworkContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	context{}.OnVMStart(0) // init metric
+	host.StartVM() // call OnVMStart: init metric
 
-	contextID := host.InitConnection()
-	host.CompleteConnection(contextID) // call OnDone on contextID -> increment the connection counter
+	contextID := host.NetworkFilterInitConnection()
+	host.NetworkFilterCompleteConnection(contextID) // call OnStreamDone on contextID -> increment the connection counter
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 0)
 
 	assert.Equal(t, "connection complete!", logs[len(logs)-1])
-	actual, err := counter.Get()
-	require.NoError(t, err)
+	actual := counter.Get()
 	assert.Equal(t, uint64(1), actual)
 }

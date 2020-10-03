@@ -11,16 +11,18 @@ import (
 )
 
 func TestMetric(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().
+		WithNewHttpContext(newHttpContext).
+		WithNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(opt)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	ctx := metric{}
-	host, done := proxytest.NewRootFilterHost(ctx, nil, nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	host.StartVM() // call OnVMStart: define metric
 
-	host.StartVM() // define metric
-
+	contextID := host.HttpFilterInitContext()
 	exp := uint64(3)
 	for i := uint64(0); i < exp; i++ {
-		ctx.OnHttpRequestHeaders(0, false) // increment
+		host.HttpFilterPutRequestHeaders(contextID, nil)
 	}
 
 	logs := host.GetLogs(types.LogLevelInfo)
@@ -28,7 +30,6 @@ func TestMetric(t *testing.T) {
 
 	assert.Equal(t, "incremented", logs[len(logs)-1])
 
-	value, err := counter.Get()
-	require.NoError(t, err)
+	value := counter.Get()
 	assert.Equal(t, uint64(3), value)
 }
