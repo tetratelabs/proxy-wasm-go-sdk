@@ -20,18 +20,25 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return metric{} })
-	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return metric{} })
+	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
 var counter proxywasm.MetricCounter
 
 const metricsName = "proxy_wasm_go.request_counter"
 
-type metric struct{ proxywasm.DefaultContext }
+type metricRootContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultRootContext
+}
+
+func newRootContext(uint32) proxywasm.RootContext {
+	return &metricRootContext{}
+}
 
 // override
-func (ctx metric) OnVMStart(int) bool {
+func (ctx *metricRootContext) OnVMStart(int) bool {
 	ct, err := proxywasm.DefineCounterMetric(metricsName)
 	if err != nil {
 		proxywasm.LogCriticalf("error defining metrics: %v", err)
@@ -40,8 +47,17 @@ func (ctx metric) OnVMStart(int) bool {
 	return true
 }
 
+type metricHttpContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultHttpContext
+}
+
+func newHttpContext(uint32) proxywasm.HttpContext {
+	return &metricHttpContext{}
+}
+
 // override
-func (ctx metric) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	prev, err := counter.Get()
 	if err != nil {
 		proxywasm.LogCriticalf("error retrieving previous metric: %v", err)

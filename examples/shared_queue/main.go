@@ -19,30 +19,37 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return queue{} })
-	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return queue{} })
-}
-
-type queue struct{ proxywasm.DefaultContext }
-
 const (
 	queueName               = "proxy_wasm_go.queue"
 	tickMilliseconds uint32 = 100
 )
 
+func main() {
+	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewHttpContext(newHttpContext)
+}
+
+type queueRootContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultRootContext
+}
+
+func newRootContext(uint32) proxywasm.RootContext {
+	return &queueRootContext{}
+}
+
 var queueID uint32
 
 // override
-func (ctx queue) OnVMStart(int) bool {
-	qID, err := proxywasm.HostCallRegisterSharedQueue(queueName)
+func (ctx *queueRootContext) OnVMStart(int) bool {
+	qID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
 		panic(err.Error())
 	}
 	queueID = qID
 	proxywasm.LogInfof("queue registered, name: %s, id: %d", queueName, qID)
 
-	if err := proxywasm.HostCallSetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
+	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
@@ -50,18 +57,8 @@ func (ctx queue) OnVMStart(int) bool {
 }
 
 // override
-func (ctx queue) OnHttpRequestHeaders(int, bool) types.Action {
-	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
-		if err := proxywasm.HostCallEnqueueSharedQueue(queueID, []byte(msg)); err != nil {
-			proxywasm.LogCriticalf("error queueing: %v", err)
-		}
-	}
-	return types.ActionContinue
-}
-
-// override
-func (ctx queue) OnTick() {
-	data, err := proxywasm.HostCallDequeueSharedQueue(queueID)
+func (ctx *queueRootContext) OnTick() {
+	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:
 		return
@@ -70,4 +67,23 @@ func (ctx queue) OnTick() {
 	default:
 		proxywasm.LogCriticalf("error retrieving data from queue %d: %v", queueID, err)
 	}
+}
+
+type queueHttpContext struct {
+	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	proxywasm.DefaultHttpContext
+}
+
+func newHttpContext(uint32) proxywasm.HttpContext {
+	return &queueHttpContext{}
+}
+
+// override
+func (ctx *queueHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
+		if err := proxywasm.EnqueueSharedQueue(queueID, []byte(msg)); err != nil {
+			proxywasm.LogCriticalf("error queueing: %v", err)
+		}
+	}
+	return types.ActionContinue
 }

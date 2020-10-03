@@ -11,14 +11,18 @@ import (
 )
 
 func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
-	host, done := proxytest.NewHttpFilterHost(newContext)
-	defer done()
+	host := proxytest.NewHostEmulator(nil, nil, nil, nil, newContext)
+	defer host.Done()
 
-	id := host.InitContext()
-	host.PutRequestHeaders(id, [][2]string{{"key", "value"}}) // OnHttpRequestHeaders called
+	contextID := host.HttpFilterInitContext()
+	host.HttpFilterPutRequestHeaders(contextID, [][2]string{{"key", "value"}}) // OnHttpRequestHeaders called
 
-	require.True(t, host.IsDispatchCalled(id))                     // check if http call is dispatched
-	require.Equal(t, types.ActionPause, host.GetCurrentAction(id)) // check if the current action is pause
+	attrs := host.GetCalloutAttributesFromContext(contextID)
+	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
+
+	require.Equal(t, "httpbin", attrs[0].Upstream)
+	require.Equal(t, types.ActionPause,
+		host.HttpFilterGetCurrentStreamAction(contextID)) // check if the current action is pause
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.GreaterOrEqual(t, len(logs), 2)
@@ -28,8 +32,8 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 }
 
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
-	host, done := proxytest.NewHttpFilterHost(newContext)
-	defer done()
+	host := proxytest.NewHostEmulator(nil, nil, nil, nil, newContext)
+	defer host.Done()
 
 	// http://httpbin.org/uuid
 	headers := [][2]string{
@@ -40,20 +44,30 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	}
 
 	// access granted body
-	id := host.InitContext()
+	contextID := host.HttpFilterInitContext()
+	host.HttpFilterPutRequestHeaders(contextID, nil) // OnHttpRequestHeaders called
+
 	body := []byte(`{"uuid": "7b10a67a-1c67-4199-835b-cbefcd4a63d4"}`)
-	host.PutCalloutResponse(id, headers, nil, body)
-	assert.Nil(t, host.GetSentLocalResponse(id))
+	attrs := host.GetCalloutAttributesFromContext(contextID)
+	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
+
+	host.PutCalloutResponse(attrs[0].CalloutID, headers, nil, body)
+	assert.Nil(t, host.HttpFilterGetSentLocalResponse(contextID))
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)
 	assert.Equal(t, "access granted", logs[len(logs)-1])
 
 	// access denied body
-	id = host.InitContext()
+	contextID = host.HttpFilterInitContext()
+	host.HttpFilterPutRequestHeaders(contextID, nil) // OnHttpRequestHeaders called
+
 	body = []byte(`{"uuid": "aaaaaaaa-1c67-4199-835b-cbefcd4a63d4"}`)
-	host.PutCalloutResponse(id, headers, nil, body)
-	localResponse := host.GetSentLocalResponse(id) // check local responses
+	attrs = host.GetCalloutAttributesFromContext(contextID)
+	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
+
+	host.PutCalloutResponse(attrs[0].CalloutID, headers, nil, body)
+	localResponse := host.HttpFilterGetSentLocalResponse(contextID) // check local responses
 	assert.NotNil(t, localResponse)
 	logs = host.GetLogs(types.LogLevelInfo)
 	assert.Equal(t, "access forbidden", logs[len(logs)-1])

@@ -15,25 +15,23 @@
 package proxywasm
 
 import (
-	"strconv"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 // wrappers on the rawhostcall package
 
-func HostCallGetPluginConfiguration(dataSize int) ([]byte, error) {
+func GetPluginConfiguration(dataSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, dataSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetVMConfiguration(dataSize int) ([]byte, error) {
+func GetVMConfiguration(dataSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeVMConfiguration, 0, dataSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallSendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status {
+func SendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status {
 	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
@@ -42,22 +40,19 @@ func HostCallSendHttpResponse(statusCode uint32, headers [][2]string, body strin
 	)
 }
 
-func hostCallSetEffectiveContext(contextID uint32) types.Status {
-	return rawhostcall.ProxySetEffectiveContext(contextID)
-}
-
-func HostCallSetTickPeriodMilliSeconds(millSec uint32) error {
+func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return types.StatusToError(rawhostcall.ProxySetTickPeriodMilliseconds(millSec))
 }
 
-func HostCallGetCurrentTime() int64 {
+func GetCurrentTime() int64 {
 	var t int64
 	rawhostcall.ProxyGetCurrentTimeNanoseconds(&t)
 	return t
 }
 
-func HostCallDispatchHttpCall(upstream string,
-	headers [][2]string, body string, trailers [][2]string, timeoutMillisecond uint32) (uint32, error) {
+func DispatchHttpCall(upstream string,
+	headers [][2]string, body string, trailers [][2]string,
+	timeoutMillisecond uint32, callBack HttpCalloutCallBack) (calloutID uint32, err error) {
 	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
@@ -66,176 +61,165 @@ func HostCallDispatchHttpCall(upstream string,
 	tp := &sts[0]
 	tl := len(sts)
 
-	var calloutID uint32
-
 	u := stringBytePtr(upstream)
 	switch st := rawhostcall.ProxyHttpCall(u, len(upstream),
 		hp, hl, stringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
 	case types.StatusOK:
-		currentState.registerCallout(calloutID)
+		currentState.registerHttpCallOut(calloutID, callBack)
 		return calloutID, nil
 	default:
 		return 0, types.StatusToError(st)
 	}
 }
 
-func HostCallGetHttpCallResponseHeaders() ([][2]string, error) {
+func GetHttpCallResponseHeaders() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpCallResponseHeaders)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
+func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeHttpCallResponseBody, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetHttpCallResponseTrailers() ([][2]string, error) {
+func GetHttpCallResponseTrailers() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpCallResponseTrailers)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallDone() {
-	switch st := rawhostcall.ProxyDone(); st {
-	case types.StatusOK:
-		return
-	default:
-		panic("unexpected status on proxy_done: " + strconv.FormatUint(uint64(st), 10))
-	}
-}
-
-func HostCallGetDownStreamData(start, maxSize int) ([]byte, error) {
+func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetUpstreamData(start, maxSize int) ([]byte, error) {
+func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetHttpRequestHeaders() ([][2]string, error) {
+func GetHttpRequestHeaders() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpRequestHeaders)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallSetHttpRequestHeaders(headers [][2]string) error {
+func SetHttpRequestHeaders(headers [][2]string) error {
 	return types.StatusToError(setMap(types.MapTypeHttpRequestHeaders, headers))
 }
 
-func HostCallGetHttpRequestHeader(key string) (string, error) {
+func GetHttpRequestHeader(key string) (string, error) {
 	ret, st := getMapValue(types.MapTypeHttpRequestHeaders, key)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallRemoveHttpRequestHeader(key string) error {
+func RemoveHttpRequestHeader(key string) error {
 	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestHeaders, key))
 }
 
-func HostCallSetHttpRequestHeader(key, value string) error {
+func SetHttpRequestHeader(key, value string) error {
 	return types.StatusToError(setMapValue(types.MapTypeHttpRequestHeaders, key, value))
 }
 
-func HostCallAddHttpRequestHeader(key, value string) error {
+func AddHttpRequestHeader(key, value string) error {
 	return types.StatusToError(addMapValue(types.MapTypeHttpRequestHeaders, key, value))
 }
 
-func HostCallGetHttpRequestBody(start, maxSize int) ([]byte, error) {
+func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeHttpRequestBody, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetHttpRequestTrailers() ([][2]string, error) {
+func GetHttpRequestTrailers() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpRequestTrailers)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallSetHttpRequestTrailers(headers [][2]string) error {
+func SetHttpRequestTrailers(headers [][2]string) error {
 	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, headers))
 }
 
-func HostCallGetHttpRequestTrailer(key string) (string, error) {
+func GetHttpRequestTrailer(key string) (string, error) {
 	ret, st := getMapValue(types.MapTypeHttpRequestTrailers, key)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallRemoveHttpRequestTrailer(key string) error {
+func RemoveHttpRequestTrailer(key string) error {
 	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestTrailers, key))
 }
 
-func HostCallSetHttpRequestTrailer(key, value string) error {
+func SetHttpRequestTrailer(key, value string) error {
 	return types.StatusToError(setMapValue(types.MapTypeHttpRequestTrailers, key, value))
 }
 
-func HostCallAddHttpRequestTrailer(key, value string) error {
+func AddHttpRequestTrailer(key, value string) error {
 	return types.StatusToError(addMapValue(types.MapTypeHttpRequestTrailers, key, value))
 }
 
-func HostCallResumeHttpRequest() error {
+func ResumeHttpRequest() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeRequest))
 }
 
-func HostCallGetHttpResponseHeaders() ([][2]string, error) {
+func GetHttpResponseHeaders() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpResponseHeaders)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallSetHttpResponseHeaders(headers [][2]string) error {
+func SetHttpResponseHeaders(headers [][2]string) error {
 	return types.StatusToError(setMap(types.MapTypeHttpResponseHeaders, headers))
 }
 
-func HostCallGetHttpResponseHeader(key string) (string, error) {
+func GetHttpResponseHeader(key string) (string, error) {
 	ret, st := getMapValue(types.MapTypeHttpResponseHeaders, key)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallRemoveHttpResponseHeader(key string) error {
+func RemoveHttpResponseHeader(key string) error {
 	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseHeaders, key))
 }
 
-func HostCallSetHttpResponseHeader(key, value string) error {
+func SetHttpResponseHeader(key, value string) error {
 	return types.StatusToError(setMapValue(types.MapTypeHttpResponseHeaders, key, value))
 }
 
-func HostCallAddHttpResponseHeader(key, value string) error {
+func AddHttpResponseHeader(key, value string) error {
 	return types.StatusToError(addMapValue(types.MapTypeHttpResponseHeaders, key, value))
 }
 
-func HostCallGetHttpResponseBody(start, maxSize int) ([]byte, error) {
+func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallGetHttpResponseTrailers() ([][2]string, error) {
+func GetHttpResponseTrailers() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpResponseTrailers)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallSetHttpResponseTrailers(headers [][2]string) error {
+func SetHttpResponseTrailers(headers [][2]string) error {
 	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, headers))
 }
 
-func HostCallGetHttpResponseTrailer(key string) (string, error) {
+func GetHttpResponseTrailer(key string) (string, error) {
 	ret, st := getMapValue(types.MapTypeHttpResponseTrailers, key)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallRemoveHttpResponseTrailer(key string) error {
+func RemoveHttpResponseTrailer(key string) error {
 	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseTrailers, key))
 }
 
-func HostCallSetHttpResponseTrailer(key, value string) error {
+func SetHttpResponseTrailer(key, value string) error {
 	return types.StatusToError(setMapValue(types.MapTypeHttpResponseTrailers, key, value))
 }
 
-func HostCallAddHttpResponseTrailer(key, value string) error {
+func AddHttpResponseTrailer(key, value string) error {
 	return types.StatusToError(addMapValue(types.MapTypeHttpResponseTrailers, key, value))
 }
 
-func HostCallResumeHttpResponse() error {
+func ResumeHttpResponse() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeResponse))
 }
 
-func HostCallRegisterSharedQueue(name string) (uint32, error) {
+func RegisterSharedQueue(name string) (uint32, error) {
 	var queueID uint32
 	ptr := stringBytePtr(name)
 	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
@@ -243,14 +227,14 @@ func HostCallRegisterSharedQueue(name string) (uint32, error) {
 }
 
 // TODO: not sure if the ABI is correct
-func HostCallResolveSharedQueue(vmID, queueName string) (uint32, error) {
+func ResolveSharedQueue(vmID, queueName string) (uint32, error) {
 	var ret uint32
 	st := rawhostcall.ProxyResolveSharedQueue(stringBytePtr(vmID),
 		len(vmID), stringBytePtr(queueName), len(queueName), &ret)
 	return ret, types.StatusToError(st)
 }
 
-func HostCallDequeueSharedQueue(queueID uint32) ([]byte, error) {
+func DequeueSharedQueue(queueID uint32) ([]byte, error) {
 	var raw *byte
 	var size int
 	st := rawhostcall.ProxyDequeueSharedQueue(queueID, &raw, &size)
@@ -260,11 +244,11 @@ func HostCallDequeueSharedQueue(queueID uint32) ([]byte, error) {
 	return RawBytePtrToByteSlice(raw, size), nil
 }
 
-func HostCallEnqueueSharedQueue(queueID uint32, data []byte) error {
+func EnqueueSharedQueue(queueID uint32, data []byte) error {
 	return types.StatusToError(rawhostcall.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
 }
 
-func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
+func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
 
@@ -275,13 +259,13 @@ func HostCallGetSharedData(key string) (value []byte, cas uint32, err error) {
 	return RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
-func HostCallSetSharedData(key string, data []byte, cas uint32) error {
+func SetSharedData(key string, data []byte, cas uint32) error {
 	st := rawhostcall.ProxySetSharedData(stringBytePtr(key),
 		len(key), &data[0], len(data), cas)
 	return types.StatusToError(st)
 }
 
-func HostCallGetProperty(path []string) ([]byte, error) {
+func GetProperty(path []string) ([]byte, error) {
 	var ret *byte
 	var retSize int
 	raw := SerializePropertyPath(path)
@@ -295,7 +279,7 @@ func HostCallGetProperty(path []string) ([]byte, error) {
 
 }
 
-func HostCallSetProperty(path string, data []byte) error {
+func SetProperty(path string, data []byte) error {
 	return types.StatusToError(rawhostcall.ProxySetProperty(
 		stringBytePtr(path), len(path), &data[0], len(data),
 	))

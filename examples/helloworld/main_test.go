@@ -12,8 +12,8 @@ import (
 
 func TestHelloWorld_OnTick(t *testing.T) {
 	ctx := newHelloWorld(100)
-	host, done := proxytest.NewRootFilterHost(ctx, nil, nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	host := proxytest.NewHostEmulator(nil, nil, newHelloWorld, nil, nil)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 	ctx.OnTick()
 
 	logs := host.GetLogs(types.LogLevelInfo)
@@ -23,9 +23,8 @@ func TestHelloWorld_OnTick(t *testing.T) {
 }
 
 func TestHelloWorld_OnVMStart(t *testing.T) {
-	ctx := newHelloWorld(0)
-	host, done := proxytest.NewRootFilterHost(ctx, nil, nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	host := proxytest.NewHostEmulator(nil, nil, newHelloWorld, nil, nil)
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM()
 	logs := host.GetLogs(types.LogLevelInfo)

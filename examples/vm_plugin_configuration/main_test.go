@@ -18,6 +18,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
@@ -26,11 +28,12 @@ import (
 
 func TestContext_OnConfigure(t *testing.T) {
 	pluginConfigData := `{"name": "tinygo plugin configuration"}`
-	ctx := context{}
-	host, done := proxytest.NewRootFilterHost(ctx, []byte(pluginConfigData), nil)
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	host.ConfigurePlugin() // invoke OnConfigure
+	proxywasm.SetNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator([]byte(pluginConfigData), nil)
+	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation
+
+	host.StartPlugin() // invoke OnPluginStart
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	msg := logs[len(logs)-1]
@@ -39,11 +42,11 @@ func TestContext_OnConfigure(t *testing.T) {
 
 func TestContext_OnVMStart(t *testing.T) {
 	vmConfigData := `{"name": "tinygo vm configuration"}`
-	ctx := context{}
-	host, done := proxytest.NewRootFilterHost(ctx, nil, []byte(vmConfigData))
-	defer done() // release the host emulation lock so that other test cases can insert their own host emulation
+	proxywasm.SetNewRootContext(newRootContext)
+	host := proxytest.NewHostEmulator(nil, []byte(vmConfigData))
+	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
-	host.StartVM() // invoke OnConfigure
+	host.StartVM() // invoke OnVMStart
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	msg := logs[len(logs)-1]

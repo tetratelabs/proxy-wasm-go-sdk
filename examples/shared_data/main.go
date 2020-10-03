@@ -20,32 +20,50 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(func(uint32) proxywasm.RootContext { return data{} })
-	proxywasm.SetNewHttpContext(func(uint32) proxywasm.HttpContext { return data{} })
+	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
-type data struct{ proxywasm.DefaultContext }
+type (
+	sharedDataRootContext struct {
+		// you must embed the default context so that you need not to reimplement all the methods by yourself
+		proxywasm.DefaultRootContext
+	}
+
+	sharedDataHttpContext struct {
+		// you must embed the default context so that you need not to reimplement all the methods by yourself
+		proxywasm.DefaultHttpContext
+	}
+)
+
+func newRootContext(uint32) proxywasm.RootContext {
+	return &sharedDataRootContext{}
+}
+
+func newHttpContext(uint32) proxywasm.HttpContext {
+	return &sharedDataHttpContext{}
+}
 
 const sharedDataKey = "shared_data_key"
 
 // override
-func (ctx data) OnVMStart(int) bool {
-	if err := proxywasm.HostCallSetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
+func (ctx *sharedDataRootContext) OnVMStart(int) bool {
+	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
 	return true
 }
 
 // override
-func (ctx data) OnHttpRequestHeaders(int, bool) types.Action {
-	value, cas, err := proxywasm.HostCallGetSharedData(sharedDataKey)
+func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)
 		return types.ActionContinue
 	}
 
 	value[0]++
-	if err := proxywasm.HostCallSetSharedData(sharedDataKey, value, cas); err != nil {
+	if err := proxywasm.SetSharedData(sharedDataKey, value, cas); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnHttpRequestHeaders: %v", err)
 		return types.ActionContinue
 	}
