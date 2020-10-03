@@ -29,7 +29,6 @@ func TestMetric(t *testing.T) {
 
 	assert.Equal(t, "incremented", logs[len(logs)-1])
 
-	value, err := counter.Get()
-	require.NoError(t, err)
+	value := counter.Get()
 	assert.Equal(t, uint64(3), value)
 }

@@ -100,7 +100,7 @@ func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, d
 		stream.downstream = append(stream.downstream, data...)
 	}
 
-	action := proxywasm.ProxyOnDownstreamData(contextID, len(stream.upstream), false)
+	action := proxywasm.ProxyOnDownstreamData(contextID, len(stream.downstream), false)
 	switch action {
 	case types.ActionPause:
 		return
@@ -117,6 +117,7 @@ func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
 	contextID = getNextContextID()
 	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
 	proxywasm.ProxyOnNewConnection(contextID)
+	n.streamStates[contextID] = &streamState{}
 	return
 }
 

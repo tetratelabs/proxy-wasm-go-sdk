@@ -1,6 +1,7 @@
 package proxytest
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -168,20 +169,24 @@ func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) types.Status {
 
 // impl host rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) types.Status {
-	panic("unimplemented")
+	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
+	return 0
 }
 
 // impl host rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
-	panic("unimplemented")
+	log.Printf("ProxyResolveSharedQueue not implemented in the host emulator yet")
+	return 0
 }
 
 // impl host rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyCloseStream(streamType types.StreamType) types.Status {
-	panic("unimplemented")
+	log.Printf("ProxyCloseStream not implemented in the host emulator yet")
+	return 0
 }
 
 // impl host rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyDone() types.Status {
-	panic("unimplemented")
+	log.Printf("ProxyDone not implemented in the host emulator yet")
+	return 0
 }

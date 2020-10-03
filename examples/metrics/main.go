@@ -39,11 +39,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 
 // override
 func (ctx *metricRootContext) OnVMStart(int) bool {
-	ct, err := proxywasm.DefineCounterMetric(metricsName)
-	if err != nil {
-		proxywasm.LogCriticalf("error defining metrics: %v", err)
-	}
-	counter = ct
+	counter = proxywasm.DefineCounterMetric(metricsName)
 	return true
 }
 
@@ -58,16 +54,10 @@ func newHttpContext(uint32) proxywasm.HttpContext {
 
 // override
 func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
-	prev, err := counter.Get()
-	if err != nil {
-		proxywasm.LogCriticalf("error retrieving previous metric: %v", err)
-	}
-
+	prev := counter.Get()
 	proxywasm.LogInfof("previous value of %s: %d", metricsName, prev)
 
-	if err := counter.Increment(1); err != nil {
-		proxywasm.LogCriticalf("error incrementing metrics %v", err)
-	}
+	counter.Increment(1)
 	proxywasm.LogInfo("incremented")
 	return types.ActionContinue
 }

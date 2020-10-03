@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -78,16 +77,13 @@ func TestHostCall_Metric(t *testing.T) {
 		} {
 			t.Run(c.name, func(t *testing.T) {
 				// define metric
-				m, err := DefineCounterMetric(c.name)
-				require.NoError(t, err)
+				m := DefineCounterMetric(c.name)
 
 				// increment
-				require.NoError(t, m.Increment(c.offset))
+				m.Increment(c.offset)
 
 				// get
-				value, err := m.Get()
-				require.NoError(t, err)
-				assert.Equal(t, c.offset, value)
+				assert.Equal(t, c.offset, m.Get())
 			})
 		}
 	})
@@ -101,16 +97,13 @@ func TestHostCall_Metric(t *testing.T) {
 		} {
 			t.Run(c.name, func(t *testing.T) {
 				// define metric
-				m, err := DefineGaugeMetric(c.name)
-				require.NoError(t, err)
+				m := DefineGaugeMetric(c.name)
 
 				// increment
-				require.NoError(t, m.Add(c.offset))
+				m.Add(c.offset)
 
 				// get
-				value, err := m.Get()
-				require.NoError(t, err)
-				assert.Equal(t, c.offset, value)
+				assert.Equal(t, c.offset, m.Get())
 			})
 		}
 	})
@@ -124,16 +117,13 @@ func TestHostCall_Metric(t *testing.T) {
 		} {
 			t.Run(c.name, func(t *testing.T) {
 				// define metric
-				m, err := DefineHistogramMetric(c.name)
-				require.NoError(t, err)
+				m := DefineHistogramMetric(c.name)
 
 				// record
-				require.NoError(t, m.Record(c.value))
+				m.Record(c.value)
 
 				// get
-				value, err := m.Get()
-				require.NoError(t, err)
-				assert.Equal(t, c.value, value)
+				assert.Equal(t, c.value, m.Get())
 			})
 		}
 	})

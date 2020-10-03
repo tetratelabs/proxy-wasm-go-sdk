@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
@@ -26,29 +26,29 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestContext_OnConfigure(t *testing.T) {
+func TestContext_OnPluginStart(t *testing.T) {
 	pluginConfigData := `{"name": "tinygo plugin configuration"}`
 
-	proxywasm.SetNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator([]byte(pluginConfigData), nil)
+	host := proxytest.NewHostEmulator([]byte(pluginConfigData), nil, newRootContext, nil, nil)
 	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation
 
 	host.StartPlugin() // invoke OnPluginStart
 
 	logs := host.GetLogs(types.LogLevelInfo)
+	require.Greater(t, len(logs), 0)
 	msg := logs[len(logs)-1]
 	assert.True(t, strings.Contains(msg, pluginConfigData))
 }
 
 func TestContext_OnVMStart(t *testing.T) {
 	vmConfigData := `{"name": "tinygo vm configuration"}`
-	proxywasm.SetNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(nil, []byte(vmConfigData))
+	host := proxytest.NewHostEmulator(nil, []byte(vmConfigData), newRootContext, nil, nil)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // invoke OnVMStart
 
 	logs := host.GetLogs(types.LogLevelInfo)
+	require.Greater(t, len(logs), 0)
 	msg := logs[len(logs)-1]
 	assert.True(t, strings.Contains(msg, vmConfigData))
 }

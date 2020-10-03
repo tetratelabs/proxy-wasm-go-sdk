@@ -94,7 +94,6 @@ func TestNetwork_counter(t *testing.T) {
 	require.Greater(t, len(logs), 0)
 
 	assert.Equal(t, "connection complete!", logs[len(logs)-1])
-	actual, err := counter.Get()
-	require.NoError(t, err)
+	actual := counter.Get()
 	assert.Equal(t, uint64(1), actual)
 }
