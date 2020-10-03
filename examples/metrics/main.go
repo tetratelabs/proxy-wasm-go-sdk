@@ -48,7 +48,7 @@ type metricHttpContext struct {
 	proxywasm.DefaultHttpContext
 }
 
-func newHttpContext(uint32) proxywasm.HttpContext {
+func newHttpContext(uint32, uint32) proxywasm.HttpContext {
 	return &metricHttpContext{}
 }
 

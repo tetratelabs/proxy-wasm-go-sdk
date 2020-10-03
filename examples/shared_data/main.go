@@ -40,7 +40,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 	return &sharedDataRootContext{}
 }
 
-func newHttpContext(uint32) proxywasm.HttpContext {
+func newHttpContext(uint32, uint32) proxywasm.HttpContext {
 	return &sharedDataHttpContext{}
 }
 

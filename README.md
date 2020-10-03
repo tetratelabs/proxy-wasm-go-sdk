@@ -57,7 +57,7 @@ TinyGo's official release of WASI target will come soon, and after that you coul
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2|
 |:-------------:|:-------------:|:-------------:|
 | main |  0.2.0|   v1.17.x |
-| v0.0.4 |  0.2.0|   v1.17.x |
+| v0.0.6 |  0.2.0|   v1.17.x |
 
 
 ## run examples

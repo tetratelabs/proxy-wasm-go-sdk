@@ -29,12 +29,12 @@ func TestSetNewHttpContext(t *testing.T) {
 	defer currentStateMux.Unlock()
 
 	var cnt int
-	f := func(uint32) HttpContext {
+	f := func(uint32, uint32) HttpContext {
 		cnt++
 		return nil
 	}
 	SetNewHttpContext(f)
-	currentState.newHttpContext(0)
+	currentState.newHttpContext(0, 0)
 	assert.Equal(t, 1, cnt)
 }
 
@@ -43,12 +43,12 @@ func TestSetNewStreamContext(t *testing.T) {
 	defer currentStateMux.Unlock()
 
 	var cnt int
-	f := func(uint32) StreamContext {
+	f := func(uint32, uint32) StreamContext {
 		cnt++
 		return nil
 	}
 	SetNewStreamContext(f)
-	currentState.newStreamContext(0)
+	currentState.newStreamContext(0, 0)
 	assert.Equal(t, 1, cnt)
 }
 
@@ -86,7 +86,7 @@ func TestState_createStreamContext(t *testing.T) {
 	s := &state{
 		rootContexts:     map[uint32]*rootContextState{rid: nil},
 		streams:          map[uint32]StreamContext{},
-		newStreamContext: func(contextID uint32) StreamContext { return &sc{} },
+		newStreamContext: func(rootContextID, contextID uint32) StreamContext { return &sc{} },
 		contextIDToRooID: map[uint32]uint32{},
 	}
 
@@ -107,7 +107,7 @@ func TestState_createHttpContext(t *testing.T) {
 	s := &state{
 		rootContexts:     map[uint32]*rootContextState{rid: nil},
 		httpStreams:      map[uint32]HttpContext{},
-		newHttpContext:   func(contextID uint32) HttpContext { return &hc{} },
+		newHttpContext:   func(rootContextID, contextID uint32) HttpContext { return &hc{} },
 		contextIDToRooID: map[uint32]uint32{},
 	}
 

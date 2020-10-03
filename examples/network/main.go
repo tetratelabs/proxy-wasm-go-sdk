@@ -48,7 +48,7 @@ type networkContext struct {
 	proxywasm.DefaultStreamContext
 }
 
-func newNetworkContext(uint32) proxywasm.StreamContext {
+func newNetworkContext(uint32, uint32) proxywasm.StreamContext {
 	return &networkContext{}
 }
 

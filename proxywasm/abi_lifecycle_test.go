@@ -27,7 +27,7 @@ func Test_proxyOnContextCreate(t *testing.T) {
 
 	proxyOnContextCreate(100, 0)
 	require.Equal(t, 1, cnt)
-	SetNewHttpContext(func(contextID uint32) HttpContext {
+	SetNewHttpContext(func(rootContextID, contextID uint32) HttpContext {
 		cnt += 100
 		return nil
 	})
@@ -35,7 +35,7 @@ func Test_proxyOnContextCreate(t *testing.T) {
 	require.Equal(t, 101, cnt)
 	currentState.newHttpContext = nil
 
-	SetNewStreamContext(func(contextID uint32) StreamContext {
+	SetNewStreamContext(func(rootContextID, contextID uint32) StreamContext {
 		cnt += 1000
 		return nil
 	})
