@@ -29,7 +29,7 @@ type httpHeaders struct {
 	contextID uint32
 }
 
-func newContext(contextID uint32) proxywasm.HttpContext {
+func newContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 	return &httpHeaders{contextID: contextID}
 }
 

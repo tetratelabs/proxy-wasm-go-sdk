@@ -33,7 +33,7 @@ type httpAuthRandom struct {
 	contextID uint32
 }
 
-func newContext(contextID uint32) proxywasm.HttpContext {
+func newContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 	return &httpAuthRandom{contextID: contextID}
 }
 

@@ -29,9 +29,9 @@ type (
 type state struct {
 	newRootContext   func(contextID uint32) RootContext
 	rootContexts     map[uint32]*rootContextState
-	newStreamContext func(contextID uint32) StreamContext
+	newStreamContext func(rootContextID, contextID uint32) StreamContext
 	streams          map[uint32]StreamContext
-	newHttpContext   func(contextID uint32) HttpContext
+	newHttpContext   func(rootContextID, contextID uint32) HttpContext
 	httpStreams      map[uint32]HttpContext
 
 	contextIDToRooID map[uint32]uint32
@@ -49,11 +49,11 @@ func SetNewRootContext(f func(contextID uint32) RootContext) {
 	currentState.newRootContext = f
 }
 
-func SetNewHttpContext(f func(contextID uint32) HttpContext) {
+func SetNewHttpContext(f func(rootContextID, contextID uint32) HttpContext) {
 	currentState.newHttpContext = f
 }
 
-func SetNewStreamContext(f func(contextID uint32) StreamContext) {
+func SetNewStreamContext(f func(rootContextID, contextID uint32) StreamContext) {
 	currentState.newStreamContext = f
 }
 
@@ -84,7 +84,7 @@ func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
 		panic("context id duplicated")
 	}
 
-	ctx := s.newStreamContext(contextID)
+	ctx := s.newStreamContext(rootContextID, contextID)
 	s.contextIDToRooID[contextID] = rootContextID
 	s.streams[contextID] = ctx
 }
@@ -98,7 +98,7 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
 		panic("context id duplicated")
 	}
 
-	ctx := s.newHttpContext(contextID)
+	ctx := s.newHttpContext(rootContextID, contextID)
 	s.contextIDToRooID[contextID] = rootContextID
 	s.httpStreams[contextID] = ctx
 }
