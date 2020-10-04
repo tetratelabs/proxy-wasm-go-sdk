@@ -45,7 +45,7 @@ type (
 
 		pluginConfiguration, vmConfiguration []byte
 
-		activeCalloutID *uint32
+		activeCalloutID uint32
 	}
 
 	HttpCalloutAttribute struct {
@@ -258,10 +258,9 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 
 // delegated from hostEmulator
 func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
-	activeID := proxywasm.VMStateGetActiveContextID()
-	res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
-		log.Fatalf("callout response unregistered for %d", activeID)
+		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
 	}
 
 	var raw []byte
@@ -282,10 +281,9 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.
 // delegated from hostEmulator
 func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
-	activeID := proxywasm.VMStateGetActiveContextID()
-	res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
-		log.Fatalf("callout response unregistered for %d", activeID)
+		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
 	}
 
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
@@ -323,7 +321,7 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 		buf = r.vmConfiguration
 	case types.BufferTypeHttpCallResponseBody:
 		activeID := proxywasm.VMStateGetActiveContextID()
-		res, ok := r.httpCalloutResponse[*r.activeCalloutID]
+		res, ok := r.httpCalloutResponse[r.activeCalloutID]
 		if !ok {
 			log.Fatalf("callout response unregistered for %d", activeID)
 		}
@@ -381,11 +379,13 @@ func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailer
 	}{headers: headers, trailers: trailers, body: body}
 
 	// rootContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
-	r.activeCalloutID = &calloutID
+	r.activeCalloutID = calloutID
+	defer func() {
+		r.activeCalloutID = 0
+		delete(r.httpCalloutResponse, calloutID)
+		delete(r.httpCalloutIDToContextID, calloutID)
+	}()
 	proxywasm.ProxyOnHttpCallResponse(rootContextID, calloutID, len(headers), len(body), len(trailers))
-	r.activeCalloutID = nil
-	delete(r.httpCalloutResponse, calloutID)
-	delete(r.httpCalloutIDToContextID, calloutID)
 }
 
 func (r *rootHostEmulator) FinishVM() {

@@ -2,12 +2,10 @@
 
 ISTIO_VERSION ?= 1.7.2
 
-.PHONY: help build.example build.examples lint test test.sdk test.e2e
-help:
-	grep -E '^[a-z0-9A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+.PHONY: build.example build.examples lint test test.sdk test.e2e
 
 build.example:
-	tinygo build -o ./examples/${name}/main.go.wasm -target=wasi -wasm-abi=generic ./examples/${name}/main.go
+	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi -wasm-abi=generic ./examples/${name}/main.go
 
 build.examples:
 	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasi -wasm-abi=generic p

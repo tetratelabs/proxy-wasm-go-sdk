@@ -55,6 +55,14 @@ var (
 	nextContextID = rootContextID + 1
 )
 
+type hostEmulator struct {
+	*rootHostEmulator
+	*networkHostEmulator
+	*httpHostEmulator
+
+	effectiveContextID uint32
+}
+
 func NewHostEmulator(opt *EmulatorOption) HostEmulator {
 	root := newRootHostEmulator(opt.pluginConfiguration, opt.vmConfiguration)
 	network := newNetworkHostEmulator()
@@ -86,18 +94,10 @@ func getNextContextID() (ret uint32) {
 	return
 }
 
-type hostEmulator struct {
-	*rootHostEmulator
-	*networkHostEmulator
-	*httpHostEmulator
-
-	effectiveContextID uint32
-}
-
 // impl host HostEmulator
 func (*hostEmulator) Done() {
-	hostMux.Unlock()
-	proxywasm.VMStateReset()
+	defer hostMux.Unlock()
+	defer proxywasm.VMStateReset()
 }
 
 // impl host rawhostcall.ProxyWASMHost

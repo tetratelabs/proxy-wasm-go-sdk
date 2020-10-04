@@ -84,13 +84,16 @@ make test # run local tests without running envoy processes
 make test.e2e # run e2e tests
 ```
 
-## compiler limitations and considerations
+## limitations and considerations
 
 - Some of existing libraries are not available (importable but runtime panic / non-importable)
-    - There are two reasons for this:
+    - There are several reasons for this:
         1. TinyGo's WASI target does not support some of syscall: For example, we cannot import `crypto/rand` package.
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
-    - These issues will be mitigated as the TinyGo improves.
+        3. [proxy-wasm-cpp-host](https://github.com/proxy-wasm/proxy-wasm-cpp-host) has not supported some of WASI APIs yet 
+        (see the [supported functions](https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/master/include/proxy-wasm/exports.h#L134-L147)).
+         For example, `clock_time_get` is not implemented, and therefore we cannot use `time.Now`.
+    - These issues will be mitigated as TinyGo and proxy-wasm-cpp-host evolve.
 - There's performance overhead in using Go/TinyGo due to GC
     - runtime.GC() is called whenever the heap runs out (see [1](https://tinygo.org/lang-support/#garbage-collection),
     [2](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_conservative.go#L218-L239)).
