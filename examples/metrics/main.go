@@ -38,7 +38,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 }
 
 // override
-func (ctx *metricRootContext) OnVMStart(int) bool {
+func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) bool {
 	counter = proxywasm.DefineCounterMetric(metricsName)
 	return true
 }
@@ -53,7 +53,7 @@ func newHttpContext(uint32, uint32) proxywasm.HttpContext {
 }
 
 // override
-func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *metricHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	prev := counter.Get()
 	proxywasm.LogInfof("previous value of %s: %d", metricsName, prev)
 

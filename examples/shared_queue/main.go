@@ -41,7 +41,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 var queueID uint32
 
 // override
-func (ctx *queueRootContext) OnVMStart(int) bool {
+func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) bool {
 	qID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
 		panic(err.Error())
@@ -74,7 +74,7 @@ type queueHttpContext struct {
 	proxywasm.DefaultHttpContext
 }
 
-func newHttpContext(uint32, uint32) proxywasm.HttpContext {
+func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 	return &queueHttpContext{}
 }
 
