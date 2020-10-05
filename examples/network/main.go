@@ -34,11 +34,11 @@ type rootContext struct {
 	proxywasm.DefaultRootContext
 }
 
-func newRootContext(uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &rootContext{}
 }
 
-func (ctx *rootContext) OnVMStart(int) bool {
+func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
 	counter = proxywasm.DefineCounterMetric(connectionCounterName)
 	return true
 }
@@ -48,7 +48,7 @@ type networkContext struct {
 	proxywasm.DefaultStreamContext
 }
 
-func newNetworkContext(uint32, uint32) proxywasm.StreamContext {
+func newNetworkContext(rootContextID, contextID uint32) proxywasm.StreamContext {
 	return &networkContext{}
 }
 
@@ -57,7 +57,7 @@ func (ctx *networkContext) OnNewConnection() types.Action {
 	return types.ActionContinue
 }
 
-func (ctx *networkContext) OnDownstreamData(dataSize int, _ bool) types.Action {
+func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
@@ -77,7 +77,7 @@ func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	return
 }
 
-func (ctx *networkContext) OnUpstreamData(dataSize int, _ bool) types.Action {
+func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
 	}

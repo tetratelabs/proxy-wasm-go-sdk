@@ -21,13 +21,13 @@ import (
 
 // wrappers on the rawhostcall package
 
-func GetPluginConfiguration(dataSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, dataSize)
+func GetPluginConfiguration(size int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, size)
 	return ret, types.StatusToError(st)
 }
 
-func GetVMConfiguration(dataSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeVMConfiguration, 0, dataSize)
+func GetVMConfiguration(size int) ([]byte, error) {
+	ret, st := getBuffer(types.BufferTypeVMConfiguration, 0, size)
 	return ret, types.StatusToError(st)
 }
 

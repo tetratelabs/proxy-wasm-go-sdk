@@ -34,7 +34,7 @@ func newContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 }
 
 // override
-func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
@@ -47,7 +47,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(int, bool) types.Action {
 }
 
 // override
-func (ctx *httpHeaders) OnHttpResponseHeaders(int, bool) types.Action {
+func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpResponseHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)

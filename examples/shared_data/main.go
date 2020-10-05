@@ -36,18 +36,18 @@ type (
 	}
 )
 
-func newRootContext(uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &sharedDataRootContext{}
 }
 
-func newHttpContext(uint32, uint32) proxywasm.HttpContext {
+func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 	return &sharedDataHttpContext{}
 }
 
 const sharedDataKey = "shared_data_key"
 
 // override
-func (ctx *sharedDataRootContext) OnVMStart(int) bool {
+func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) bool {
 	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
@@ -55,7 +55,7 @@ func (ctx *sharedDataRootContext) OnVMStart(int) bool {
 }
 
 // override
-func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)

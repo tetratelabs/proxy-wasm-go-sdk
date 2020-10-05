@@ -38,7 +38,7 @@ func newContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 }
 
 // override default
-func (ctx *httpAuthRandom) OnHttpRequestHeaders(int, bool) types.Action {
+func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
@@ -58,7 +58,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(int, bool) types.Action {
 	return types.ActionPause
 }
 
-func httpCallResponseCallback(_ int, bodySize int, _ int) {
+func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 	hs, err := proxywasm.GetHttpCallResponseHeaders()
 	if err != nil {
 

@@ -37,7 +37,7 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 }
 
 // override
-func (ctx *helloWorld) OnVMStart(int) bool {
+func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
 	rand.Seed(proxywasm.GetCurrentTime())
 
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
