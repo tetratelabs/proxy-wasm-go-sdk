@@ -17,7 +17,6 @@ package main
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,9 +41,12 @@ func TestQueue(t *testing.T) {
 
 	contextID := host.HttpFilterInitContext()
 	host.HttpFilterPutRequestHeaders(contextID, nil) // call enqueue
+
 	assert.Equal(t, 4, host.GetQueueSize(queueID))
 
-	time.Sleep(time.Duration(tickMilliseconds*5) * time.Millisecond)
+	for i := 0; i < 4; i++ {
+		host.Tick()
+	}
 
 	logs = host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 5)

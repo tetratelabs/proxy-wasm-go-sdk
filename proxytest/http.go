@@ -47,7 +47,7 @@ func newHttpHostEmulator() *httpHostEmulator {
 	return host
 }
 
-// impl host rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
@@ -76,7 +76,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
@@ -109,7 +109,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.
 	return types.StatusNotFound
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, valueData *byte, valueSize int) types.Status {
 
@@ -145,7 +145,7 @@ func addMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, valueData *byte, valueSize int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
@@ -168,7 +168,7 @@ func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType types.MapType, key
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	for i, h := range base {
 		if h[0] == key {
@@ -180,7 +180,7 @@ func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxyRemoveHeaderMapValue(mapType types.MapType, keyData *byte, keySize int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
 	active := proxywasm.VMStateGetActiveContextID()
@@ -214,7 +214,7 @@ func removeHeaderMapValue(base [][2]string, key string) [][2]string {
 	return base
 }
 
-// impl host rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
 	returnValueSize *int) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
@@ -239,7 +239,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) types.Status {
 	m := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(mapData, mapSize))
 	active := proxywasm.VMStateGetActiveContextID()
@@ -260,7 +260,7 @@ func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType types.MapType, mapData
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxyContinueStream(types.StreamType) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
@@ -268,7 +268,7 @@ func (h *httpHostEmulator) ProxyContinueStream(types.StreamType) types.Status {
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 	statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int,
 	headersData *byte, headersSize int, grpcStatus int32) types.Status {
@@ -284,7 +284,7 @@ func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 	return types.StatusOK
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterInitContext() (contextID uint32) {
 	contextID = getNextContextID()
 	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
@@ -292,7 +292,7 @@ func (h *httpHostEmulator) HttpFilterInitContext() (contextID uint32) {
 	return
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -304,7 +304,7 @@ func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers
 		len(headers), false) // TODO: allow for specifying end_of_stream
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -317,7 +317,7 @@ func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, header
 		len(headers), false) // TODO: allow for specifying end_of_stream
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -328,7 +328,7 @@ func (h *httpHostEmulator) HttpFilterPutRequestTrailers(contextID uint32, header
 	cs.action = proxywasm.ProxyOnRequestTrailers(contextID, len(headers))
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -339,7 +339,7 @@ func (h *httpHostEmulator) HttpFilterPutResponseTrailers(contextID uint32, heade
 	cs.action = proxywasm.ProxyOnResponseTrailers(contextID, len(headers))
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestBody(contextID uint32, body []byte) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -351,7 +351,7 @@ func (h *httpHostEmulator) HttpFilterPutRequestBody(contextID uint32, body []byt
 		len(body), false) // TODO: allow for specifying end_of_stream
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutResponseBody(contextID uint32, body []byte) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -363,12 +363,12 @@ func (h *httpHostEmulator) HttpFilterPutResponseBody(contextID uint32, body []by
 		len(body), false) // TODO: allow for specifying end_of_stream
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterCompleteHttpStream(contextID uint32) {
 	proxywasm.ProxyOnDone(contextID)
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterGetCurrentStreamAction(contextID uint32) types.Action {
 	stream, ok := h.httpStreams[contextID]
 	if !ok {
@@ -377,7 +377,7 @@ func (h *httpHostEmulator) HttpFilterGetCurrentStreamAction(contextID uint32) ty
 	return stream.action
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.httpStreams[contextID].sentLocalResponse
 }
