@@ -3,7 +3,6 @@ package main
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -21,7 +20,8 @@ func TestHelloWorld_OnTick(t *testing.T) {
 
 	host.StartVM() // call OnVMStart
 
-	time.Sleep(time.Duration(tickMilliseconds) * 4 * time.Millisecond)
+	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	host.Tick() // call OnTick
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 0)

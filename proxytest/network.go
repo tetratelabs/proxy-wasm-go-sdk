@@ -37,7 +37,7 @@ func newNetworkHostEmulator() *networkHostEmulator {
 	return host
 }
 
-// impl host rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
 func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 
@@ -67,7 +67,7 @@ func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.Bu
 	return types.StatusOK
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, data []byte) {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
@@ -90,7 +90,7 @@ func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, dat
 	}
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, data []byte) {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
@@ -112,7 +112,7 @@ func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, d
 	}
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
 	contextID = getNextContextID()
 	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
@@ -121,17 +121,17 @@ func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
 	return
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterCloseUpstreamConnection(contextID uint32) {
 	proxywasm.ProxyOnUpstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterCloseDownstreamConnection(contextID uint32) {
 	proxywasm.ProxyOnDownstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
-// impl host HostEmulator
+// impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterCompleteConnection(contextID uint32) {
 	proxywasm.ProxyOnDone(contextID)
 	delete(n.streamStates, contextID)

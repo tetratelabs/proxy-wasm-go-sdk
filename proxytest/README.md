@@ -10,4 +10,4 @@ This framework simulates the expected behavior of Envoyproxy, and you can test y
 For detail, see `examples/*/main_test.go`.
 
 
-Note that we have not covered ll the functionality, and the API is very likely to change in the future.
+Note that we have not covered all the functionality, and the API is very likely to change in the future.

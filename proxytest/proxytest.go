@@ -23,6 +23,7 @@ type HostEmulator interface {
 
 	GetLogs(level types.LogLevel) []string
 	GetTickPeriod() uint32
+	Tick()
 	GetQueueSize(queueID uint32) int
 
 	// network
@@ -55,6 +56,14 @@ var (
 	nextContextID = rootContextID + 1
 )
 
+type hostEmulator struct {
+	*rootHostEmulator
+	*networkHostEmulator
+	*httpHostEmulator
+
+	effectiveContextID uint32
+}
+
 func NewHostEmulator(opt *EmulatorOption) HostEmulator {
 	root := newRootHostEmulator(opt.pluginConfiguration, opt.vmConfiguration)
 	network := newNetworkHostEmulator()
@@ -86,21 +95,13 @@ func getNextContextID() (ret uint32) {
 	return
 }
 
-type hostEmulator struct {
-	*rootHostEmulator
-	*networkHostEmulator
-	*httpHostEmulator
-
-	effectiveContextID uint32
-}
-
-// impl host HostEmulator
+// impl HostEmulator
 func (*hostEmulator) Done() {
-	hostMux.Unlock()
-	proxywasm.VMStateReset()
+	defer hostMux.Unlock()
+	defer proxywasm.VMStateReset()
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	switch bt {
@@ -115,7 +116,7 @@ func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSi
 	}
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
 	switch mapType {
@@ -131,7 +132,7 @@ func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *by
 	}
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
 	returnValueSize *int) types.Status {
 	switch mapType {
@@ -145,42 +146,42 @@ func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValue
 	}
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
 	*returnTime = time.Now().UnixNano()
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) types.Status {
 	h.effectiveContextID = contextID
 	return types.StatusOK
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) types.Status {
 	panic("unimplemented")
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) types.Status {
 	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
 	return 0
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
 	log.Printf("ProxyResolveSharedQueue not implemented in the host emulator yet")
 	return 0
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyCloseStream(streamType types.StreamType) types.Status {
 	log.Printf("ProxyCloseStream not implemented in the host emulator yet")
 	return 0
 }
 
-// impl host rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyDone() types.Status {
 	log.Printf("ProxyDone not implemented in the host emulator yet")
 	return 0
