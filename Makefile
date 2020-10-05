@@ -8,7 +8,7 @@ build.example:
 	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi -wasm-abi=generic ./examples/${name}/main.go
 
 build.examples:
-	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -target=wasi -wasm-abi=generic p
+	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
 
 lint:
 	golangci-lint run --build-tags proxytest

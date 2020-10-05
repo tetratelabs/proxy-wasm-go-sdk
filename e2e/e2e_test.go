@@ -64,7 +64,7 @@ func TestE2E_helloworld(t *testing.T) {
 	out := stdErr.String()
 	fmt.Println(out)
 	assert.True(t, strings.Contains(out, "wasm log helloworld: proxy_on_vm_start from Go!"))
-	assert.True(t, strings.Contains(out, "wasm log helloworld: OnTick on "))
+	assert.True(t, strings.Contains(out, "wasm log helloworld: It's"))
 }
 
 func TestE2E_http_auth_random(t *testing.T) {
