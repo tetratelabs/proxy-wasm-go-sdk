@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !abi_0_1_0
+// +build abi_0_1_0
+
+// This ABI version switching is necessary to be compatible with the envoyproxy/envoy-wasm release/v1.15 branch
+// 	TODO: delete this file and support the single ABI version
 
 package proxywasm
 
 //nolint
-//export proxy_abi_version_0_2_0
-func proxyABIVersion() {}
+//export proxy_abi_version_0_1_0
+func proxyABIVersion010() {}
