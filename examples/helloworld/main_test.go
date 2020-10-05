@@ -27,7 +27,7 @@ func TestHelloWorld_OnTick(t *testing.T) {
 	require.Greater(t, len(logs), 0)
 	msg := logs[len(logs)-1]
 
-	assert.True(t, strings.Contains(msg, "OnTick on"))
+	assert.True(t, strings.Contains(msg, "It's"))
 }
 
 func TestHelloWorld_OnVMStart(t *testing.T) {

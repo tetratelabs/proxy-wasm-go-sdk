@@ -9,7 +9,6 @@ proxy-wasm-go-sdk is powered by [TinyGo](https://tinygo.org/) and does not suppo
 
 
 ```golang
-
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -17,22 +16,21 @@ import (
 
 var counter proxywasm.MetricCounter
 
-const metricName = "proxy_wasm_go.request_counter"
+type metricRootContext struct { proxywasm.DefaultRootContext }
 
-type context struct{ proxywasm.DefaultContext }
-
-func (ctx *context) OnVMStart(int) bool {
-	// initialize the new metric	
-	counter, _ = proxywasm.DefineCounterMetric(metricName)
+func (ctx *metricRootContext) OnVMStart(int) bool {
+	// initialize the metric
+	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
 	return true
 }
 
-func (ctx *context) OnHttpRequestHeaders(int, bool) types.Action {
+type metricHttpContext struct { proxywasm.DefaultHttpContext }
+
+func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	// increment the request counter when we receive request headers
-	counter.Increment(1)  
+	counter.Increment(1)
 	return types.ActionContinue
 }
-
 ```
 
 ### requirements

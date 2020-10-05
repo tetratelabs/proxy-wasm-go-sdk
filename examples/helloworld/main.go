@@ -15,6 +15,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
@@ -36,15 +38,18 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 
 // override
 func (ctx *helloWorld) OnVMStart(int) bool {
+	rand.Seed(proxywasm.GetCurrentTime())
+
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
+
 	return true
 }
 
 // override
 func (ctx *helloWorld) OnTick() {
 	t := proxywasm.GetCurrentTime()
-	proxywasm.LogInfof("OnTick on %d, it's %d", ctx.contextID, t)
+	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
 }
