@@ -129,11 +129,10 @@ func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 }
 
 func SetHttpRequestBody(body []byte) error {
-	if len(body) == 0 {
-		st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpRequestBody, 0, len(body), nil, len(body))
-		return types.StatusToError(st)
+	var bufferData *byte
+	if len(body) != 0 {
+		bufferData = &body[0]
 	}
-	bufferData := &body[0]
 	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpRequestBody, 0, len(body), bufferData, len(body))
 	return types.StatusToError(st)
 }
@@ -200,11 +199,10 @@ func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 }
 
 func SetHttpResponseBody(body []byte) error {
-	if len(body) == 0 {
-		st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpRequestBody, 0, len(body), nil, len(body))
-		return types.StatusToError(st)
+	var bufferData *byte
+	if len(body) != 0 {
+		bufferData = &body[0]
 	}
-	bufferData := &body[0]
 	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpResponseBody, 0, len(body), bufferData, len(body))
 	return types.StatusToError(st)
 }
