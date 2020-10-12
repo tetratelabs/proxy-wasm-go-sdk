@@ -1,5 +1,11 @@
 name: build-test
-on: [push, pull_requests]
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   sdk-tests:
