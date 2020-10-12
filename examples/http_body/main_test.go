@@ -9,7 +9,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
+func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewHttpContext(newContext)
 	host := proxytest.NewHostEmulator(opt)
@@ -19,7 +19,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	host.HttpFilterPutRequestBody(id, []byte(`{ "initial": "request body" }`))
 
 	res := host.HttpFilterGetRequestBody(id)
-	assert.Equal(t, `{"test":"data"}`, string(res))
+	assert.Equal(t, `{ "another": "body" }`, string(res))
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)

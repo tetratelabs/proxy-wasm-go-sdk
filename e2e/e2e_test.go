@@ -117,6 +117,28 @@ func TestE2E_http_headers(t *testing.T) {
 	assert.True(t, strings.Contains(out, "server: envoy"))
 }
 
+func TestE2E_http_body(t *testing.T) {
+	cmd, stdErr := startExample(t, "http_body")
+	defer func() {
+		require.NoError(t, cmd.Process.Kill())
+	}()
+
+	req, err := http.NewRequest("GET", envoyEndpoint, bytes.NewBuffer([]byte(`{ "example": "body" }`)))
+	require.NoError(t, err)
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer r.Body.Close()
+
+	out := stdErr.String()
+	fmt.Println(out)
+	assert.True(t, strings.Contains(out, "body size: 21"))
+	assert.True(t, strings.Contains(out, `initial request body: { "example": "body" }`))
+	assert.True(t, strings.Contains(out, "on http request body finished"))
+	assert.False(t, strings.Contains(out, "failed to set request body"))
+	assert.False(t, strings.Contains(out, "failed to get request body"))
+}
+
 func TestE2E_network(t *testing.T) {
 	cmd, stdErr := startExample(t, "network")
 	defer func() {

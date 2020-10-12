@@ -36,22 +36,24 @@ func newContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 // override
 func (ctx *httpBody) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("body size: %d", bodySize)
+	if bodySize != 0 {
+		initialBody, err := proxywasm.GetHttpRequestBody(0, bodySize)
+		if err != nil {
+			proxywasm.LogErrorf("failed to get request body: %v", err)
+			return types.ActionContinue
+		}
+		proxywasm.LogInfof("initial request body: %s", string(initialBody))
 
-	b, err := proxywasm.GetHttpRequestBody(0, bodySize)
-	if err != nil {
-		proxywasm.LogErrorf("failed to get request body: %v", err)
-		return types.ActionContinue
+		b := []byte(`{ "another": "body" }`)
+
+		err = proxywasm.SetHttpRequestBody(b)
+		if err != nil {
+			proxywasm.LogErrorf("failed to set request body: %v", err)
+			return types.ActionContinue
+		}
+
+		proxywasm.LogInfof("on http request body finished")
 	}
-
-	proxywasm.LogInfof("initial request body: %s", string(b))
-
-	err = proxywasm.SetHttpRequestBody([]byte(`{"test":"data"}`))
-	if err != nil {
-		proxywasm.LogErrorf("failed to get request body: %v", err)
-		return types.ActionContinue
-	}
-
-	proxywasm.LogInfof("on http request body finished")
 
 	return types.ActionContinue
 }

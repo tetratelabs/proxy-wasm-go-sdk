@@ -19,6 +19,9 @@ test:
 test.e2e:
 	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} go test -v ./e2e
 
+test.e2e.single:
+	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} go test -v ./e2e -run ${name}
+
 run:
 	docker run --entrypoint='/usr/local/bin/envoy' \
 		-p 18000:18000 -p 8099:8099 \

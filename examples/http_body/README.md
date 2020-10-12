@@ -1,4 +1,4 @@
-## http_headers
+## http_body
 
 this example replaces the request body
 
