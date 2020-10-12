@@ -44,6 +44,7 @@ type ProxyWASMHost interface {
 	ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status
 	ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) types.Status
 	ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status
+	ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status
 	ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status
 	ProxySetTickPeriodMilliseconds(period uint32) types.Status
 	ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status
@@ -110,6 +111,9 @@ func (d DefaultProxyWAMSHost) ProxySetHeaderMapPairs(mapType types.MapType, mapD
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status {
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
@@ -207,6 +211,10 @@ func ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) t
 
 func ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status {
 	return currentHost.ProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
+}
+
+func ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status {
+	return currentHost.ProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
 }
 
 func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte,

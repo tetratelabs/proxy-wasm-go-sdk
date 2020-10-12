@@ -116,6 +116,11 @@ func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSi
 	}
 }
 
+func (h *hostEmulator) ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status {
+	// TODO: implement host emulator set buffer bytes
+	return types.StatusOK
+}
+
 // impl rawhostcall.ProxyWASMHost
 func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {

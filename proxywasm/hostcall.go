@@ -128,6 +128,15 @@ func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
+func SetHttpRequestBody(body []byte) error {
+	if len(body) == 0 {
+		return types.StatusToError(types.StatusBadArgument)
+	}
+	bufferData := &body[0]
+	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpRequestBody, 0, len(body), bufferData, len(body))
+	return types.StatusToError(st)
+}
+
 func GetHttpRequestTrailers() ([][2]string, error) {
 	ret, st := getMap(types.MapTypeHttpRequestTrailers)
 	return ret, types.StatusToError(st)
@@ -187,6 +196,15 @@ func AddHttpResponseHeader(key, value string) error {
 func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
 	return ret, types.StatusToError(st)
+}
+
+func SetHttpResponseBody(body []byte) error {
+	if len(body) == 0 {
+		return types.StatusToError(types.StatusBadArgument)
+	}
+	bufferData := &body[0]
+	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpResponseBody, 0, len(body), bufferData, len(body))
+	return types.StatusToError(st)
 }
 
 func GetHttpResponseTrailers() ([][2]string, error) {
