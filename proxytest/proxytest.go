@@ -41,7 +41,9 @@ type HostEmulator interface {
 	HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string)
 	HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string)
 	HttpFilterPutRequestBody(contextID uint32, body []byte)
+	HttpFilterGetRequestBody(contextID uint32) []byte
 	HttpFilterPutResponseBody(contextID uint32, body []byte)
+	HttpFilterGetResponseBody(contextID uint32) []byte
 	HttpFilterCompleteHttpStream(contextID uint32)
 	HttpFilterGetCurrentStreamAction(contextID uint32) types.Action
 	HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse
@@ -111,6 +113,15 @@ func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSi
 		return h.networkHostEmulatorProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
 	case types.BufferTypeHttpRequestBody, types.BufferTypeHttpResponseBody:
 		return h.httpHostEmulatorProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
+	default:
+		panic("unreachable: maybe a bug in this host emulation or SDK")
+	}
+}
+
+func (h *hostEmulator) ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status {
+	switch bt {
+	case types.BufferTypeHttpRequestBody, types.BufferTypeHttpResponseBody:
+		return h.httpHostEmulatorProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
