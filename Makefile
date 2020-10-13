@@ -2,13 +2,22 @@
 
 ISTIO_VERSION ?= 1.7.2
 
-.PHONY: build.example build.examples lint test test.sdk test.e2e
+.PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e
 
 build.example:
 	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi -wasm-abi=generic ./examples/${name}/main.go
 
+build.example.docker:
+	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo-dev:latest \
+		tinygo build -o /tmp/proxy-wasm-go/examples/${name}/main.go.wasm -scheduler=none -target=wasi \
+		-wasm-abi=generic /tmp/proxy-wasm-go/examples/${name}/main.go
+
 build.examples:
 	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
+
+build.examples.docker:
+	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo-dev:latest /bin/bash -c \
+		'find /tmp/proxy-wasm-go/examples/ -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p'
 
 lint:
 	golangci-lint run --build-tags proxytest
