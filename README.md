@@ -35,8 +35,10 @@ func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 
 ### requirements
 
-proxy-wasm-go-sdk depends on the latest TinyGo which supports WASI target([tinygo-org/tinygo#1373](https://github.com/tinygo-org/tinygo/pull/1373)).
-In order to install that, simply run (Ubuntu/Debian):
+proxy-wasm-go-sdk depends on TinyGo's latest [dev branch](https://github.com/tinygo-org/tinygo/tree/dev) which supports WASI target([tinygo-org/tinygo#1373](https://github.com/tinygo-org/tinygo/pull/1373))
+and has yet to be tagged.
+
+In order to install that version of TinyGo, simply run (Ubuntu/Debian):
 
 ```shell
 # this corresponds to https://github.com/tinygo-org/tinygo/commit/f50ad3585d084b17f7754f4b3cb0d42661fee036
@@ -44,9 +46,9 @@ wget https://19227-136505169-gh.circle-artifacts.com/0/tmp/tinygo_amd64.deb
 dpkg -i tinygo_amd64.deb
 ```
 
-Alternatively, you can use the pre-built docker container `getenvoy/extention-tingyo-builder:wasi-dev` for any platform.
+Alternatively, you can use the pre-built docker container `tinygo/tinygo-dev:latest` for any platform.
 
-TinyGo's official release of WASI target will come soon, and after that you could
+TinyGo's official tagged release of WASI target will come soon, and after that you could
  just follow https://tinygo.org/getting-started/ to install the requirement on any platform. Stay tuned!
 
 
@@ -63,9 +65,11 @@ TinyGo's official release of WASI target will come soon, and after that you coul
 build:
 
 ```bash
-make build.examples # build all examples
+make build.examples        # build all examples
+make build.examples.docker # in docker
 
-make build.example name=helloworld # build a specific example
+make build.example name=helloworld        # build a specific example
+make build.example.docker name=helloworld # in docker
 ```
 
 run:
