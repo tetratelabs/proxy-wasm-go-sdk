@@ -310,6 +310,11 @@ func (h *httpHostEmulator) HttpFilterInitContext() (contextID uint32) {
 
 // impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string) {
+	h.HttpFilterPutRequestHeadersEndOfStream(contextID, headers, false)
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -317,11 +322,16 @@ func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers
 
 	cs.requestHeaders = headers
 	cs.action = proxywasm.ProxyOnRequestHeaders(contextID,
-		len(headers), false) // TODO: allow for specifying end_of_stream
+		len(headers), endOfStream)
 }
 
 // impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string) {
+	h.HttpFilterPutResponseHeadersEndOfStream(contextID, headers, false)
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -330,7 +340,7 @@ func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, header
 	cs.responseHeaders = headers
 
 	cs.action = proxywasm.ProxyOnResponseHeaders(contextID,
-		len(headers), false) // TODO: allow for specifying end_of_stream
+		len(headers), endOfStream)
 }
 
 // impl HostEmulator
@@ -357,6 +367,11 @@ func (h *httpHostEmulator) HttpFilterPutResponseTrailers(contextID uint32, heade
 
 // impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestBody(contextID uint32, body []byte) {
+	h.HttpFilterPutRequestBodyEndOfStream(contextID, body, false)
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) HttpFilterPutRequestBodyEndOfStream(contextID uint32, body []byte, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -364,9 +379,10 @@ func (h *httpHostEmulator) HttpFilterPutRequestBody(contextID uint32, body []byt
 
 	cs.requestBody = body
 	cs.action = proxywasm.ProxyOnRequestBody(contextID,
-		len(body), false) // TODO: allow for specifying end_of_stream
+		len(body), endOfStream)
 }
 
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterGetRequestBody(contextID uint32) []byte {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
@@ -378,6 +394,10 @@ func (h *httpHostEmulator) HttpFilterGetRequestBody(contextID uint32) []byte {
 
 // impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutResponseBody(contextID uint32, body []byte) {
+	h.HttpFilterPutResponseBodyEndOfStream(contextID, body, false)
+}
+
+func (h *httpHostEmulator) HttpFilterPutResponseBodyEndOfStream(contextID uint32, body []byte, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -385,9 +405,10 @@ func (h *httpHostEmulator) HttpFilterPutResponseBody(contextID uint32, body []by
 
 	cs.responseBody = body
 	cs.action = proxywasm.ProxyOnResponseBody(contextID,
-		len(body), false) // TODO: allow for specifying end_of_stream
+		len(body), endOfStream)
 }
 
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterGetResponseBody(contextID uint32) []byte {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
