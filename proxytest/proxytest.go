@@ -37,12 +37,16 @@ type HostEmulator interface {
 	// http
 	HttpFilterInitContext() (contextID uint32)
 	HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string)
+	HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
 	HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string)
+	HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
 	HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string)
 	HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string)
 	HttpFilterPutRequestBody(contextID uint32, body []byte)
+	HttpFilterPutRequestBodyEndOfStream(contextID uint32, body []byte, endOfStream bool)
 	HttpFilterGetRequestBody(contextID uint32) []byte
 	HttpFilterPutResponseBody(contextID uint32, body []byte)
+	HttpFilterPutResponseBodyEndOfStream(contextID uint32, body []byte, endOfStream bool)
 	HttpFilterGetResponseBody(contextID uint32) []byte
 	HttpFilterCompleteHttpStream(contextID uint32)
 	HttpFilterGetCurrentStreamAction(contextID uint32) types.Action
