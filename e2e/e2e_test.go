@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"testing"
 	"time"
 
@@ -63,8 +62,8 @@ func TestE2E_helloworld(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "wasm log helloworld: proxy_on_vm_start from Go!"))
-	assert.True(t, strings.Contains(out, "wasm log helloworld: It's"))
+	assert.Contains(t, out, "wasm log helloworld: proxy_on_vm_start from Go!")
+	assert.Contains(t, out, "wasm log helloworld: It's")
 }
 
 func TestE2E_http_auth_random(t *testing.T) {
@@ -88,9 +87,9 @@ func TestE2E_http_auth_random(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "access forbidden"))
-	assert.True(t, strings.Contains(out, "access granted"))
-	assert.True(t, strings.Contains(out, "response header from httpbin: :status: 200"))
+	assert.Contains(t, out, "access forbidden")
+	assert.Contains(t, out, "access granted")
+	assert.Contains(t, out, "response header from httpbin: :status: 200")
 }
 
 func TestE2E_http_headers(t *testing.T) {
@@ -112,9 +111,9 @@ func TestE2E_http_headers(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, key))
-	assert.True(t, strings.Contains(out, value))
-	assert.True(t, strings.Contains(out, "server: envoy"))
+	assert.Contains(t, out, key)
+	assert.Contains(t, out, value)
+	assert.Contains(t, out, "server: envoy")
 }
 
 func TestE2E_http_body(t *testing.T) {
@@ -123,7 +122,7 @@ func TestE2E_http_body(t *testing.T) {
 		require.NoError(t, cmd.Process.Kill())
 	}()
 
-	req, err := http.NewRequest("GET", envoyEndpoint, bytes.NewBuffer([]byte(`{ "example": "body" }`)))
+	req, err := http.NewRequest("GET", envoyEndpoint+"/anything", bytes.NewBuffer([]byte(`{ "example": "body" }`)))
 	require.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -132,11 +131,15 @@ func TestE2E_http_body(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "body size: 21"))
-	assert.True(t, strings.Contains(out, `initial request body: { "example": "body" }`))
-	assert.True(t, strings.Contains(out, "on http request body finished"))
-	assert.False(t, strings.Contains(out, "failed to set request body"))
-	assert.False(t, strings.Contains(out, "failed to get request body"))
+	assert.Contains(t, out, "body size: 21")
+	assert.Contains(t, out, `initial request body: { "example": "body" }`)
+	assert.Contains(t, out, "on http request body finished")
+	assert.NotContains(t, out, "failed to set request body")
+	assert.NotContains(t, out, "failed to get request body")
+
+	body, err := ioutil.ReadAll(r.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(body), `"another": "body"`)
 }
 
 func TestE2E_network(t *testing.T) {
@@ -166,14 +169,14 @@ func TestE2E_network(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, key))
-	assert.True(t, strings.Contains(out, value))
-	assert.True(t, strings.Contains(out, "downstream data received"))
-	assert.True(t, strings.Contains(out, "new connection!"))
-	assert.True(t, strings.Contains(out, "downstream connection close!"))
-	assert.True(t, strings.Contains(out, "upstream data received"))
-	assert.True(t, strings.Contains(out, "connection complete!"))
-	assert.True(t, strings.Contains(out, "remote address: 127.0.0.1:8099"))
+	assert.Contains(t, out, key)
+	assert.Contains(t, out, value)
+	assert.Contains(t, out, "downstream data received")
+	assert.Contains(t, out, "new connection!")
+	assert.Contains(t, out, "downstream connection close!")
+	assert.Contains(t, out, "upstream data received")
+	assert.Contains(t, out, "connection complete!")
+	assert.Contains(t, out, "remote address: 127.0.0.1:8099")
 }
 
 func TestE2E_metrics(t *testing.T) {
@@ -203,7 +206,7 @@ func TestE2E_metrics(t *testing.T) {
 
 	b, err := ioutil.ReadAll(r.Body)
 	require.NoError(t, err)
-	assert.True(t, strings.Contains(string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)))
+	assert.Contains(t, string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count))
 }
 
 func TestE2E_shared_data(t *testing.T) {
@@ -224,7 +227,7 @@ func TestE2E_shared_data(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, fmt.Sprintf("shared value: %d", count)))
+	assert.Contains(t, out, fmt.Sprintf("shared value: %d", count))
 }
 
 func TestE2E_shared_queue(t *testing.T) {
@@ -247,9 +250,9 @@ func TestE2E_shared_queue(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "dequeued data: hello"))
-	assert.True(t, strings.Contains(out, "dequeued data: world"))
-	assert.True(t, strings.Contains(out, "dequeued data: proxy-wasm"))
+	assert.Contains(t, out, "dequeued data: hello")
+	assert.Contains(t, out, "dequeued data: world")
+	assert.Contains(t, out, "dequeued data: proxy-wasm")
 }
 
 func TestE2E_vm_plugin_configuration(t *testing.T) {
@@ -260,6 +263,6 @@ func TestE2E_vm_plugin_configuration(t *testing.T) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.True(t, strings.Contains(out, "name\": \"vm configuration"))
-	assert.True(t, strings.Contains(out, "name\": \"plugin configuration"))
+	assert.Contains(t, out, "name\": \"vm configuration")
+	assert.Contains(t, out, "name\": \"plugin configuration")
 }
