@@ -42,7 +42,7 @@ func proxyOnDone(contextID uint32) bool {
 	} else if ctx, ok := currentState.rootContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		response := ctx.context.OnVMDone()
-		currentState.rootContexts[contextID] = nil
+		delete(currentState.rootContexts, contextID)
 		return response
 	} else {
 		panic("invalid context on proxy_on_done")
