@@ -46,7 +46,34 @@ jobs:
           name: wasm-binaries
           path: examples
 
-  e2e-tests:
+  e2e-tests-envoy:
+    strategy:
+      matrix:
+        envoy-image: [ envoyproxy/envoy-dev:6287f174f72ca6ca841cdac2cf5cc645c95dd754 ]
+    name: e2e tests on examples
+    needs: build-examples
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ envoy-image }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: download wasm-binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: wasm-binaries
+          path: examples
+
+      - name: set up go 1.15
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.15
+
+      - name: run e2e test
+        run: go test ./e2e/... -v
+
+  e2e-tests-istio:
     strategy:
       matrix:
         istio-version: [ 1.7.0, 1.7.1, 1.7.2, 1.7.3 ]
