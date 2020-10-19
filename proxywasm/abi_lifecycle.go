@@ -31,7 +31,7 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 func proxyOnDone(contextID uint32) bool {
 	if ctx, ok := currentState.streams[contextID]; ok {
 		currentState.setActiveContextID(contextID)
-		currentState.streams[contextID] = nil
+		delete(currentState.streams, contextID)
 		ctx.OnStreamDone()
 		return true
 	} else if ctx, ok := currentState.httpStreams[contextID]; ok {
