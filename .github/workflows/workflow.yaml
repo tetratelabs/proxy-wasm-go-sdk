@@ -49,7 +49,7 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-image: [ "envoyproxy/envoy-dev:6287f174f72ca6ca841cdac2cf5cc645c95dd754" ]
+        envoy-image: [ "envoyproxy/envoy-dev:6287f174f72ca6ca841cdac2cf5cc645c95dd754" ] # TODO: add release tagged version
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
@@ -71,7 +71,7 @@ jobs:
           go-version: 1.15
 
       - name: run e2e test
-        run: go test ./e2e/... -v
+        run: go test ./e2e/...
 
   e2e-tests-istio:
     strategy:
@@ -93,4 +93,4 @@ jobs:
           path: examples
 
       - name: run e2e test
-        run: go test ./e2e/... -v
+        run: go test ./e2e/...
