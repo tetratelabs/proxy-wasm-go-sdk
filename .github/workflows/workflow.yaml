@@ -71,7 +71,7 @@ jobs:
           go-version: 1.15
 
       - name: run e2e test
-        run: go test ./e2e/...
+        run: CGO_ENABLED=0 go test ./e2e/... -v
 
   e2e-tests-istio:
     strategy:
@@ -93,4 +93,4 @@ jobs:
           path: examples
 
       - name: run e2e test
-        run: go test ./e2e/...
+        run: go test ./e2e/... -v
