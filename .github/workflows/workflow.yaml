@@ -54,7 +54,7 @@ jobs:
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: ${{ envoy-image }}
+      image: ${{ matrix.envoy-image }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
