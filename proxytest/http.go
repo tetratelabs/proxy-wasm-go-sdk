@@ -314,6 +314,26 @@ func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers
 }
 
 // impl HostEmulator
+func (h *httpHostEmulator) HttpFilterGetRequestHeaders(contextID uint32) (headers [][2]string) {
+	cs, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+
+	return cs.requestHeaders
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) HttpFilterGetResponseHeaders(contextID uint32) (headers [][2]string) {
+	cs, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+
+	return cs.responseHeaders
+}
+
+// impl HostEmulator
 func (h *httpHostEmulator) HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {

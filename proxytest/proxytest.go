@@ -37,8 +37,10 @@ type HostEmulator interface {
 	// http
 	HttpFilterInitContext() (contextID uint32)
 	HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string)
+	HttpFilterGetRequestHeaders(contextID uint32) (headers [][2]string)
 	HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
 	HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string)
+	HttpFilterGetResponseHeaders(contextID uint32) (headers [][2]string)
 	HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
 	HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string)
 	HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string)
