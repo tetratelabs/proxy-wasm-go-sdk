@@ -41,8 +41,8 @@ and has yet to be tagged.
 In order to install that version of TinyGo, simply run (Ubuntu/Debian):
 
 ```shell
-# this corresponds to https://github.com/tinygo-org/tinygo/commit/f50ad3585d084b17f7754f4b3cb0d42661fee036
-wget https://19227-136505169-gh.circle-artifacts.com/0/tmp/tinygo_amd64.deb
+# this is the latest commit as of Oct 29, 2020
+wget https://20372-136505169-gh.circle-artifacts.com/0/tmp/tinygo_amd64.deb
 dpkg -i tinygo_amd64.deb
 ```
 
@@ -57,7 +57,7 @@ TinyGo's official tagged release of WASI target will come soon, and after that y
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
 | main |  0.2.0|   v1.17.x |   [55538fd04eb4f556aebd](https://github.com/envoyproxy/envoy/tree/55538fd04eb4f556aebd2d2e60cc99374e9d73b2) |
-| v0.0.9 |  0.2.0|   v1.17.x | [6287f174f72ca6ca841c](https://github.com/envoyproxy/envoy/tree/6287f174f72ca6ca841cdac2cf5cc645c95dd754) |
+| v0.0.10 |  0.2.0|   v1.17.x | [55538fd04eb4f556aebd](https://github.com/envoyproxy/envoy/tree/55538fd04eb4f556aebd2d2e60cc99374e9d73b2) |
 
 
 ## run examples
