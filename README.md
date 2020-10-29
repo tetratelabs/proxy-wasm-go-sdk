@@ -52,11 +52,11 @@ TinyGo's official tagged release of WASI target will come soon, and after that y
  just follow https://tinygo.org/getting-started/ to install the requirement on any platform. Stay tuned!
 
 
-### compatible ABI / Envoy builds
+### compatible ABI / Envoy builds (verified on CI)
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   v1.17.x | [6287f174f72ca6ca841c](https://github.com/envoyproxy/envoy/tree/6287f174f72ca6ca841cdac2cf5cc645c95dd754) |
+| main |  0.2.0|   v1.17.x |   [55538fd04eb4f556aebd](https://github.com/envoyproxy/envoy/tree/55538fd04eb4f556aebd2d2e60cc99374e9d73b2) |
 | v0.0.9 |  0.2.0|   v1.17.x | [6287f174f72ca6ca841c](https://github.com/envoyproxy/envoy/tree/6287f174f72ca6ca841cdac2cf5cc645c95dd754) |
 
 
