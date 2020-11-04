@@ -84,10 +84,10 @@ func TestState_createStreamContext(t *testing.T) {
 		rid uint32 = 10
 	)
 	s := &state{
-		rootContexts:     map[uint32]*rootContextState{rid: nil},
-		streams:          map[uint32]StreamContext{},
-		newStreamContext: func(rootContextID, contextID uint32) StreamContext { return &sc{} },
-		contextIDToRooID: map[uint32]uint32{},
+		rootContexts:      map[uint32]*rootContextState{rid: nil},
+		streams:           map[uint32]StreamContext{},
+		newStreamContext:  func(rootContextID, contextID uint32) StreamContext { return &sc{} },
+		contextIDToRootID: map[uint32]uint32{},
 	}
 
 	s.createStreamContext(cid, rid)
@@ -105,10 +105,10 @@ func TestState_createHttpContext(t *testing.T) {
 		rid uint32 = 10
 	)
 	s := &state{
-		rootContexts:     map[uint32]*rootContextState{rid: nil},
-		httpStreams:      map[uint32]HttpContext{},
-		newHttpContext:   func(rootContextID, contextID uint32) HttpContext { return &hc{} },
-		contextIDToRooID: map[uint32]uint32{},
+		rootContexts:      map[uint32]*rootContextState{rid: nil},
+		httpStreams:       map[uint32]HttpContext{},
+		newHttpContext:    func(rootContextID, contextID uint32) HttpContext { return &hc{} },
+		contextIDToRootID: map[uint32]uint32{},
 	}
 
 	s.createHttpContext(cid, rid)

@@ -19,10 +19,10 @@ package proxywasm
 func VMStateReset() {
 	// (@mathetake) I assume that the currentState be protected by lock on hostMux
 	currentState = &state{
-		rootContexts:     make(map[uint32]*rootContextState),
-		httpStreams:      make(map[uint32]HttpContext),
-		streams:          make(map[uint32]StreamContext),
-		contextIDToRooID: make(map[uint32]uint32),
+		rootContexts:      make(map[uint32]*rootContextState),
+		httpStreams:       make(map[uint32]HttpContext),
+		streams:           make(map[uint32]StreamContext),
+		contextIDToRootID: make(map[uint32]uint32),
 	}
 }
 

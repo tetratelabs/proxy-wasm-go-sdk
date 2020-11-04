@@ -34,15 +34,15 @@ type state struct {
 	newHttpContext   func(rootContextID, contextID uint32) HttpContext
 	httpStreams      map[uint32]HttpContext
 
-	contextIDToRooID map[uint32]uint32
-	activeContextID  uint32
+	contextIDToRootID map[uint32]uint32
+	activeContextID   uint32
 }
 
 var currentState = &state{
-	rootContexts:     make(map[uint32]*rootContextState),
-	httpStreams:      make(map[uint32]HttpContext),
-	streams:          make(map[uint32]StreamContext),
-	contextIDToRooID: make(map[uint32]uint32),
+	rootContexts:      make(map[uint32]*rootContextState),
+	httpStreams:       make(map[uint32]HttpContext),
+	streams:           make(map[uint32]StreamContext),
+	contextIDToRootID: make(map[uint32]uint32),
 }
 
 func SetNewRootContext(f func(contextID uint32) RootContext) {
@@ -85,7 +85,7 @@ func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
 	}
 
 	ctx := s.newStreamContext(rootContextID, contextID)
-	s.contextIDToRooID[contextID] = rootContextID
+	s.contextIDToRootID[contextID] = rootContextID
 	s.streams[contextID] = ctx
 }
 
@@ -99,12 +99,12 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
 	}
 
 	ctx := s.newHttpContext(rootContextID, contextID)
-	s.contextIDToRooID[contextID] = rootContextID
+	s.contextIDToRootID[contextID] = rootContextID
 	s.httpStreams[contextID] = ctx
 }
 
 func (s *state) registerHttpCallOut(calloutID uint32, callback HttpCalloutCallBack) {
-	r := s.rootContexts[s.contextIDToRooID[s.activeContextID]]
+	r := s.rootContexts[s.contextIDToRootID[s.activeContextID]]
 	r.httpCallbacks[calloutID] = &struct {
 		callback        HttpCalloutCallBack
 		callerContextID uint32

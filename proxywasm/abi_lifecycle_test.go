@@ -14,10 +14,10 @@ func Test_proxyOnContextCreate(t *testing.T) {
 
 	var cnt int
 	currentState = &state{
-		rootContexts:     map[uint32]*rootContextState{},
-		httpStreams:      map[uint32]HttpContext{},
-		streams:          map[uint32]StreamContext{},
-		contextIDToRooID: map[uint32]uint32{},
+		rootContexts:      map[uint32]*rootContextState{},
+		httpStreams:       map[uint32]HttpContext{},
+		streams:           map[uint32]StreamContext{},
+		contextIDToRootID: map[uint32]uint32{},
 	}
 
 	SetNewRootContext(func(contextID uint32) RootContext {

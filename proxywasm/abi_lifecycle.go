@@ -29,6 +29,9 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 
 //export proxy_on_done
 func proxyOnDone(contextID uint32) bool {
+	defer func() {
+		delete(currentState.contextIDToRootID, contextID)
+	}()
 	if ctx, ok := currentState.streams[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		delete(currentState.streams, contextID)
