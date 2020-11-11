@@ -14,6 +14,11 @@
 
 package proxywasm
 
+import (
+	"errors"
+	"fmt"
+)
+
 type (
 	HttpCalloutCallBack = func(numHeaders, bodySize, numTrailers int)
 
@@ -55,6 +60,16 @@ func SetNewHttpContext(f func(rootContextID, contextID uint32) HttpContext) {
 
 func SetNewStreamContext(f func(rootContextID, contextID uint32) StreamContext) {
 	currentState.newStreamContext = f
+}
+
+var ErrorRootContextNotFound = errors.New("root context not found")
+
+func GetRootContextByID(rootContextID uint32) (RootContext, error) {
+	rootContextState, ok := currentState.rootContexts[rootContextID]
+	if !ok {
+		return nil, fmt.Errorf("%w: %d", ErrorRootContextNotFound, rootContextID)
+	}
+	return rootContextState.context, nil
 }
 
 //go:inline
