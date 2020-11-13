@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := build.examples
 
-ISTIO_VERSION ?= 1.7.2
+ISTIO_VERSION ?= 1.7.3
 
 .PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e
 
