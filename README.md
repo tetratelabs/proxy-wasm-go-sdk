@@ -56,8 +56,8 @@ TinyGo's official tagged release of WASI target will come soon, and after that y
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   v1.17.x |   [55538fd04eb4f556aebd](https://github.com/envoyproxy/envoy/tree/55538fd04eb4f556aebd2d2e60cc99374e9d73b2) |
-| v0.0.10 |  0.2.0|   v1.17.x | [55538fd04eb4f556aebd](https://github.com/envoyproxy/envoy/tree/55538fd04eb4f556aebd2d2e60cc99374e9d73b2) |
+| main |  0.2.0|   v1.17.x |   [14863adf46b50d1bbe60](https://github.com/envoyproxy/envoy/tree/14863adf46b50d1bbe60891d5fa3ac22ee9a79dc) |
+| v0.0.11 |  0.2.0|   v1.17.x |[14863adf46b50d1bbe60](https://github.com/envoyproxy/envoy/tree/14863adf46b50d1bbe60891d5fa3ac22ee9a79dc) |
 
 
 ## run examples
