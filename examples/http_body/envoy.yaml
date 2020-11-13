@@ -8,7 +8,8 @@ static_resources:
       filter_chains:
         - filters:
             - name: envoy.http_connection_manager
-              config:
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: ingress_http
                 codec_type: auto
                 route_config:
@@ -24,23 +25,26 @@ static_resources:
                             cluster: httpbin
                 http_filters:
                   - name: envoy.filters.http.wasm
-                    config:
-                      config:
-                        name: "my_plugin"
-                        root_id: "my_root_id"
-                        vm_config:
-                          vm_id: "my_vm_id"
-                          runtime: "envoy.wasm.runtime.v8"
-                          code:
-                            local:
-                              filename: "./examples/http_body/main.go.wasm"
-                          allow_precompiled: true
-                  - name: envoy.router
-                    config: {}
+                    typed_config:
+                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+                      value:
+                        config:
+                          name: "my_plugin"
+                          root_id: "my_root_id"
+                          vm_config:
+                            vm_id: "my_vm_id"
+                            runtime: "envoy.wasm.runtime.v8"
+                            code:
+                              local:
+                                filename: "./examples/http_body/main.go.wasm"
+                            allow_precompiled: true
+                  - name: envoy.filters.http.router
+                    typed_config: {}
 
   clusters:
     - name: httpbin
-      connect_timeout: 1000s
+      connect_timeout: 5000s
       type: strict_dns
       lb_policy: round_robin
       load_assignment:
