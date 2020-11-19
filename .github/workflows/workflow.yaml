@@ -32,7 +32,7 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo-dev:latest # TODO: use the tagged `tinygo/tinygo:0.xx.x` image after the next release
+      image: tinygo/tinygo:0.16.0
     steps:
       - name: checkout
         uses: actions/checkout@v2
