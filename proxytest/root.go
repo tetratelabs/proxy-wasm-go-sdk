@@ -252,7 +252,9 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 		Upstream:  upstream,
 		Headers:   headers,
 		Trailers:  trailers,
+		Body: []byte(body),
 	})
+
 	*calloutIDPtr = calloutID
 	return types.StatusOK
 }
