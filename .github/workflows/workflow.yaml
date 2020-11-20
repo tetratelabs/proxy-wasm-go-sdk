@@ -32,7 +32,7 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.16.0
+      image: tinygo/tinygo:latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
