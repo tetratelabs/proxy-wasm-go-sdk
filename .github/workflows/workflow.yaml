@@ -32,13 +32,13 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo-dev:latest # TODO: use the tagged `tinygo/tinygo:0.xx.x` image after the next release
+      image: tinygo/tinygo:latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
       - name: build examples
-        run: make build.examples
+        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
 
       - name: upload wasm-binaries
         uses: actions/upload-artifact@v2
