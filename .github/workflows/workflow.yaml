@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: build examples
-        run: make build.examples
+        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
 
       - name: upload wasm-binaries
         uses: actions/upload-artifact@v2
