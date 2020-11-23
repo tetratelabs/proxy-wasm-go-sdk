@@ -16,6 +16,7 @@ package main
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
@@ -50,6 +51,5 @@ func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
 
 // override
 func (ctx *helloWorld) OnTick() {
-	t := proxywasm.GetCurrentTime()
-	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
+	proxywasm.LogInfof("It's %d: random value: %d", time.Now().Unix(), rand.Uint64())
 }
