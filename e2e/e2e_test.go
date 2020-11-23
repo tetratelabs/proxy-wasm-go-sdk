@@ -43,7 +43,7 @@ const (
 
 func startExample(t *testing.T, name string) (*exec.Cmd, *bytes.Buffer) {
 	cmd := exec.Command("envoy",
-		"--concurrency", "2",
+		"--concurrency", "2", "-l", "trace",
 		"-c", fmt.Sprintf("./examples/%s/envoy.yaml", name))
 
 	buf := new(bytes.Buffer)
