@@ -49,7 +49,7 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-image: [ "envoyproxy/envoy-dev:d1ded6b381ca92cbacb2e0683adf997239b12272" ] # TODO: add release tagged version
+        envoy-image: [ "envoyproxy/envoy-dev:6ca4644073da6d9930ba45d90d57d8c9b2062962" ] # TODO: add release tagged version
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
