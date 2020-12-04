@@ -111,7 +111,6 @@ func testRunnerGetter(ps envoyPorts, r runner) func(t *testing.T) {
 		defer func() {
 			require.NoError(t, cmd.Process.Kill())
 			require.NoError(t, os.Remove(conf))
-			t.Log("removing: ", conf)
 		}()
 	}
 }
