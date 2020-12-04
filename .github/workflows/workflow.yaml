@@ -81,10 +81,15 @@ jobs:
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: getenvoy/proxy-wasm-go-sdk-ci:istio-${{ matrix.istio-version }}
+      image: istio/proxyv2:${{ matrix.istio-version }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      - name: set up go 1.15
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.15
 
       - name: download wasm-binaries
         uses: actions/download-artifact@v2
