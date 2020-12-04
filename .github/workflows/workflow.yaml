@@ -34,14 +34,16 @@ jobs:
     container:
       image: tinygo/tinygo:latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
       - name: cache built examples
         uses: actions/cache@v2
+        id: cache-built-examples
         with:
           path: examples
           key: ${{ hashFiles('examples/**.go', 'proxywasm/**') }}
+
+      - name: checkout
+        if: steps.cache-built-examples.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
 
       - name: build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
@@ -62,7 +64,6 @@ jobs:
 
       - name: cache built examples
         uses: actions/cache@v2
-        id: cache-built-examples
         with:
           path: examples
           key: ${{ hashFiles('examples/**') }}
