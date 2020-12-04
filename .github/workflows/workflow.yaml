@@ -44,6 +44,7 @@ jobs:
           key: ${{ hashFiles('examples/**.go', 'proxywasm/**') }}
 
       - name: build examples
+        if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
 
   e2e-tests-envoy:
@@ -67,13 +68,11 @@ jobs:
           key: ${{ hashFiles('examples/**') }}
 
       - name: set up go 1.15
-        if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v1
         with:
           go-version: 1.15
 
       - name: run e2e test
-        if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: CGO_ENABLED=0 go test ./e2e/... -v
 
   e2e-tests-istio:
