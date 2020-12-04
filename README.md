@@ -44,8 +44,8 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   v1.17.x,  v1.18.0 |   [d1ded6b381ca92cbacb2](https://github.com/envoyproxy/envoy/tree/d1ded6b381ca92cbacb2e0683adf997239b12272) |
-| v0.0.12 |  0.2.0|  v1.17.x, v1.18.0 |[d1ded6b381ca92cbacb2](https://github.com/envoyproxy/envoy/tree/d1ded6b381ca92cbacb2e0683adf997239b12272) 
+| main |  0.2.0|   v1.17.x,  v1.18.0 | [6ca4644073da6d9930ba](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) |
+| v0.0.12 |  0.2.0|  v1.17.x, v1.18.0 |[6ca4644073da6d9930ba](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) 
 
 
 ## run examples
