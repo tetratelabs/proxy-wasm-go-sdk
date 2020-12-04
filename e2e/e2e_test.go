@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -37,46 +39,128 @@ func TestMain(m *testing.M) {
 }
 
 const (
-	envoyEndpoint      = "http://localhost:18000"
-	envoyAdminEndpoint = "http://localhost:8001"
+	exampleDefaultEndpointPort    = "18000"
+	exampleDefaultStaticReplyPort = "8099"
+	exampleDefaultAdminEndpoint   = "8001"
 )
 
-func startExample(t *testing.T, name string) (*exec.Cmd, *bytes.Buffer) {
-	cmd := exec.Command("envoy",
-		"--concurrency", "2",
-		"-c", fmt.Sprintf("./examples/%s/envoy.yaml", name))
+type envoyPorts struct {
+	endpoint, staticReply, admin int
+}
+
+func Test_E2E(t *testing.T) {
+	t.Run("network", testRunnerGetter(envoyPorts{
+		endpoint:    11000,
+		staticReply: 8000,
+		admin:       28300,
+	}, network))
+	t.Run("shared_queue", testRunnerGetter(envoyPorts{
+		endpoint:    11001,
+		staticReply: 8001,
+		admin:       28301,
+	}, sharedQueue))
+	t.Run("http_auth_random", testRunnerGetter(envoyPorts{
+		endpoint:    11002,
+		staticReply: 8002,
+		admin:       28302,
+	}, httpAuthRandom))
+	t.Run("http_headers", testRunnerGetter(envoyPorts{
+		endpoint:    11003,
+		staticReply: 8003,
+		admin:       28303,
+	}, httpHeaders))
+	t.Run("metrics", testRunnerGetter(envoyPorts{
+		endpoint:    11004,
+		staticReply: 8004,
+		admin:       28304,
+	}, metrics))
+	t.Run("helloworld", testRunnerGetter(envoyPorts{
+		endpoint:    11005,
+		staticReply: 8005,
+		admin:       28305,
+	}, helloworld))
+	t.Run("vm_plugin_configuration", testRunnerGetter(envoyPorts{
+		endpoint:    11006,
+		staticReply: 8006,
+		admin:       28306,
+	}, vmPluginConfiguration))
+	t.Run("shared_data", testRunnerGetter(envoyPorts{
+		endpoint:    11007,
+		staticReply: 8007,
+		admin:       28307,
+	}, sharedData))
+	t.Run("http_body", testRunnerGetter(envoyPorts{
+		endpoint:    11008,
+		staticReply: 8008,
+		admin:       28308,
+	}, httpBody))
+	t.Run("configuration_from_root", testRunnerGetter(envoyPorts{
+		endpoint:    11009,
+		staticReply: 8009,
+		admin:       28309,
+	}, configurationFromRoot))
+}
+
+type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
+
+func testRunnerGetter(ps envoyPorts, r runner) func(t *testing.T) {
+	return func(t *testing.T) {
+		t.Parallel()
+		cmd, buf, conf := startEnvoy(t, ps)
+		r(t, ps, buf)
+		defer func() {
+			require.NoError(t, cmd.Process.Kill())
+			require.NoError(t, os.Remove(conf))
+		}()
+	}
+}
+
+func startEnvoy(t *testing.T, ps envoyPorts) (cmd *exec.Cmd, stdErr *bytes.Buffer, configPath string) {
+	name := strings.TrimPrefix(t.Name(), "Test_E2E/")
+	conf, err := getEnvoyConfigurationPath(t, name, ps)
+	require.NoError(t, err)
+	cmd = exec.Command("envoy",
+		"--base-id", strconv.Itoa(ps.admin),
+		"--concurrency", "1",
+		"-c", conf)
 
 	buf := new(bytes.Buffer)
 	cmd.Stderr = buf
 	require.NoError(t, cmd.Start())
 
-	time.Sleep(time.Second * 5) // TODO: use admin endpoint to check health
-	return cmd, buf
+	time.Sleep(time.Second * 5)
+	return cmd, buf, conf
 }
 
-func TestE2E_helloworld(t *testing.T) {
-	cmd, stdErr := startExample(t, "helloworld")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
+func getEnvoyConfigurationPath(t *testing.T, name string, ps envoyPorts) (string, error) {
+	bs, err := ioutil.ReadFile(fmt.Sprintf("./examples/%s/envoy.yaml", name))
+	require.NoError(t, err)
 
+	ms := strings.ReplaceAll(string(bs), exampleDefaultEndpointPort, strconv.Itoa(ps.endpoint))
+	ms = strings.ReplaceAll(ms, exampleDefaultAdminEndpoint, strconv.Itoa(ps.admin))
+	ms = strings.ReplaceAll(ms, exampleDefaultStaticReplyPort, strconv.Itoa(ps.staticReply))
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.yaml")
+	require.NoError(t, err)
+
+	_, err = tmpFile.WriteString(ms)
+	require.NoError(t, err)
+	return tmpFile.Name(), nil
+}
+
+func helloworld(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	assert.Contains(t, out, "wasm log helloworld: proxy_on_vm_start from Go!")
 	assert.Contains(t, out, "wasm log helloworld: It's")
 }
 
-func TestE2E_http_auth_random(t *testing.T) {
-	cmd, stdErr := startExample(t, "http_auth_random")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
+func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	key := "this-is-key"
 	value := "this-is-value"
 
 	for i := 0; i < 25; i++ { // TODO: maybe flaky
-		req, err := http.NewRequest("GET", envoyEndpoint+"/uuid", nil)
+		req, err := http.NewRequest("GET",
+			fmt.Sprintf("http://localhost:%d/uuid", ps.endpoint), nil)
 		require.NoError(t, err)
 		req.Header.Add(key, value)
 
@@ -92,13 +176,8 @@ func TestE2E_http_auth_random(t *testing.T) {
 	assert.Contains(t, out, "response header from httpbin: :status: 200")
 }
 
-func TestE2E_http_headers(t *testing.T) {
-	cmd, stdErr := startExample(t, "http_headers")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
-	req, err := http.NewRequest("GET", envoyEndpoint, nil)
+func httpHeaders(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
 	require.NoError(t, err)
 
 	key := "this-is-key"
@@ -116,13 +195,9 @@ func TestE2E_http_headers(t *testing.T) {
 	assert.Contains(t, out, "server: envoy")
 }
 
-func TestE2E_http_body(t *testing.T) {
-	cmd, stdErr := startExample(t, "http_body")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
-	req, err := http.NewRequest("GET", envoyEndpoint+"/anything", bytes.NewBuffer([]byte(`{ "example": "body" }`)))
+func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/anything", ps.endpoint),
+		bytes.NewBuffer([]byte(`{ "example": "body" }`)))
 	require.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -142,28 +217,19 @@ func TestE2E_http_body(t *testing.T) {
 	assert.Contains(t, string(body), `"another": "body"`)
 }
 
-func TestE2E_network(t *testing.T) {
-	cmd, stdErr := startExample(t, "network")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
+func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	key := "This-Is-Key"
 	value := "this-is-value"
 
-	doReq := func() {
-		req, err := http.NewRequest("GET", envoyEndpoint, nil)
-		require.NoError(t, err)
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	require.NoError(t, err)
 
-		req.Header.Add(key, value)
-		req.Header.Add("Connection", "close")
+	req.Header.Add(key, value)
+	req.Header.Add("Connection", "close")
 
-		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		r.Body.Close()
-	}
-
-	doReq()
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	r.Body.Close()
 
 	time.Sleep(time.Second)
 
@@ -176,16 +242,11 @@ func TestE2E_network(t *testing.T) {
 	assert.Contains(t, out, "downstream connection close!")
 	assert.Contains(t, out, "upstream data received")
 	assert.Contains(t, out, "connection complete!")
-	assert.Contains(t, out, "remote address: 127.0.0.1:8099")
+	assert.Contains(t, out, "remote address: 127.0.0.1:")
 }
 
-func TestE2E_metrics(t *testing.T) {
-	cmd, stdErr := startExample(t, "metrics")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
-	req, err := http.NewRequest("GET", envoyEndpoint, nil)
+func metrics(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
 	require.NoError(t, err)
 
 	count := 10
@@ -197,7 +258,7 @@ func TestE2E_metrics(t *testing.T) {
 
 	fmt.Println(stdErr.String())
 
-	req, err = http.NewRequest("GET", envoyAdminEndpoint+"/stats", nil)
+	req, err = http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/stats", ps.admin), nil)
 	require.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -209,13 +270,8 @@ func TestE2E_metrics(t *testing.T) {
 	assert.Contains(t, string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count))
 }
 
-func TestE2E_shared_data(t *testing.T) {
-	cmd, stdErr := startExample(t, "shared_data")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
-	req, err := http.NewRequest("GET", envoyEndpoint, nil)
+func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
 	require.NoError(t, err)
 
 	count := 10
@@ -230,19 +286,14 @@ func TestE2E_shared_data(t *testing.T) {
 	assert.Contains(t, out, fmt.Sprintf("shared value: %d", count))
 }
 
-func TestE2E_shared_queue(t *testing.T) {
-	cmd, stdErr := startExample(t, "shared_queue")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
-	req, err := http.NewRequest("GET", envoyEndpoint, nil)
-	require.NoError(t, err)
+func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	require.NoError(t, err, stdErr.String())
 
 	count := 10
 	for i := 0; i < count; i++ {
 		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
+		require.NoError(t, err, stdErr.String())
 		r.Body.Close()
 	}
 
@@ -255,14 +306,23 @@ func TestE2E_shared_queue(t *testing.T) {
 	assert.Contains(t, out, "dequeued data: proxy-wasm")
 }
 
-func TestE2E_vm_plugin_configuration(t *testing.T) {
-	cmd, stdErr := startExample(t, "vm_plugin_configuration")
-	defer func() {
-		require.NoError(t, cmd.Process.Kill())
-	}()
-
+func vmPluginConfiguration(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	assert.Contains(t, out, "name\": \"vm configuration")
+	assert.Contains(t, out, "name\": \"plugin configuration")
+}
+
+func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	require.NoError(t, err)
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	r.Body.Close()
+
+	out := stdErr.String()
+	fmt.Println(out)
+	assert.Contains(t, out, "plugin config from root context")
 	assert.Contains(t, out, "name\": \"plugin configuration")
 }

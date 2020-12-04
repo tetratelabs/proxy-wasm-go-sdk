@@ -37,14 +37,16 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: build examples
-        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
-
-      - name: upload wasm-binaries
-        uses: actions/upload-artifact@v2
+      - name: cache built examples
+        uses: actions/cache@v2
+        id: cache-built-examples
         with:
-          name: wasm-binaries
           path: examples
+          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
+
+      - name: build examples
+        if: steps.cache-built-examples.outputs.cache-hit != 'true'
+        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
 
   e2e-tests-envoy:
     strategy:
@@ -59,11 +61,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: download wasm-binaries
-        uses: actions/download-artifact@v2
+      - name: cache built examples
+        uses: actions/cache@v2
         with:
-          name: wasm-binaries
           path: examples
+          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: set up go 1.15
         uses: actions/setup-go@v1
@@ -81,16 +83,21 @@ jobs:
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: getenvoy/proxy-wasm-go-sdk-ci:istio-${{ matrix.istio-version }}
+      image: istio/proxyv2:${{ matrix.istio-version }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: download wasm-binaries
-        uses: actions/download-artifact@v2
+      - name: set up go 1.15
+        uses: actions/setup-go@v1
         with:
-          name: wasm-binaries
+          go-version: 1.15
+
+      - name: fetch built examples
+        uses: actions/cache@v2
+        with:
           path: examples
+          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: run e2e test
-        run: go test ./e2e/... -v
+        run: CGO_ENABLED=0 go test ./e2e/... -v

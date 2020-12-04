@@ -1,7 +1,5 @@
 .DEFAULT_GOAL := build.examples
 
-ISTIO_VERSION ?= 1.7.3
-
 .PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e
 
 build.example:
@@ -26,10 +24,10 @@ test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
 
 test.e2e:
-	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} go test -v ./e2e
+	go test -v ./e2e
 
 test.e2e.single:
-	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} go test -v ./e2e -run ${name}
+	go test -v ./e2e -run ${name}
 
 run:
 	docker run --entrypoint='/usr/local/bin/envoy' \

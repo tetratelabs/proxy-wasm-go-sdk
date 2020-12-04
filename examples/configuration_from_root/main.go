@@ -67,6 +67,6 @@ func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
 
 	ctx.config = exampleRootCtx.config
 
-	proxywasm.LogInfof("plugin config: %s\n", string(ctx.config))
+	proxywasm.LogInfof("plugin config from root context: %s\n", string(ctx.config))
 	return ctx
 }
