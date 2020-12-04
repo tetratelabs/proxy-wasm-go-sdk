@@ -42,7 +42,7 @@ jobs:
         id: cache-built-examples
         with:
           path: examples
-          key: ${{ hashFiles('examples/**.go', 'proxywasm/**') }}
+          key: ${{ hashFiles('examples/**.go', '!**_test.go', 'proxywasm/**.go', '!**_test.go') }}
 
       - name: build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
@@ -65,7 +65,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: examples
-          key: ${{ hashFiles('examples/**') }}
+          key: ${{ hashFiles('examples/**.go', '!**_test.go', 'proxywasm/**.go', '!**_test.go') }}
 
       - name: set up go 1.15
         uses: actions/setup-go@v1
@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: examples
-          key: ${{ hashFiles('examples/**') }}
+          key: ${{ hashFiles('examples/**.go', '!**_test.go', 'proxywasm/**.go', '!**_test.go') }}
 
       - name: run e2e test
         run: CGO_ENABLED=0 go test ./e2e/... -v

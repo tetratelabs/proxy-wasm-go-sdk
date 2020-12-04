@@ -1,4 +1,4 @@
-## helloworld
+## network
 
 this example handles tcp connections and output data into the log stream.
 

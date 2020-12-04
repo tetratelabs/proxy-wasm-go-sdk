@@ -71,7 +71,11 @@ make run name=helloworld
 ```bash
 make test # run local tests without running envoy processes
 
+## requires you to have the Envoy binary locally
 make test.e2e # run e2e tests
+
+## requires you to have the Envoy binary locally
+make test.e2e.single name=helloworld # run e2e tests
 ```
 
 ## limitations and considerations

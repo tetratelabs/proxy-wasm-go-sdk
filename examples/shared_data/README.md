@@ -1,5 +1,5 @@
 
-## shared_queue
+## shared_data
 
 this example uses the shared key value store (across VMs) 
 and increments the value in response to http requests atomically.

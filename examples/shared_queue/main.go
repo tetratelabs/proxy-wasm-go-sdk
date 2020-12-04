@@ -58,6 +58,7 @@ func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) bool {
 
 // override
 func (ctx *queueRootContext) OnTick() {
+	// TODO: use OnQueueReady after the bug fixed is available in istio 1.8.1
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:
