@@ -49,7 +49,7 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-image: [ "envoyproxy/envoy-dev:2a252964ecd5e790aaac3a4d08d43bd3cad4b6c8" ] # TODO: add release tagged version
+        envoy-image: [ "envoyproxy/envoy-dev:6ca4644073da6d9930ba45d90d57d8c9b2062962" ] # TODO: add release tagged version
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
   e2e-tests-istio:
     strategy:
       matrix:
-        istio-version: [ 1.7.0, 1.7.1, 1.7.2, 1.7.3 ]
+        istio-version: [ 1.7.0, 1.7.1, 1.7.2, 1.7.3, 1.8.0 ]
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
