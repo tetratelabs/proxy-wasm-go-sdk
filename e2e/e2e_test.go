@@ -94,6 +94,11 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8008,
 		admin:       28308,
 	}, httpBody))
+	t.Run("configuration_from_root", testRunnerGetter(envoyPorts{
+		endpoint:    11009,
+		staticReply: 8009,
+		admin:       28309,
+	}, configurationFromRoot))
 }
 
 type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
@@ -101,19 +106,21 @@ type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
 func testRunnerGetter(ps envoyPorts, r runner) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Parallel()
-		cmd, buf := startEnvoy(t, ps)
+		cmd, buf, conf := startEnvoy(t, ps)
 		r(t, ps, buf)
 		defer func() {
 			require.NoError(t, cmd.Process.Kill())
+			require.NoError(t, os.Remove(conf))
+			t.Log("removing: ", conf)
 		}()
 	}
 }
 
-func startEnvoy(t *testing.T, ps envoyPorts) (*exec.Cmd, *bytes.Buffer) {
+func startEnvoy(t *testing.T, ps envoyPorts) (cmd *exec.Cmd, stdErr *bytes.Buffer, configPath string) {
 	name := strings.TrimPrefix(t.Name(), "Test_E2E/")
 	conf, err := getEnvoyConfigurationPath(t, name, ps)
 	require.NoError(t, err)
-	cmd := exec.Command("envoy",
+	cmd = exec.Command("envoy",
 		"--base-id", strconv.Itoa(ps.admin),
 		"--concurrency", "1",
 		"-c", conf)
@@ -122,8 +129,8 @@ func startEnvoy(t *testing.T, ps envoyPorts) (*exec.Cmd, *bytes.Buffer) {
 	cmd.Stderr = buf
 	require.NoError(t, cmd.Start())
 
-	time.Sleep(time.Second * 5) // TODO: use admin endpoint to check health
-	return cmd, buf
+	time.Sleep(time.Second * 5)
+	return cmd, buf, conf
 }
 
 func getEnvoyConfigurationPath(t *testing.T, name string, ps envoyPorts) (string, error) {
@@ -304,5 +311,19 @@ func vmPluginConfiguration(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	assert.Contains(t, out, "name\": \"vm configuration")
+	assert.Contains(t, out, "name\": \"plugin configuration")
+}
+
+func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	require.NoError(t, err)
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	r.Body.Close()
+
+	out := stdErr.String()
+	fmt.Println(out)
+	assert.Contains(t, out, "plugin config from root context")
 	assert.Contains(t, out, "name\": \"plugin configuration")
 }
