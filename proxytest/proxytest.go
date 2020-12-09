@@ -3,7 +3,6 @@ package proxytest
 import (
 	"log"
 	"sync"
-	"time"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
@@ -161,12 +160,6 @@ func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValue
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
-}
-
-// impl rawhostcall.ProxyWASMHost
-func (h *hostEmulator) ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
-	*returnTime = time.Now().UnixNano()
-	return types.StatusOK
 }
 
 // impl rawhostcall.ProxyWASMHost
