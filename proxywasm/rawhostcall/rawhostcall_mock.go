@@ -47,7 +47,6 @@ type ProxyWASMHost interface {
 	ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status
 	ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status
 	ProxySetTickPeriodMilliseconds(period uint32) types.Status
-	ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status
 	ProxySetEffectiveContext(contextID uint32) types.Status
 	ProxyDone() types.Status
 	ProxyDefineMetric(metricType types.MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status
@@ -120,11 +119,8 @@ func (d DefaultProxyWAMSHost) ProxyHttpCall(upstreamData *byte, upstreamSize int
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status { return 0 }
-func (d DefaultProxyWAMSHost) ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
-	return 0
-}
-func (d DefaultProxyWAMSHost) ProxySetEffectiveContext(contextID uint32) types.Status { return 0 }
-func (d DefaultProxyWAMSHost) ProxyDone() types.Status                                { return 0 }
+func (d DefaultProxyWAMSHost) ProxySetEffectiveContext(contextID uint32) types.Status    { return 0 }
+func (d DefaultProxyWAMSHost) ProxyDone() types.Status                                   { return 0 }
 func (d DefaultProxyWAMSHost) ProxyDefineMetric(metricType types.MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
 	return 0
 }
@@ -225,10 +221,6 @@ func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, heade
 
 func ProxySetTickPeriodMilliseconds(period uint32) types.Status {
 	return currentHost.ProxySetTickPeriodMilliseconds(period)
-}
-
-func ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status {
-	return currentHost.ProxyGetCurrentTimeNanoseconds(returnTime)
 }
 
 func ProxySetEffectiveContext(contextID uint32) types.Status {

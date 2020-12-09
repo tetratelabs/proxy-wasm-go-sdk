@@ -44,12 +44,6 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return types.StatusToError(rawhostcall.ProxySetTickPeriodMilliseconds(millSec))
 }
 
-func GetCurrentTime() int64 {
-	var t int64
-	rawhostcall.ProxyGetCurrentTimeNanoseconds(&t)
-	return t
-}
-
 func DispatchHttpCall(upstream string,
 	headers [][2]string, body string, trailers [][2]string,
 	timeoutMillisecond uint32, callBack HttpCalloutCallBack) (calloutID uint32, err error) {

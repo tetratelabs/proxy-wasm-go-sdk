@@ -83,9 +83,6 @@ func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, heade
 //export proxy_set_tick_period_milliseconds
 func ProxySetTickPeriodMilliseconds(period uint32) types.Status
 
-//export proxy_get_current_time_nanoseconds
-func ProxyGetCurrentTimeNanoseconds(returnTime *int64) types.Status
-
 //export proxy_set_effective_context
 func ProxySetEffectiveContext(contextID uint32) types.Status
 
