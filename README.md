@@ -44,8 +44,8 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   v1.17.x,  v1.18.0 | [6ca4644073da6d9930ba](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) |
-| v0.0.12 |  0.2.0|  v1.17.x, v1.18.0 |[6ca4644073da6d9930ba](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) 
+| main |  0.2.0|   v1.8.1 | [5932dfd1f6b80eda9f56](https://github.com/envoyproxy/envoy/tree/5932dfd1f6b80eda9f56415ceff056a15a699c5e) |
+| v0.0.12 |  0.2.0|  v1.7.x, v1.8.0 |[6ca4644073da6d9930ba](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) 
 
 
 ## run examples
@@ -86,7 +86,6 @@ make test.e2e.single name=helloworld # run e2e tests
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
         3. [proxy-wasm-cpp-host](https://github.com/proxy-wasm/proxy-wasm-cpp-host) has not supported some of WASI APIs yet 
         (see the [supported functions](https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/master/include/proxy-wasm/exports.h#L134-L147)).
-         For example, `clock_time_get` is not implemented, and therefore we cannot use `time.Now` function.
     - These issues will be mitigated as TinyGo and proxy-wasm-cpp-host evolve.
 - There's performance overhead of using Go/TinyGo due to GC
     - `runtime.GC` is called whenever the heap runs out (see [1](https://tinygo.org/lang-support/#garbage-collection),
