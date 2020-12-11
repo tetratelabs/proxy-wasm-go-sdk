@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !abi_0_1_0
-
 package proxywasm
 
 //nolint
