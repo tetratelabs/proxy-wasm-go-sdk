@@ -32,6 +32,6 @@ test.e2e.single:
 run:
 	docker run --entrypoint='/usr/local/bin/envoy' \
 		-p 18000:18000 -p 8099:8099 \
-		-w /tmp/envoy -v $(shell pwd):/tmp/envoy getenvoy/proxy-wasm-go-sdk-ci:istio-${ISTIO_VERSION} \
+		-w /tmp/envoy -v $(shell pwd):/tmp/envoy istio/proxyv2:1.8.1 \
 		-c /tmp/envoy/examples/${name}/envoy.yaml --concurrency 2 \
 		--log-format-prefix-with-location '0' --log-format '%v' # --log-format-prefix-with-location will be removed at 1.17.0 release
