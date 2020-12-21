@@ -27,26 +27,50 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 	}
 }
 
-//export proxy_on_done
-func proxyOnDone(contextID uint32) bool {
-	defer func() {
-		delete(currentState.contextIDToRootID, contextID)
-	}()
+//export proxy_on_log
+func proxyOngLog(contextID uint32) {
 	if ctx, ok := currentState.streams[contextID]; ok {
 		currentState.setActiveContextID(contextID)
-		delete(currentState.streams, contextID)
+		ctx.OnLog()
+	} else if ctx, ok := currentState.httpStreams[contextID]; ok {
+		currentState.setActiveContextID(contextID)
+		ctx.OnLog()
+	} else if ctx, ok := currentState.rootContexts[contextID]; ok {
+		currentState.setActiveContextID(contextID)
+		ctx.context.OnLog()
+	} else {
+		panic("invalid context on proxy_on_done")
+	}
+}
+
+//export proxy_on_done
+func proxyOnDone(contextID uint32) bool {
+	if ctx, ok := currentState.streams[contextID]; ok {
+		currentState.setActiveContextID(contextID)
 		ctx.OnStreamDone()
 		return true
 	} else if ctx, ok := currentState.httpStreams[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		ctx.OnHttpStreamDone()
-		delete(currentState.httpStreams, contextID)
 		return true
 	} else if ctx, ok := currentState.rootContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		response := ctx.context.OnVMDone()
-		delete(currentState.rootContexts, contextID)
 		return response
+	} else {
+		panic("invalid context on proxy_on_done")
+	}
+}
+
+//export proxy_on_delete
+func proxyOnLog(contextID uint32) {
+	delete(currentState.contextIDToRootID, contextID)
+	if _, ok := currentState.streams[contextID]; ok {
+		delete(currentState.streams, contextID)
+	} else if _, ok = currentState.httpStreams[contextID]; ok {
+		delete(currentState.httpStreams, contextID)
+	} else if _, ok = currentState.rootContexts[contextID]; ok {
+		delete(currentState.rootContexts, contextID)
 	} else {
 		panic("invalid context on proxy_on_done")
 	}

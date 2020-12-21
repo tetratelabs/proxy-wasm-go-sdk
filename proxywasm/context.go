@@ -24,6 +24,7 @@ type RootContext interface {
 	OnVMStart(vmConfigurationSize int) bool
 	OnPluginStart(pluginConfigurationSize int) bool
 	OnVMDone() bool
+	OnLog()
 }
 
 type StreamContext interface {
@@ -33,6 +34,7 @@ type StreamContext interface {
 	OnUpstreamData(dataSize int, endOfStream bool) types.Action
 	OnUpstreamClose(peerType types.PeerType)
 	OnStreamDone()
+	OnLog()
 }
 
 type HttpContext interface {
@@ -43,6 +45,7 @@ type HttpContext interface {
 	OnHttpResponseBody(bodySize int, endOfStream bool) types.Action
 	OnHttpResponseTrailers(numTrailers int) types.Action
 	OnHttpStreamDone()
+	OnLog()
 }
 
 type (
@@ -63,6 +66,7 @@ func (*DefaultRootContext) OnTick()                {}
 func (*DefaultRootContext) OnVMStart(int) bool     { return true }
 func (*DefaultRootContext) OnPluginStart(int) bool { return true }
 func (*DefaultRootContext) OnVMDone() bool         { return true }
+func (*DefaultRootContext) OnLog()                 {}
 
 // impl StreamContext
 func (*DefaultStreamContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }
@@ -71,6 +75,7 @@ func (*DefaultStreamContext) OnNewConnection() types.Action           { return t
 func (*DefaultStreamContext) OnUpstreamData(int, bool) types.Action   { return types.ActionContinue }
 func (*DefaultStreamContext) OnUpstreamClose(types.PeerType)          {}
 func (*DefaultStreamContext) OnStreamDone()                           {}
+func (*DefaultStreamContext) OnLog()                                  {}
 
 // impl HttpContext
 func (*DefaultHttpContext) OnHttpRequestHeaders(int, bool) types.Action  { return types.ActionContinue }
@@ -80,3 +85,4 @@ func (*DefaultHttpContext) OnHttpResponseHeaders(int, bool) types.Action { retur
 func (*DefaultHttpContext) OnHttpResponseBody(int, bool) types.Action    { return types.ActionContinue }
 func (*DefaultHttpContext) OnHttpResponseTrailers(int) types.Action      { return types.ActionContinue }
 func (*DefaultHttpContext) OnHttpStreamDone()                            {}
+func (*DefaultHttpContext) OnLog()                                       {}
