@@ -61,9 +61,5 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) 
 
 // override
 func (ctx *httpHeaders) OnHttpStreamDone() {
-	//proxywasm.LogInfof("%d finished", ctx.contextID)
-}
-
-func (ctx *httpHeaders) OnLog() {
-	proxywasm.LogInfof("[[[[[[ OnLog ]]]]]] %d finished", ctx.contextID)
+	proxywasm.LogInfof("%d finished", ctx.contextID)
 }
