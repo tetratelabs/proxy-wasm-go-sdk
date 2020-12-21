@@ -15,42 +15,29 @@
 package main
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
-const tickMilliseconds uint32 = 1000
-
 func main() {
-	proxywasm.SetNewRootContext(newHelloWorld)
+	proxywasm.SetNewRootContext(newAccessLogger)
 }
 
-type helloWorld struct {
+type accessLogger struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultRootContext
-	contextID uint32
 }
 
-func newHelloWorld(contextID uint32) proxywasm.RootContext {
-	return &helloWorld{contextID: contextID}
+func newAccessLogger(contextID uint32) proxywasm.RootContext {
+	return &accessLogger{}
 }
 
 // override
-func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
-	rand.Seed(time.Now().UnixNano())
-
-	proxywasm.LogInfo("proxy_on_vm_start from Go!")
-	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		proxywasm.LogCriticalf("failed to set tick period: %v", err)
+func (ctx *accessLogger) OnLog() {
+	hdr, err := proxywasm.GetHttpRequestHeader(":path")
+	if err != nil {
+		proxywasm.LogCritical(err.Error())
+		return
 	}
 
-	return true
-}
-
-// override
-func (ctx *helloWorld) OnTick() {
-	t := time.Now().UnixNano()
-	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
+	proxywasm.LogInfof("OnLog: :path = %s", hdr)
 }

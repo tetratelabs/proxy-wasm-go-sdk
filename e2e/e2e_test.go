@@ -99,6 +99,12 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8009,
 		admin:       28309,
 	}, configurationFromRoot))
+
+	t.Run("access_logger", testRunnerGetter(envoyPorts{
+		endpoint:    11010,
+		staticReply: 8010,
+		admin:       28310,
+	}, accessLogger))
 }
 
 type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
@@ -325,4 +331,18 @@ func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	fmt.Println(out)
 	assert.Contains(t, out, "plugin config from root context")
 	assert.Contains(t, out, "name\": \"plugin configuration")
+}
+
+func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	exp := "/this/is/my/path"
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d%s", ps.endpoint, exp), nil)
+	require.NoError(t, err)
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer r.Body.Close()
+
+	out := stdErr.String()
+	fmt.Println(out)
+	assert.Contains(t, out, exp)
 }

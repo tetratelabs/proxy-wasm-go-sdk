@@ -462,3 +462,15 @@ func (h *httpHostEmulator) HttpFilterGetCurrentStreamAction(contextID uint32) ty
 func (h *httpHostEmulator) HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.httpStreams[contextID].sentLocalResponse
 }
+
+// impl HostEmulator
+func (h *httpHostEmulator) CallOnLogForAccessLogger(requestHeaders, responseHeaders [][2]string) {
+	h.httpStreams[rootContextID] = &httpStreamState{
+		requestHeaders:   requestHeaders,
+		responseHeaders:  responseHeaders,
+		requestTrailers:  nil,
+		responseTrailers: nil,
+	}
+
+	proxywasm.ProxyOnLog(rootContextID)
+}
