@@ -52,6 +52,7 @@ type HostEmulator interface {
 	HttpFilterCompleteHttpStream(contextID uint32)
 	HttpFilterGetCurrentStreamAction(contextID uint32) types.Action
 	HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse
+	CallOnLogForAccessLogger(requestHeaders, responseHeaders [][2]string)
 }
 
 const (

@@ -6,6 +6,6 @@ func SetEffectiveContext(contextID uint32) {
 	rawhostcall.ProxySetEffectiveContext(contextID)
 }
 
-func FinishContext() {
+func FinishVMContext() {
 	rawhostcall.ProxyDone()
 }
