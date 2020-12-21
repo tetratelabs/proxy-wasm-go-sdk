@@ -47,20 +47,24 @@ type lifecycleContext struct {
 	DefaultRootContext
 	DefaultHttpContext
 	DefaultStreamContext
-	onStreamDone, onHttpStreamDone, onVMDone bool
+	onDoneCalled, onLogCalled bool
 }
 
 func (ctx *lifecycleContext) OnVMDone() bool {
-	ctx.onVMDone = true
+	ctx.onDoneCalled = true
 	return true
 }
 
 func (ctx *lifecycleContext) OnStreamDone() {
-	ctx.onStreamDone = true
+	ctx.onDoneCalled = true
 }
 
 func (ctx *lifecycleContext) OnHttpStreamDone() {
-	ctx.onHttpStreamDone = true
+	ctx.onDoneCalled = true
+}
+
+func (ctx *lifecycleContext) OnLog() {
+	ctx.onLogCalled = true
 }
 
 func Test_onDone(t *testing.T) {
@@ -77,13 +81,52 @@ func Test_onDone(t *testing.T) {
 	ctx := &lifecycleContext{}
 	currentState.httpStreams[id] = ctx
 	proxyOnDone(id)
-	assert.True(t, ctx.onHttpStreamDone)
+	assert.True(t, ctx.onDoneCalled)
 	assert.Equal(t, id, currentState.activeContextID)
 
 	id = 2
 	ctx = &lifecycleContext{}
 	currentState.streams[id] = ctx
 	proxyOnDone(id)
-	assert.True(t, ctx.onStreamDone)
+	assert.True(t, ctx.onDoneCalled)
+	assert.Equal(t, id, currentState.activeContextID)
+
+	id = 3
+	ctx = &lifecycleContext{}
+	currentState.rootContexts[id] = &rootContextState{context: ctx}
+	proxyOnDone(id)
+	assert.True(t, ctx.onDoneCalled)
+	assert.Equal(t, id, currentState.activeContextID)
+}
+
+func Test_onLog(t *testing.T) {
+	currentStateMux.Lock()
+	defer currentStateMux.Unlock()
+
+	currentState = &state{
+		rootContexts: map[uint32]*rootContextState{},
+		httpStreams:  map[uint32]HttpContext{},
+		streams:      map[uint32]StreamContext{},
+	}
+
+	var id uint32 = 1
+	ctx := &lifecycleContext{}
+	currentState.httpStreams[id] = ctx
+	proxyOnLog(id)
+	assert.True(t, ctx.onLogCalled)
+	assert.Equal(t, id, currentState.activeContextID)
+
+	id = 2
+	ctx = &lifecycleContext{}
+	currentState.streams[id] = ctx
+	proxyOnLog(id)
+	assert.True(t, ctx.onLogCalled)
+	assert.Equal(t, id, currentState.activeContextID)
+
+	id = 3
+	ctx = &lifecycleContext{}
+	currentState.rootContexts[id] = &rootContextState{context: ctx}
+	proxyOnLog(id)
+	assert.True(t, ctx.onLogCalled)
 	assert.Equal(t, id, currentState.activeContextID)
 }
