@@ -83,7 +83,6 @@ func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, dat
 	case types.ActionPause:
 		return
 	case types.ActionContinue:
-		// TODO: verify the behavior is correct
 		stream.upstream = []byte{}
 	default:
 		log.Fatalf("invalid action type: %d", action)
@@ -105,7 +104,6 @@ func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, d
 	case types.ActionPause:
 		return
 	case types.ActionContinue:
-		// TODO: verify the behavior is correct
 		stream.downstream = []byte{}
 	default:
 		log.Fatalf("invalid action type: %d", action)
@@ -133,6 +131,9 @@ func (n *networkHostEmulator) NetworkFilterCloseDownstreamConnection(contextID u
 
 // impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterCompleteConnection(contextID uint32) {
+	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L169-L171
 	proxywasm.ProxyOnDone(contextID)
+	proxywasm.ProxyOnLog(contextID)
+	proxywasm.ProxyOnDelete(contextID)
 	delete(n.streamStates, contextID)
 }
