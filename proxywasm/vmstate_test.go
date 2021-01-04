@@ -56,8 +56,9 @@ func TestState_createRootContext(t *testing.T) {
 	t.Run("newRootContext exists", func(t *testing.T) {
 		type rc struct{ DefaultRootContext }
 		s := &state{
-			rootContexts:   map[uint32]*rootContextState{},
-			newRootContext: func(contextID uint32) RootContext { return &rc{} },
+			rootContexts:      map[uint32]*rootContextState{},
+			newRootContext:    func(contextID uint32) RootContext { return &rc{} },
+			contextIDToRootID: map[uint32]uint32{},
 		}
 
 		var cid uint32 = 100
@@ -66,7 +67,7 @@ func TestState_createRootContext(t *testing.T) {
 	})
 
 	t.Run("non exists", func(t *testing.T) {
-		s := &state{rootContexts: map[uint32]*rootContextState{}}
+		s := &state{rootContexts: map[uint32]*rootContextState{}, contextIDToRootID: map[uint32]uint32{}}
 		var cid uint32 = 100
 		s.createRootContext(cid)
 		c, ok := s.rootContexts[cid]

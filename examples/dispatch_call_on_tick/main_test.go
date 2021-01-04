@@ -12,9 +12,9 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestHelloWorld_OnTick(t *testing.T) {
+func TestRootContext_OnTick(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newHelloWorld)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
@@ -37,16 +37,12 @@ func TestHelloWorld_OnTick(t *testing.T) {
 
 }
 
-func TestHelloWorld_OnVMStart(t *testing.T) {
+func TestRootContext_OnVMStart(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newHelloWorld)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // call OnVMStart
-	logs := host.GetLogs(types.LogLevelInfo)
-	msg := logs[len(logs)-1]
-
-	assert.True(t, strings.Contains(msg, "proxy_on_vm_start from Go!"))
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

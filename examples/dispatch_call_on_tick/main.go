@@ -21,21 +21,21 @@ import (
 const tickMilliseconds uint32 = 100
 
 func main() {
-	proxywasm.SetNewRootContext(newHelloWorld)
+	proxywasm.SetNewRootContext(newRootContext)
 }
 
-type helloWorld struct {
+type rootContext struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultRootContext
 	contextID uint32
 }
 
-func newHelloWorld(contextID uint32) proxywasm.RootContext {
-	return &helloWorld{contextID: contextID}
+func newRootContext(contextID uint32) proxywasm.RootContext {
+	return &rootContext{contextID: contextID}
 }
 
 // override
-func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
@@ -43,7 +43,7 @@ func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
 	return true
 }
 
-func (ctx *helloWorld) OnTick() {
+func (ctx *rootContext) OnTick() {
 	hs := [][2]string{{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"}}
 	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", [][2]string{},
 		5000, callback); err != nil {

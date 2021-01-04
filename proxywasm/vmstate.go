@@ -20,14 +20,14 @@ import (
 )
 
 type (
-	HttpCalloutCallBack = func(numHeaders, bodySize, numTrailers int)
-
 	rootContextState struct {
 		context       RootContext
-		httpCallbacks map[uint32]*httpCallbackState
+		httpCallbacks map[uint32]*httpCallbackAttribute
 	}
 
-	httpCallbackState struct {
+	HttpCalloutCallBack = func(numHeaders, bodySize, numTrailers int)
+
+	httpCallbackAttribute struct {
 		callback        HttpCalloutCallBack
 		callerContextID uint32
 	}
@@ -85,7 +85,7 @@ func (s *state) createRootContext(contextID uint32) {
 
 	s.rootContexts[contextID] = &rootContextState{
 		context:       ctx,
-		httpCallbacks: map[uint32]*httpCallbackState{},
+		httpCallbacks: map[uint32]*httpCallbackAttribute{},
 	}
 
 	// NOTE: this is a temporary work around for avoiding nil pointer panic
@@ -125,7 +125,7 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
 
 func (s *state) registerHttpCallOut(calloutID uint32, callback HttpCalloutCallBack) {
 	r := s.rootContexts[s.contextIDToRootID[s.activeContextID]]
-	r.httpCallbacks[calloutID] = &httpCallbackState{callback: callback, callerContextID: s.activeContextID}
+	r.httpCallbacks[calloutID] = &httpCallbackAttribute{callback: callback, callerContextID: s.activeContextID}
 }
 
 //go:inline
