@@ -94,10 +94,7 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	ctx := &l7Context{}
 	currentState = &state{
 		rootContexts: map[uint32]*rootContextState{rootContextID: {
-			httpCallbacks: map[uint32]*struct {
-				callback        HttpCalloutCallBack
-				callerContextID uint32
-			}{callOutID: {callback: ctx.OnHttpCallResponse}},
+			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
 		}},
 	}
 
@@ -109,10 +106,7 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	ctx = &l7Context{}
 	currentState = &state{
 		rootContexts: map[uint32]*rootContextState{rootContextID: {
-			httpCallbacks: map[uint32]*struct {
-				callback        HttpCalloutCallBack
-				callerContextID uint32
-			}{callOutID: {callback: ctx.OnHttpCallResponse}},
+			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
 		}},
 	}
 

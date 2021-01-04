@@ -56,12 +56,12 @@ type HostEmulator interface {
 }
 
 const (
-	rootContextID uint32 = 1 // TODO: support multiple rootContext
+	RootContextID uint32 = 1 // TODO: support multiple rootContext
 )
 
 var (
 	hostMux       = sync.Mutex{}
-	nextContextID = rootContextID + 1
+	nextContextID = RootContextID + 1
 )
 
 type hostEmulator struct {
@@ -92,7 +92,7 @@ func NewHostEmulator(opt *EmulatorOption) HostEmulator {
 	proxywasm.SetNewHttpContext(opt.newHttpContext)
 
 	// create root context: TODO: support multiple root contexts
-	proxywasm.ProxyOnContextCreate(rootContextID, 0)
+	proxywasm.ProxyOnContextCreate(RootContextID, 0)
 
 	return emulator
 }

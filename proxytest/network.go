@@ -113,7 +113,7 @@ func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, d
 // impl HostEmulator
 func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
 	contextID = getNextContextID()
-	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
+	proxywasm.ProxyOnContextCreate(contextID, RootContextID)
 	proxywasm.ProxyOnNewConnection(contextID)
 	n.streamStates[contextID] = &streamState{}
 	return

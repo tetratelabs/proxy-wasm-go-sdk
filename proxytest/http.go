@@ -303,7 +303,7 @@ func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 // impl HostEmulator
 func (h *httpHostEmulator) HttpFilterInitContext() (contextID uint32) {
 	contextID = getNextContextID()
-	proxywasm.ProxyOnContextCreate(contextID, rootContextID)
+	proxywasm.ProxyOnContextCreate(contextID, RootContextID)
 	h.httpStreams[contextID] = &httpStreamState{action: types.ActionContinue}
 	return
 }
@@ -465,12 +465,12 @@ func (h *httpHostEmulator) HttpFilterGetSentLocalResponse(contextID uint32) *Loc
 
 // impl HostEmulator
 func (h *httpHostEmulator) CallOnLogForAccessLogger(requestHeaders, responseHeaders [][2]string) {
-	h.httpStreams[rootContextID] = &httpStreamState{
+	h.httpStreams[RootContextID] = &httpStreamState{
 		requestHeaders:   requestHeaders,
 		responseHeaders:  responseHeaders,
 		requestTrailers:  nil,
 		responseTrailers: nil,
 	}
 
-	proxywasm.ProxyOnLog(rootContextID)
+	proxywasm.ProxyOnLog(RootContextID)
 }

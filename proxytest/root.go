@@ -141,7 +141,7 @@ func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *by
 
 	// note that this behavior is not accurate for some old host implementations:
 	//	see: https://github.com/proxy-wasm/proxy-wasm-cpp-host/pull/36
-	proxywasm.ProxyOnQueueReady(rootContextID, queueID) // Note that this behavior is not accurate on Istio before 1.8.x
+	proxywasm.ProxyOnQueueReady(RootContextID, queueID) // Note that this behavior is not accurate on Istio before 1.8.x
 	return types.StatusOK
 }
 
@@ -362,7 +362,7 @@ func (r *rootHostEmulator) GetTickPeriod() uint32 {
 
 // impl HostEmulator
 func (r *rootHostEmulator) Tick() {
-	proxywasm.ProxyOnTick(rootContextID)
+	proxywasm.ProxyOnTick(RootContextID)
 }
 
 // impl HostEmulator
@@ -378,12 +378,12 @@ func (r *rootHostEmulator) GetCalloutAttributesFromContext(contextID uint32) []H
 
 // impl HostEmulator
 func (r *rootHostEmulator) StartVM() {
-	proxywasm.ProxyOnVMStart(rootContextID, len(r.vmConfiguration))
+	proxywasm.ProxyOnVMStart(RootContextID, len(r.vmConfiguration))
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) StartPlugin() {
-	proxywasm.ProxyOnConfigure(rootContextID, len(r.pluginConfiguration))
+	proxywasm.ProxyOnConfigure(RootContextID, len(r.pluginConfiguration))
 }
 
 // impl HostEmulator
@@ -393,17 +393,17 @@ func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailer
 		body              []byte
 	}{headers: headers, trailers: trailers, body: body}
 
-	// rootContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
+	// RootContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
 	r.activeCalloutID = calloutID
 	defer func() {
 		r.activeCalloutID = 0
 		delete(r.httpCalloutResponse, calloutID)
 		delete(r.httpCalloutIDToContextID, calloutID)
 	}()
-	proxywasm.ProxyOnHttpCallResponse(rootContextID, calloutID, len(headers), len(body), len(trailers))
+	proxywasm.ProxyOnHttpCallResponse(RootContextID, calloutID, len(headers), len(body), len(trailers))
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) FinishVM() {
-	proxywasm.ProxyOnDone(rootContextID)
+	proxywasm.ProxyOnDone(RootContextID)
 }
