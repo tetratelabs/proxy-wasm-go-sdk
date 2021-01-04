@@ -24,10 +24,12 @@ type (
 
 	rootContextState struct {
 		context       RootContext
-		httpCallbacks map[uint32]*struct {
-			callback        HttpCalloutCallBack
-			callerContextID uint32
-		}
+		httpCallbacks map[uint32]*httpCallbackState
+	}
+
+	httpCallbackState struct {
+		callback        HttpCalloutCallBack
+		callerContextID uint32
 	}
 )
 
@@ -82,12 +84,15 @@ func (s *state) createRootContext(contextID uint32) {
 	}
 
 	s.rootContexts[contextID] = &rootContextState{
-		context: ctx,
-		httpCallbacks: map[uint32]*struct {
-			callback        HttpCalloutCallBack
-			callerContextID uint32
-		}{},
+		context:       ctx,
+		httpCallbacks: map[uint32]*httpCallbackState{},
 	}
+
+	// NOTE: this is a temporary work around for avoiding nil pointer panic
+	// when users make http dispatch(es) on RootContext.
+	// See https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/110
+	// TODO: refactor
+	s.contextIDToRootID[contextID] = contextID
 }
 
 func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
@@ -120,10 +125,7 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
 
 func (s *state) registerHttpCallOut(calloutID uint32, callback HttpCalloutCallBack) {
 	r := s.rootContexts[s.contextIDToRootID[s.activeContextID]]
-	r.httpCallbacks[calloutID] = &struct {
-		callback        HttpCalloutCallBack
-		callerContextID uint32
-	}{callback: callback, callerContextID: s.activeContextID}
+	r.httpCallbacks[calloutID] = &httpCallbackState{callback: callback, callerContextID: s.activeContextID}
 }
 
 //go:inline

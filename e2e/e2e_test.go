@@ -105,6 +105,11 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8010,
 		admin:       28310,
 	}, accessLogger))
+	t.Run("dispatch_call_on_tick", testRunnerGetter(envoyPorts{
+		endpoint:    11011,
+		staticReply: 8011,
+		admin:       28311,
+	}, dispatchCallOnTick))
 }
 
 type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
@@ -345,4 +350,13 @@ func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	assert.Contains(t, out, exp)
+}
+
+func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	time.Sleep(3 * time.Second)
+	out := stdErr.String()
+	fmt.Println(out)
+	for i := 1; i < 6; i++ {
+		assert.Contains(t, out, fmt.Sprintf("called! %d", i))
+	}
 }
