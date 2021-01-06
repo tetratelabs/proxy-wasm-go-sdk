@@ -84,7 +84,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 
 	ret, err := proxywasm.GetProperty([]string{"upstream", "address"})
 	if err != nil {
-		proxywasm.LogCriticalf("failed to get downstream data: %v", err)
+		proxywasm.LogCriticalf("failed to get upstream data: %v", err)
 		return types.ActionContinue
 	}
 
