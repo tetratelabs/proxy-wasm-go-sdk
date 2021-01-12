@@ -32,7 +32,7 @@ jobs:
     name: build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:latest
+      image: tinygo/tinygo:0.16.0
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -46,12 +46,12 @@ jobs:
 
       - name: build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
-        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
+        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
 
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-image: [ "envoyproxy/envoy-dev:d2e277e1668044ba50397c71d26e8f519d4734a0" ]
+        envoy-image: [ "envoyproxy/envoy:v1.7.0" ]
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
