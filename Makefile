@@ -3,19 +3,19 @@
 .PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e
 
 build.example:
-	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi -wasm-abi=generic ./examples/${name}/main.go
+	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi ./examples/${name}/main.go
 
 build.example.docker:
-	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo-dev:latest \
+	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo:0.16.0 \
 		tinygo build -o /tmp/proxy-wasm-go/examples/${name}/main.go.wasm -scheduler=none -target=wasi \
-		-wasm-abi=generic /tmp/proxy-wasm-go/examples/${name}/main.go
+		/tmp/proxy-wasm-go/examples/${name}/main.go
 
 build.examples:
-	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p
+	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
 
 build.examples.docker:
-	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo:latest /bin/bash -c \
-		'find /tmp/proxy-wasm-go/examples/ -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi -wasm-abi=generic p'
+	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo:0.16.0 /bin/bash -c \
+		'find /tmp/proxy-wasm-go/examples/ -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p'
 
 lint:
 	golangci-lint run --build-tags proxytest
@@ -30,8 +30,4 @@ test.e2e.single:
 	go test -v ./e2e -run ${name}
 
 run:
-	docker run --entrypoint='/usr/local/bin/envoy' \
-		-p 18000:18000 -p 8099:8099 \
-		-w /tmp/envoy -v $(shell pwd):/tmp/envoy istio/proxyv2:1.8.1 \
-		-c /tmp/envoy/examples/${name}/envoy.yaml --concurrency 2 \
-		--log-format-prefix-with-location '0' --log-format '%v' # --log-format-prefix-with-location will be removed at 1.17.0 release
+	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'

@@ -44,9 +44,9 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   v1.8.1 | [d2e277e1668044ba503](https://github.com/envoyproxy/envoy/tree/d2e277e1668044ba50397c71d26e8f519d4734a0) |
+| main |  0.2.0|   v1.8.1 | v1.17.0 |
+| v0.0.14 |  0.2.0|   v1.8.1 | v1.17.0 |
 | v0.0.13 |  0.2.0|   v1.8.1 | [5932dfd1f6b80eda9f56](https://github.com/envoyproxy/envoy/tree/5932dfd1f6b80eda9f56415ceff056a15a699c5e) |
-| v0.0.12 |  0.2.0|  v1.7.x, v1.8.0 |[6ca4644073da6d9930](https://github.com/envoyproxy/envoy/tree/6ca4644073da6d9930ba45d90d57d8c9b2062962) 
 
 
 ## run examples
@@ -72,10 +72,10 @@ make run name=helloworld
 ```bash
 make test # run local tests without running envoy processes
 
-## requires you to have the Envoy binary locally
+## requires you to have Envoy binary locally
 make test.e2e # run e2e tests
 
-## requires you to have the Envoy binary locally
+## requires you to have Envoy binary locally
 make test.e2e.single name=helloworld # run e2e tests
 ```
 
