@@ -31,9 +31,9 @@ static_resources:
                       value:
                         config:
                           name: "helloworld"
-                          root_id: "root_id"
+                          root_id: "helloworld"
                           vm_config:
-                            vm_id: "vm_id"
+                            vm_id: "helloworld"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
