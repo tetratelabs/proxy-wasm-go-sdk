@@ -50,7 +50,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpResponseHeaders()
 	if err != nil {
-		proxywasm.LogCriticalf("failed to get request headers: %v", err)
+		proxywasm.LogCriticalf("failed to get response headers: %v", err)
 	}
 
 	for _, h := range hs {
