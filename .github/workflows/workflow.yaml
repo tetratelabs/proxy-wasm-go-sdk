@@ -51,12 +51,12 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-image: [ "envoyproxy/envoy:v1.17.0" ]
-    name: e2e tests on examples
+        envoy-tag: [ 1.17.0, 1.17.1 ]
+    name: e2e tests on Envoy
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: ${{ matrix.envoy-image }}
+      image: envoyproxy/envoy:v${{ matrix.envoy-tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -78,8 +78,8 @@ jobs:
   e2e-tests-istio:
     strategy:
       matrix:
-        istio-version: [ 1.8.1 ]
-    name: e2e tests on examples
+        istio-version: [ 1.8.1, 1.8.2, 1.8.3, 1.9.0, 1.9.1 ]
+    name: e2e tests on Istio
     needs: build-examples
     runs-on: ubuntu-latest
     container:
