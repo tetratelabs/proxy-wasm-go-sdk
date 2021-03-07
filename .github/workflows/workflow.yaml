@@ -51,12 +51,12 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-tags: [ 1.17.0, 1.17.1 ]
+        envoy-tag: [ 1.17.0, 1.17.1 ]
     name: e2e tests on examples
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: envoyproxy/envoy:v${{ matrix.envoy-image }}
+      image: envoyproxy/envoy:v${{ matrix.envoy-tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
