@@ -12,7 +12,7 @@ import (
 
 func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newContext)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 
@@ -35,7 +35,7 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newContext)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 

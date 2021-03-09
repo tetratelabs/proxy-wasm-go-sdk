@@ -18,10 +18,8 @@ package proxywasm
 func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 	if rootContextID == 0 {
 		currentState.createRootContext(contextID)
-	} else if currentState.newHttpContext != nil {
-		currentState.createHttpContext(contextID, rootContextID)
-	} else if currentState.newStreamContext != nil {
-		currentState.createStreamContext(contextID, rootContextID)
+	} else if currentState.createHttpContext(contextID, rootContextID) {
+	} else if currentState.createStreamContext(contextID, rootContextID) {
 	} else {
 		panic("invalid context id on proxy_on_context_create")
 	}

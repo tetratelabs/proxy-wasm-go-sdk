@@ -21,7 +21,6 @@ import (
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
 type (
@@ -40,10 +39,6 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &sharedDataRootContext{}
 }
 
-func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
-	return &sharedDataHttpContext{}
-}
-
 const sharedDataKey = "shared_data_key"
 
 // override
@@ -52,6 +47,11 @@ func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) bool {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
 	return true
+}
+
+// override
+func (*sharedDataRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	return &sharedDataHttpContext{}
 }
 
 // override

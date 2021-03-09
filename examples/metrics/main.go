@@ -21,7 +21,6 @@ import (
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
 var counter proxywasm.MetricCounter
@@ -43,13 +42,13 @@ func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) bool {
 	return true
 }
 
+func (*metricRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	return &metricHttpContext{}
+}
+
 type metricHttpContext struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultHttpContext
-}
-
-func newHttpContext(uint32, uint32) proxywasm.HttpContext {
-	return &metricHttpContext{}
 }
 
 // override

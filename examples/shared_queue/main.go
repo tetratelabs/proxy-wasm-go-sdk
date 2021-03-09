@@ -26,7 +26,6 @@ const (
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
 type queueRootContext struct {
@@ -70,13 +69,14 @@ func (ctx *queueRootContext) OnTick() {
 	}
 }
 
+// override
+func (*queueRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	return &queueHttpContext{}
+}
+
 type queueHttpContext struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultHttpContext
-}
-
-func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
-	return &queueHttpContext{}
 }
 
 // override

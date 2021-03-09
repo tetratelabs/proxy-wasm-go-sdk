@@ -25,6 +25,10 @@ type RootContext interface {
 	OnPluginStart(pluginConfigurationSize int) bool
 	OnVMDone() bool
 	OnLog()
+
+	// Child context factories
+	NewStreamContext(contextID uint32) StreamContext
+	NewHttpContext(contextID uint32) HttpContext
 }
 
 type StreamContext interface {
@@ -61,12 +65,14 @@ var (
 )
 
 // impl RootContext
-func (*DefaultRootContext) OnQueueReady(uint32)    {}
-func (*DefaultRootContext) OnTick()                {}
-func (*DefaultRootContext) OnVMStart(int) bool     { return true }
-func (*DefaultRootContext) OnPluginStart(int) bool { return true }
-func (*DefaultRootContext) OnVMDone() bool         { return true }
-func (*DefaultRootContext) OnLog()                 {}
+func (*DefaultRootContext) OnQueueReady(uint32)                   {}
+func (*DefaultRootContext) OnTick()                               {}
+func (*DefaultRootContext) OnVMStart(int) bool                    { return true }
+func (*DefaultRootContext) OnPluginStart(int) bool                { return true }
+func (*DefaultRootContext) OnVMDone() bool                        { return true }
+func (*DefaultRootContext) OnLog()                                {}
+func (*DefaultRootContext) NewStreamContext(uint32) StreamContext { return nil }
+func (*DefaultRootContext) NewHttpContext(uint32) HttpContext     { return nil }
 
 // impl StreamContext
 func (*DefaultStreamContext) OnDownstreamData(int, bool) types.Action { return types.ActionContinue }

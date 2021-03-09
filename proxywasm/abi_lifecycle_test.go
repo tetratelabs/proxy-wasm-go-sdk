@@ -22,39 +22,55 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_proxyOnContextCreate(t *testing.T) {
+type testOnContextCreateRootContext struct {
+	DefaultRootContext
+	cnt int
+}
+
+func (ctx *testOnContextCreateRootContext) NewStreamContext(contextID uint32) StreamContext {
+	if contextID == 100 {
+		ctx.cnt += 100
+		return &DefaultStreamContext{}
+	}
+	return nil
+}
+
+func (ctx *testOnContextCreateRootContext) NewHttpContext(contextID uint32) HttpContext {
+	if contextID == 1000 {
+		ctx.cnt += 1000
+		return &DefaultHttpContext{}
+	}
+	return nil
+}
+
+func Test_proxyOnContextCreateHttpContext(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	var cnt int
+	var rootPtr *testOnContextCreateRootContext
 	currentState = &state{
-		rootContexts:      map[uint32]*rootContextState{},
-		httpStreams:       map[uint32]HttpContext{},
-		streams:           map[uint32]StreamContext{},
+		rootContexts: map[uint32]*rootContextState{},
+		httpStreams:  map[uint32]HttpContext{},
+		streams:      map[uint32]StreamContext{},
+		newRootContext: func(contextID uint32) RootContext {
+			return &testOnContextCreateRootContext{}
+		},
 		contextIDToRootID: map[uint32]uint32{},
 	}
 
 	SetNewRootContext(func(contextID uint32) RootContext {
-		cnt++
-		return nil
+		rootPtr = &testOnContextCreateRootContext{cnt: 1}
+		return rootPtr
 	})
 
-	proxyOnContextCreate(100, 0)
-	require.Equal(t, 1, cnt)
-	SetNewHttpContext(func(rootContextID, contextID uint32) HttpContext {
-		cnt += 100
-		return nil
-	})
-	proxyOnContextCreate(100, 100)
-	require.Equal(t, 101, cnt)
-	currentState.newHttpContext = nil
+	proxyOnContextCreate(1, 0)
+	require.Equal(t, 1, rootPtr.cnt)
 
-	SetNewStreamContext(func(rootContextID, contextID uint32) StreamContext {
-		cnt += 1000
-		return nil
-	})
-	proxyOnContextCreate(100, 100)
-	require.Equal(t, 1101, cnt)
+	proxyOnContextCreate(100, 1)
+	require.Equal(t, 101, rootPtr.cnt)
+
+	proxyOnContextCreate(1000, 1)
+	require.Equal(t, 1101, rootPtr.cnt)
 }
 
 type lifecycleContext struct {
