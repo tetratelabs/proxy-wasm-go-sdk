@@ -64,10 +64,7 @@ func TestState_createRootContext(t *testing.T) {
 }
 
 type (
-	testStateRootContext struct {
-		DefaultRootContext
-		cnt int
-	}
+	testStateRootContext   struct{ DefaultRootContext }
 	testStateStreamContext struct {
 		contextID uint32
 		DefaultStreamContext
