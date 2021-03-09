@@ -136,8 +136,8 @@ func GetHttpRequestTrailers() (types.Trailers, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpRequestTrailers(headers types.Trailers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, headers))
+func SetHttpRequestTrailers(trailers types.Trailers) error {
+	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, trailers))
 }
 
 func GetHttpRequestTrailer(key string) (string, error) {
