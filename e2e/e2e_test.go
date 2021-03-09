@@ -161,8 +161,8 @@ func getEnvoyConfigurationPath(t *testing.T, name string, ps envoyPorts) (string
 func helloworld(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "wasm log helloworld: proxy_on_vm_start from Go!")
-	assert.Contains(t, out, "wasm log helloworld: It's")
+	assert.Contains(t, out, "helloworld: proxy_on_vm_start from Go!")
+	assert.Contains(t, out, "helloworld: It's")
 }
 
 func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {

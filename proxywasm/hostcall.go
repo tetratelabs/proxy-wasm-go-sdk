@@ -31,7 +31,7 @@ func GetVMConfiguration(size int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SendHttpResponse(statusCode uint32, headers [][2]string, body string) types.Status {
+func SendHttpResponse(statusCode uint32, headers types.Headers, body string) types.Status {
 	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
@@ -45,7 +45,7 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 }
 
 func DispatchHttpCall(upstream string,
-	headers [][2]string, body string, trailers [][2]string,
+	headers types.Headers, body string, trailers types.Trailers,
 	timeoutMillisecond uint32, callBack HttpCalloutCallBack) (calloutID uint32, err error) {
 	shs := SerializeMap(headers)
 	hp := &shs[0]
@@ -66,7 +66,7 @@ func DispatchHttpCall(upstream string,
 	}
 }
 
-func GetHttpCallResponseHeaders() ([][2]string, error) {
+func GetHttpCallResponseHeaders() (types.Headers, error) {
 	ret, st := getMap(types.MapTypeHttpCallResponseHeaders)
 	return ret, types.StatusToError(st)
 }
@@ -76,7 +76,7 @@ func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func GetHttpCallResponseTrailers() ([][2]string, error) {
+func GetHttpCallResponseTrailers() (types.Trailers, error) {
 	ret, st := getMap(types.MapTypeHttpCallResponseTrailers)
 	return ret, types.StatusToError(st)
 }
@@ -91,12 +91,12 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func GetHttpRequestHeaders() ([][2]string, error) {
+func GetHttpRequestHeaders() (types.Headers, error) {
 	ret, st := getMap(types.MapTypeHttpRequestHeaders)
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpRequestHeaders(headers [][2]string) error {
+func SetHttpRequestHeaders(headers types.Headers) error {
 	return types.StatusToError(setMap(types.MapTypeHttpRequestHeaders, headers))
 }
 
@@ -131,13 +131,13 @@ func SetHttpRequestBody(body []byte) error {
 	return types.StatusToError(st)
 }
 
-func GetHttpRequestTrailers() ([][2]string, error) {
+func GetHttpRequestTrailers() (types.Trailers, error) {
 	ret, st := getMap(types.MapTypeHttpRequestTrailers)
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpRequestTrailers(headers [][2]string) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, headers))
+func SetHttpRequestTrailers(trailers types.Trailers) error {
+	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, trailers))
 }
 
 func GetHttpRequestTrailer(key string) (string, error) {
@@ -161,12 +161,12 @@ func ResumeHttpRequest() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeRequest))
 }
 
-func GetHttpResponseHeaders() ([][2]string, error) {
+func GetHttpResponseHeaders() (types.Headers, error) {
 	ret, st := getMap(types.MapTypeHttpResponseHeaders)
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpResponseHeaders(headers [][2]string) error {
+func SetHttpResponseHeaders(headers types.Headers) error {
 	return types.StatusToError(setMap(types.MapTypeHttpResponseHeaders, headers))
 }
 
@@ -201,13 +201,13 @@ func SetHttpResponseBody(body []byte) error {
 	return types.StatusToError(st)
 }
 
-func GetHttpResponseTrailers() ([][2]string, error) {
+func GetHttpResponseTrailers() (types.Trailers, error) {
 	ret, st := getMap(types.MapTypeHttpResponseTrailers)
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpResponseTrailers(headers [][2]string) error {
-	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, headers))
+func SetHttpResponseTrailers(trailers types.Trailers) error {
+	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, trailers))
 }
 
 func GetHttpResponseTrailer(key string) (string, error) {

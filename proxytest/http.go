@@ -26,9 +26,9 @@ type (
 		httpStreams map[uint32]*httpStreamState
 	}
 	httpStreamState struct {
-		requestHeaders, responseHeaders,
-		requestTrailers, responseTrailers [][2]string
-		requestBody, responseBody []byte
+		requestHeaders, responseHeaders   types.Headers
+		requestTrailers, responseTrailers types.Trailers
+		requestBody, responseBody         []byte
 
 		action            types.Action
 		sentLocalResponse *LocalHttpResponse
@@ -37,7 +37,7 @@ type (
 		StatusCode       uint32
 		StatusCodeDetail string
 		Data             []byte
-		Headers          [][2]string
+		Headers          types.Headers
 		GRPCStatus       int32
 	}
 )
@@ -309,12 +309,12 @@ func (h *httpHostEmulator) HttpFilterInitContext() (contextID uint32) {
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterPutRequestHeaders(contextID uint32, headers types.Headers) {
 	h.HttpFilterPutRequestHeadersEndOfStream(contextID, headers, false)
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterGetRequestHeaders(contextID uint32) (headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterGetRequestHeaders(contextID uint32) (headers types.Headers) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -324,7 +324,7 @@ func (h *httpHostEmulator) HttpFilterGetRequestHeaders(contextID uint32) (header
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterGetResponseHeaders(contextID uint32) (headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterGetResponseHeaders(contextID uint32) (headers types.Headers) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -334,7 +334,7 @@ func (h *httpHostEmulator) HttpFilterGetResponseHeaders(contextID uint32) (heade
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool) {
+func (h *httpHostEmulator) HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -346,12 +346,12 @@ func (h *httpHostEmulator) HttpFilterPutRequestHeadersEndOfStream(contextID uint
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterPutResponseHeaders(contextID uint32, headers types.Headers) {
 	h.HttpFilterPutResponseHeadersEndOfStream(contextID, headers, false)
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool) {
+func (h *httpHostEmulator) HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -364,25 +364,25 @@ func (h *httpHostEmulator) HttpFilterPutResponseHeadersEndOfStream(contextID uin
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterPutRequestTrailers(contextID uint32, trailers types.Trailers) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestTrailers = headers
-	cs.action = proxywasm.ProxyOnRequestTrailers(contextID, len(headers))
+	cs.requestTrailers = trailers
+	cs.action = proxywasm.ProxyOnRequestTrailers(contextID, len(trailers))
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string) {
+func (h *httpHostEmulator) HttpFilterPutResponseTrailers(contextID uint32, trailers types.Trailers) {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseTrailers = headers
-	cs.action = proxywasm.ProxyOnResponseTrailers(contextID, len(headers))
+	cs.responseTrailers = trailers
+	cs.action = proxywasm.ProxyOnResponseTrailers(contextID, len(trailers))
 }
 
 // impl HostEmulator
@@ -464,7 +464,7 @@ func (h *httpHostEmulator) HttpFilterGetSentLocalResponse(contextID uint32) *Loc
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) CallOnLogForAccessLogger(requestHeaders, responseHeaders [][2]string) {
+func (h *httpHostEmulator) CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers) {
 	h.httpStreams[RootContextID] = &httpStreamState{
 		requestHeaders:   requestHeaders,
 		responseHeaders:  responseHeaders,

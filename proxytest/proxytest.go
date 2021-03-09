@@ -32,7 +32,7 @@ type HostEmulator interface {
 	FinishVM()
 
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
-	PutCalloutResponse(contextID uint32, headers, trailers [][2]string, body []byte)
+	PutCalloutResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
 
 	GetLogs(level types.LogLevel) []string
 	GetTickPeriod() uint32
@@ -49,14 +49,14 @@ type HostEmulator interface {
 
 	// http
 	HttpFilterInitContext() (contextID uint32)
-	HttpFilterPutRequestHeaders(contextID uint32, headers [][2]string)
-	HttpFilterGetRequestHeaders(contextID uint32) (headers [][2]string)
-	HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
-	HttpFilterPutResponseHeaders(contextID uint32, headers [][2]string)
-	HttpFilterGetResponseHeaders(contextID uint32) (headers [][2]string)
-	HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers [][2]string, endOfStream bool)
-	HttpFilterPutRequestTrailers(contextID uint32, headers [][2]string)
-	HttpFilterPutResponseTrailers(contextID uint32, headers [][2]string)
+	HttpFilterPutRequestHeaders(contextID uint32, headers types.Headers)
+	HttpFilterGetRequestHeaders(contextID uint32) (headers types.Headers)
+	HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool)
+	HttpFilterPutResponseHeaders(contextID uint32, headers types.Headers)
+	HttpFilterGetResponseHeaders(contextID uint32) (headers types.Headers)
+	HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool)
+	HttpFilterPutRequestTrailers(contextID uint32, trailers types.Trailers)
+	HttpFilterPutResponseTrailers(contextID uint32, trailers types.Trailers)
 	HttpFilterPutRequestBody(contextID uint32, body []byte)
 	HttpFilterPutRequestBodyEndOfStream(contextID uint32, body []byte, endOfStream bool)
 	HttpFilterGetRequestBody(contextID uint32) []byte
@@ -66,7 +66,7 @@ type HostEmulator interface {
 	HttpFilterCompleteHttpStream(contextID uint32)
 	HttpFilterGetCurrentStreamAction(contextID uint32) types.Action
 	HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse
-	CallOnLogForAccessLogger(requestHeaders, responseHeaders [][2]string)
+	CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers)
 }
 
 const (
