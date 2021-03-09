@@ -38,8 +38,8 @@ func TestQueue(t *testing.T) {
 	assert.Equal(t, logs[0], fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
-	contextID := host.HttpFilterInitContext()
-	host.HttpFilterPutRequestHeaders(contextID, nil) // call enqueue
+	contextID := host.InitializeHttpContext()
+	host.CallOnRequestHeaders(contextID, nil, false) // call enqueue
 
 	assert.Equal(t, 4, host.GetQueueSize(queueID))
 

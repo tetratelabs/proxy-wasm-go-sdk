@@ -68,7 +68,7 @@ func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.Bu
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, data []byte) {
+func (n *networkHostEmulator) CallOnUpstreamData(contextID uint32, data []byte) {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -90,7 +90,7 @@ func (n *networkHostEmulator) NetworkFilterPutUpstreamData(contextID uint32, dat
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, data []byte) {
+func (n *networkHostEmulator) CallOnDownstreamData(contextID uint32, data []byte) {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -111,7 +111,7 @@ func (n *networkHostEmulator) NetworkFilterPutDownstreamData(contextID uint32, d
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
+func (n *networkHostEmulator) InitializeConnection() (contextID uint32) {
 	contextID = getNextContextID()
 	proxywasm.ProxyOnContextCreate(contextID, RootContextID)
 	proxywasm.ProxyOnNewConnection(contextID)
@@ -120,17 +120,17 @@ func (n *networkHostEmulator) NetworkFilterInitConnection() (contextID uint32) {
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterCloseUpstreamConnection(contextID uint32) {
+func (n *networkHostEmulator) CloseUpstreamConnection(contextID uint32) {
 	proxywasm.ProxyOnUpstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterCloseDownstreamConnection(contextID uint32) {
+func (n *networkHostEmulator) CloseDownstreamConnection(contextID uint32) {
 	proxywasm.ProxyOnDownstreamConnectionClose(contextID, types.PeerTypeLocal) // peerType will be removed in the next ABI
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) NetworkFilterCompleteConnection(contextID uint32) {
+func (n *networkHostEmulator) CompleteConnection(contextID uint32) {
 	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L169-L171
 	proxywasm.ProxyOnDone(contextID)
 	proxywasm.ProxyOnLog(contextID)

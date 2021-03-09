@@ -37,7 +37,7 @@ func TestContext_OnPluginStart(t *testing.T) {
 
 	host.StartPlugin() // invoke OnPluginStart
 
-	host.HttpFilterInitContext()
+	host.InitializeHttpContext()
 
 	errLogs := host.GetLogs(types.LogLevelError)
 	require.Len(t, errLogs, 0)
