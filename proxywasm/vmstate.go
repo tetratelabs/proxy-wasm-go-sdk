@@ -96,7 +96,7 @@ func (s *state) createStreamContext(contextID uint32, rootContextID uint32) bool
 
 	ctx := root.context.NewStreamContext(contextID)
 	if ctx == nil {
-		// NewHttpContext is not defined by user
+		// NewStreamContext is not defined by the user
 		return false
 	}
 	s.contextIDToRootID[contextID] = rootContextID
@@ -116,7 +116,7 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) bool {
 
 	ctx := root.context.NewHttpContext(contextID)
 	if ctx == nil {
-		// NewHttpContext is not defined by user
+		// NewHttpContext is not defined by the user
 		return false
 	}
 	s.contextIDToRootID[contextID] = rootContextID
