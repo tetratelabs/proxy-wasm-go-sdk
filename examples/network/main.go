@@ -26,7 +26,10 @@ var (
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewStreamContext(newNetworkContext)
+}
+
+func newRootContext(contextID uint32) proxywasm.RootContext {
+	return &rootContext{}
 }
 
 type rootContext struct {
@@ -34,22 +37,18 @@ type rootContext struct {
 	proxywasm.DefaultRootContext
 }
 
-func newRootContext(contextID uint32) proxywasm.RootContext {
-	return &rootContext{}
-}
-
 func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
 	counter = proxywasm.DefineCounterMetric(connectionCounterName)
 	return true
 }
 
+func (ctx *rootContext) NewStreamContext(contextID uint32) proxywasm.StreamContext {
+	return &networkContext{}
+}
+
 type networkContext struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultStreamContext
-}
-
-func newNetworkContext(rootContextID, contextID uint32) proxywasm.StreamContext {
-	return &networkContext{}
 }
 
 func (ctx *networkContext) OnNewConnection() types.Action {

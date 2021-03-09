@@ -31,7 +31,6 @@ func TestContext_OnPluginStart(t *testing.T) {
 
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext).
-		WithNewHttpContext(newHttpContext).
 		WithPluginConfiguration([]byte(pluginConfigData))
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation

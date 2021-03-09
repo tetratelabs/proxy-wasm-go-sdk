@@ -12,7 +12,6 @@ import (
 
 func TestMetric(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newHttpContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation

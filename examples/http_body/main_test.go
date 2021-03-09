@@ -11,7 +11,7 @@ import (
 
 func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newContext)
+		WithNewRootContext(newContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 

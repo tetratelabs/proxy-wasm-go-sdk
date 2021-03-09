@@ -26,7 +26,6 @@ import (
 
 func TestNetwork_OnNewConnection(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewStreamContext(newNetworkContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
@@ -41,7 +40,6 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewStreamContext(newNetworkContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
@@ -56,7 +54,6 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewStreamContext(newNetworkContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
@@ -73,7 +70,6 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewStreamContext(newNetworkContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
@@ -90,7 +86,6 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 
 func TestNetwork_counter(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewStreamContext(newNetworkContext).
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation

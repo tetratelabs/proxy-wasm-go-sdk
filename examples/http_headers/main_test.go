@@ -13,7 +13,7 @@ import (
 
 func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newContext)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 	id := host.HttpFilterInitContext()
@@ -33,7 +33,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewHttpContext(newContext)
+		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 	id := host.HttpFilterInitContext()

@@ -20,13 +20,11 @@ import (
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
-	proxywasm.SetNewHttpContext(newHttpContext)
 }
 
 type rootContext struct {
 	// you must embed the default context so that you need not to reimplement all the methods by yourself
 	proxywasm.DefaultRootContext
-
 	config []byte
 }
 
@@ -44,29 +42,14 @@ func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) bool {
 	return true
 }
 
+func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	ret := &httpContext{config: ctx.config}
+	proxywasm.LogInfof("read plugin config from root context: %s\n", string(ret.config))
+	return ret
+}
+
 type httpContext struct {
 	proxywasm.DefaultHttpContext
 
 	config []byte
-}
-
-func newHttpContext(rootContextID, contextID uint32) proxywasm.HttpContext {
-	ctx := &httpContext{}
-
-	rootCtx, err := proxywasm.GetRootContextByID(rootContextID)
-	if err != nil {
-		proxywasm.LogErrorf("unable to get root context: %v", err)
-
-		return ctx
-	}
-
-	exampleRootCtx, ok := rootCtx.(*rootContext)
-	if !ok {
-		proxywasm.LogError("could not cast root context")
-	}
-
-	ctx.config = exampleRootCtx.config
-
-	proxywasm.LogInfof("plugin config from root context: %s\n", string(ctx.config))
-	return ctx
 }

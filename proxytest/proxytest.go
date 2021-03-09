@@ -102,8 +102,6 @@ func NewHostEmulator(opt *EmulatorOption) HostEmulator {
 
 	// set up state
 	proxywasm.SetNewRootContext(opt.newRootContext)
-	proxywasm.SetNewStreamContext(opt.newStreamContext)
-	proxywasm.SetNewHttpContext(opt.newHttpContext)
 
 	// create root context: TODO: support multiple root contexts
 	proxywasm.ProxyOnContextCreate(RootContextID, 0)

@@ -34,12 +34,10 @@ type (
 )
 
 type state struct {
-	newRootContext   func(contextID uint32) RootContext
-	rootContexts     map[uint32]*rootContextState
-	newStreamContext func(rootContextID, contextID uint32) StreamContext
-	streams          map[uint32]StreamContext
-	newHttpContext   func(rootContextID, contextID uint32) HttpContext
-	httpStreams      map[uint32]HttpContext
+	newRootContext func(contextID uint32) RootContext
+	rootContexts   map[uint32]*rootContextState
+	streams        map[uint32]StreamContext
+	httpStreams    map[uint32]HttpContext
 
 	contextIDToRootID map[uint32]uint32
 	activeContextID   uint32
@@ -56,14 +54,6 @@ func SetNewRootContext(f func(contextID uint32) RootContext) {
 	currentState.newRootContext = f
 }
 
-func SetNewHttpContext(f func(rootContextID, contextID uint32) HttpContext) {
-	currentState.newHttpContext = f
-}
-
-func SetNewStreamContext(f func(rootContextID, contextID uint32) StreamContext) {
-	currentState.newStreamContext = f
-}
-
 var ErrorRootContextNotFound = errors.New("root context not found")
 
 func GetRootContextByID(rootContextID uint32) (RootContext, error) {
@@ -74,7 +64,6 @@ func GetRootContextByID(rootContextID uint32) (RootContext, error) {
 	return rootContextState.context, nil
 }
 
-//go:inline
 func (s *state) createRootContext(contextID uint32) {
 	var ctx RootContext
 	if s.newRootContext == nil {
@@ -95,8 +84,9 @@ func (s *state) createRootContext(contextID uint32) {
 	s.contextIDToRootID[contextID] = contextID
 }
 
-func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
-	if _, ok := s.rootContexts[rootContextID]; !ok {
+func (s *state) createStreamContext(contextID uint32, rootContextID uint32) bool {
+	root, ok := s.rootContexts[rootContextID]
+	if !ok {
 		panic("invalid root context id")
 	}
 
@@ -104,13 +94,19 @@ func (s *state) createStreamContext(contextID uint32, rootContextID uint32) {
 		panic("context id duplicated")
 	}
 
-	ctx := s.newStreamContext(rootContextID, contextID)
+	ctx := root.context.NewStreamContext(contextID)
+	if ctx == nil {
+		// NewHttpContext is not defined by user
+		return false
+	}
 	s.contextIDToRootID[contextID] = rootContextID
 	s.streams[contextID] = ctx
+	return true
 }
 
-func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
-	if _, ok := s.rootContexts[rootContextID]; !ok {
+func (s *state) createHttpContext(contextID uint32, rootContextID uint32) bool {
+	root, ok := s.rootContexts[rootContextID]
+	if !ok {
 		panic("invalid root context id")
 	}
 
@@ -118,9 +114,14 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) {
 		panic("context id duplicated")
 	}
 
-	ctx := s.newHttpContext(rootContextID, contextID)
+	ctx := root.context.NewHttpContext(contextID)
+	if ctx == nil {
+		// NewHttpContext is not defined by user
+		return false
+	}
 	s.contextIDToRootID[contextID] = rootContextID
 	s.httpStreams[contextID] = ctx
+	return true
 }
 
 func (s *state) registerHttpCallOut(calloutID uint32, callback HttpCalloutCallBack) {

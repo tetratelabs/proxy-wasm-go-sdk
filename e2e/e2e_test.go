@@ -299,12 +299,12 @@ func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
-	require.NoError(t, err, stdErr.String())
+	require.NoError(t, err)
 
 	count := 10
 	for i := 0; i < count; i++ {
 		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err, stdErr.String())
+		require.NoError(t, err)
 		r.Body.Close()
 	}
 
