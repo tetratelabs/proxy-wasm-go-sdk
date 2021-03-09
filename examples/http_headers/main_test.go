@@ -16,12 +16,13 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
-	id := host.HttpFilterInitContext()
+	id := host.InitializeHttpContext()
 
 	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
-	host.HttpFilterPutRequestHeaders(id, hs) // call OnHttpRequestHeaders
+	host.CallOnRequestHeaders(id,
+		hs, false) // call OnHttpRequestHeaders
 
-	host.HttpFilterCompleteHttpStream(id)
+	host.CompleteHttpContext(id)
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)
@@ -36,11 +37,11 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
-	id := host.HttpFilterInitContext()
+	id := host.InitializeHttpContext()
 
 	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
-	host.HttpFilterPutResponseHeaders(id, hs) // call OnHttpRequestHeaders
-	host.HttpFilterCompleteHttpStream(id)     // call OnHttpStreamDone
+	host.CallOnResponseHeaders(id, hs, false) // call OnHttpResponseHeaders
+	host.CompleteHttpContext(id)              // call OnHttpStreamDone
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)

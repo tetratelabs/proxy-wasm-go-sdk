@@ -40,32 +40,24 @@ type HostEmulator interface {
 	GetQueueSize(queueID uint32) int
 
 	// network
-	NetworkFilterInitConnection() (contextID uint32)
-	NetworkFilterPutUpstreamData(contextID uint32, data []byte)
-	NetworkFilterPutDownstreamData(contextID uint32, data []byte)
-	NetworkFilterCloseUpstreamConnection(contextID uint32)
-	NetworkFilterCloseDownstreamConnection(contextID uint32)
-	NetworkFilterCompleteConnection(contextID uint32)
+	InitializeConnection() (contextID uint32)
+	CallOnUpstreamData(contextID uint32, data []byte)
+	CallOnDownstreamData(contextID uint32, data []byte)
+	CloseUpstreamConnection(contextID uint32)
+	CloseDownstreamConnection(contextID uint32)
+	CompleteConnection(contextID uint32)
 
 	// http
-	HttpFilterInitContext() (contextID uint32)
-	HttpFilterPutRequestHeaders(contextID uint32, headers types.Headers)
-	HttpFilterGetRequestHeaders(contextID uint32) (headers types.Headers)
-	HttpFilterPutRequestHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool)
-	HttpFilterPutResponseHeaders(contextID uint32, headers types.Headers)
-	HttpFilterGetResponseHeaders(contextID uint32) (headers types.Headers)
-	HttpFilterPutResponseHeadersEndOfStream(contextID uint32, headers types.Headers, endOfStream bool)
-	HttpFilterPutRequestTrailers(contextID uint32, trailers types.Trailers)
-	HttpFilterPutResponseTrailers(contextID uint32, trailers types.Trailers)
-	HttpFilterPutRequestBody(contextID uint32, body []byte)
-	HttpFilterPutRequestBodyEndOfStream(contextID uint32, body []byte, endOfStream bool)
-	HttpFilterGetRequestBody(contextID uint32) []byte
-	HttpFilterPutResponseBody(contextID uint32, body []byte)
-	HttpFilterPutResponseBodyEndOfStream(contextID uint32, body []byte, endOfStream bool)
-	HttpFilterGetResponseBody(contextID uint32) []byte
-	HttpFilterCompleteHttpStream(contextID uint32)
-	HttpFilterGetCurrentStreamAction(contextID uint32) types.Action
-	HttpFilterGetSentLocalResponse(contextID uint32) *LocalHttpResponse
+	InitializeHttpContext() (contextID uint32)
+	CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool)
+	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool)
+	CallOnResponseTrailers(contextID uint32, trailers types.Trailers)
+	CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool)
+	CallOnRequestTrailers(contextID uint32, trailers types.Trailers)
+	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool)
+	CompleteHttpContext(contextID uint32)
+	GetCurrentHttpStreamAction(contextID uint32) types.Action
+	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
 	CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers)
 }
 

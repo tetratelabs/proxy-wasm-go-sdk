@@ -31,15 +31,15 @@ func TestData(t *testing.T) {
 	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
 
 	host.StartVM() // set initial value
-	contextID := host.HttpFilterInitContext()
-	host.HttpFilterPutRequestHeaders(contextID, nil) // OnHttpRequestHeaders is called
+	contextID := host.InitializeHttpContext()
+	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 0)
 
 	assert.Equal(t, "shared value: 1", logs[len(logs)-1])
-	host.HttpFilterPutRequestHeaders(contextID, nil) // OnHttpRequestHeaders is called
-	host.HttpFilterPutRequestHeaders(contextID, nil) // OnHttpRequestHeaders is called
+	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
+	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
 
 	logs = host.GetLogs(types.LogLevelInfo)
 	assert.Equal(t, "shared value: 3", logs[len(logs)-1])

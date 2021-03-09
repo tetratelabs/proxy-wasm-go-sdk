@@ -15,11 +15,8 @@ func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	host := proxytest.NewHostEmulator(opt)
 	defer host.Done()
 
-	id := host.HttpFilterInitContext()
-	host.HttpFilterPutRequestBody(id, []byte(`{ "initial": "request body" }`))
-
-	res := host.HttpFilterGetRequestBody(id)
-	assert.Equal(t, `{ "another": "body" }`, string(res))
+	id := host.InitializeHttpContext()
+	host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), false)
 
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Greater(t, len(logs), 1)

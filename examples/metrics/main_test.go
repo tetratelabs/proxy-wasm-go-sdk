@@ -18,10 +18,10 @@ func TestMetric(t *testing.T) {
 
 	host.StartVM() // call OnVMStart: define metric
 
-	contextID := host.HttpFilterInitContext()
+	contextID := host.InitializeHttpContext()
 	exp := uint64(3)
 	for i := uint64(0); i < exp; i++ {
-		host.HttpFilterPutRequestHeaders(contextID, nil)
+		host.CallOnRequestHeaders(contextID, nil, false)
 	}
 
 	logs := host.GetLogs(types.LogLevelInfo)
