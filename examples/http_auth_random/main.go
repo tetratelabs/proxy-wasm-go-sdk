@@ -48,7 +48,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 
-	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, "", [][2]string{},
+	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, "", nil,
 		50000, httpCallResponseCallback); err != nil {
 		proxywasm.LogCriticalf("dipatch httpcall failed: %v", err)
 		return types.ActionContinue
@@ -92,7 +92,7 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 
 	msg := "access forbidden"
 	proxywasm.LogInfo(msg)
-	proxywasm.SendHttpResponse(403, [][2]string{
+	proxywasm.SendHttpResponse(403, types.Headers{
 		{"powered-by", "proxy-wasm-go-sdk!!"},
 	}, msg)
 }

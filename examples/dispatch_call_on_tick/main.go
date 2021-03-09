@@ -16,6 +16,7 @@ package main
 
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 const tickMilliseconds uint32 = 100
@@ -44,8 +45,10 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
 }
 
 func (ctx *rootContext) OnTick() {
-	hs := [][2]string{{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"}}
-	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", [][2]string{},
+	hs := types.Headers{
+		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
+	}
+	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", nil,
 		5000, callback); err != nil {
 		proxywasm.LogCriticalf("dispatch httpcall failed: %v", err)
 	}

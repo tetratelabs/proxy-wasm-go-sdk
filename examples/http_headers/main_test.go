@@ -18,7 +18,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	defer host.Done()
 	id := host.HttpFilterInitContext()
 
-	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
+	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
 	host.HttpFilterPutRequestHeaders(id, hs) // call OnHttpRequestHeaders
 
 	host.HttpFilterCompleteHttpStream(id)
@@ -38,7 +38,7 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	defer host.Done()
 	id := host.HttpFilterInitContext()
 
-	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
+	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
 	host.HttpFilterPutResponseHeaders(id, hs) // call OnHttpRequestHeaders
 	host.HttpFilterCompleteHttpStream(id)     // call OnHttpStreamDone
 
