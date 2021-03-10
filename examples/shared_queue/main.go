@@ -40,7 +40,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 var queueID uint32
 
 // override
-func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	qID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
 		panic(err.Error())
@@ -52,7 +52,7 @@ func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) bool {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
-	return true
+	return types.OnVMStartStatusOK
 }
 
 // override

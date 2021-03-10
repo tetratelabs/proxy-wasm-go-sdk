@@ -19,6 +19,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type configurationContext struct {
@@ -26,12 +28,12 @@ type configurationContext struct {
 	onVMStartCalled, onPluginStartCalled bool
 }
 
-func (c *configurationContext) OnVMStart(int) bool {
+func (c *configurationContext) OnVMStart(int) types.OnVMStartStatus {
 	c.onVMStartCalled = true
 	return true
 }
 
-func (c *configurationContext) OnPluginStart(int) bool {
+func (c *configurationContext) OnPluginStart(int) types.OnPluginStartStatus {
 	c.onPluginStartCalled = true
 	return true
 }

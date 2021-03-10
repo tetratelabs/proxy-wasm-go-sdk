@@ -36,12 +36,12 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 }
 
 // override
-func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
-	return true
+	return types.OnVMStartStatusOK
 }
 
 func (ctx *rootContext) OnTick() {

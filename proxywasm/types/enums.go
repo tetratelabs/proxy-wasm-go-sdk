@@ -110,3 +110,17 @@ const (
 	MetricTypeGauge     = 1
 	MetricTypeHistogram = 2
 )
+
+type OnPluginStartStatus bool
+
+const (
+	OnPluginStartStatusOK     = true
+	OnPluginStartStatusFailed = false
+)
+
+type OnVMStartStatus bool
+
+const (
+	OnVMStartStatusOK     = true
+	OnVMStartStatusFailed = false
+)
