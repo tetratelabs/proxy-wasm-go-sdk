@@ -21,8 +21,8 @@ import (
 type RootContext interface {
 	OnQueueReady(queueID uint32)
 	OnTick()
-	OnVMStart(vmConfigurationSize int) bool
-	OnPluginStart(pluginConfigurationSize int) bool
+	OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
+	OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus
 	OnVMDone() bool
 	OnLog()
 
@@ -65,10 +65,12 @@ var (
 )
 
 // impl RootContext
-func (*DefaultRootContext) OnQueueReady(uint32)                   {}
-func (*DefaultRootContext) OnTick()                               {}
-func (*DefaultRootContext) OnVMStart(int) bool                    { return true }
-func (*DefaultRootContext) OnPluginStart(int) bool                { return true }
+func (*DefaultRootContext) OnQueueReady(uint32)                 {}
+func (*DefaultRootContext) OnTick()                             {}
+func (*DefaultRootContext) OnVMStart(int) types.OnVMStartStatus { return types.OnVMStartStatusOK }
+func (*DefaultRootContext) OnPluginStart(int) types.OnPluginStartStatus {
+	return types.OnPluginStartStatusOK
+}
 func (*DefaultRootContext) OnVMDone() bool                        { return true }
 func (*DefaultRootContext) OnLog()                                {}
 func (*DefaultRootContext) NewStreamContext(uint32) StreamContext { return nil }

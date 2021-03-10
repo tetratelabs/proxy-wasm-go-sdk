@@ -37,9 +37,9 @@ func newRootContext(uint32) proxywasm.RootContext {
 }
 
 // override
-func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	counter = proxywasm.DefineCounterMetric(metricsName)
-	return true
+	return types.OnVMStartStatusOK
 }
 
 func (*metricRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {

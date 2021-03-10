@@ -18,6 +18,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
@@ -38,7 +40,7 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 }
 
 // override
-func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
@@ -46,7 +48,7 @@ func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) bool {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 
-	return true
+	return types.OnVMStartStatusOK
 }
 
 // override

@@ -37,9 +37,9 @@ type rootContext struct {
 	proxywasm.DefaultRootContext
 }
 
-func (ctx *rootContext) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	counter = proxywasm.DefineCounterMetric(connectionCounterName)
-	return true
+	return types.OnVMStartStatusOK
 }
 
 func (ctx *rootContext) NewStreamContext(contextID uint32) proxywasm.StreamContext {

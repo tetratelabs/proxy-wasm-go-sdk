@@ -16,6 +16,7 @@ package main
 
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func main() {
@@ -32,14 +33,14 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &rootContext{}
 }
 
-func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) bool {
+func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 	}
 
 	ctx.config = data
-	return true
+	return types.OnPluginStartStatusOK
 }
 
 func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {

@@ -42,11 +42,11 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 const sharedDataKey = "shared_data_key"
 
 // override
-func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) bool {
+func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
-	return true
+	return types.OnVMStartStatusOK
 }
 
 // override
