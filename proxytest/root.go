@@ -15,6 +15,7 @@
 package proxytest
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
@@ -409,4 +410,73 @@ func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailer
 // impl HostEmulator
 func (r *rootHostEmulator) FinishVM() {
 	proxywasm.ProxyOnDone(RootContextID)
+}
+
+func (r *rootHostEmulator) GetCounterMetric(name string) (uint64, error) {
+	id, ok := r.metricNameToID[name]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	t, ok := r.metricIDToType[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	if t != types.MetricTypeCounter {
+		return 0, fmt.Errorf(
+			"%s is not %v metric type but %v", name, types.MetricTypeCounter, t)
+	}
+
+	v, ok := r.metricIDToValue[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+	return v, nil
+}
+
+func (r *rootHostEmulator) GetGaugeMetric(name string) (uint64, error) {
+	id, ok := r.metricNameToID[name]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	t, ok := r.metricIDToType[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	if t != types.MetricTypeGauge {
+		return 0, fmt.Errorf(
+			"%s is not %v metric type but %v", name, types.MetricTypeGauge, t)
+	}
+
+	v, ok := r.metricIDToValue[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+	return v, nil
+}
+
+func (r *rootHostEmulator) GetHistogramMetric(name string) (uint64, error) {
+	id, ok := r.metricNameToID[name]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	t, ok := r.metricIDToType[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+
+	if t != types.MetricTypeHistogram {
+		return 0, fmt.Errorf(
+			"%s is not %v metric type but %v", name, types.MetricTypeHistogram, t)
+	}
+
+	v, ok := r.metricIDToValue[id]
+	if !ok {
+		return 0, fmt.Errorf("%s not found", name)
+	}
+	return v, nil
 }

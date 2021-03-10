@@ -30,10 +30,11 @@ type HostEmulator interface {
 	StartVM()
 	StartPlugin()
 	FinishVM()
-
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
 	PutCalloutResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
-
+	GetCounterMetric(name string) (uint64, error)
+	GetGaugeMetric(name string) (uint64, error)
+	GetHistogramMetric(name string) (uint64, error)
 	GetLogs(level types.LogLevel) []string
 	GetTickPeriod() uint32
 	Tick()

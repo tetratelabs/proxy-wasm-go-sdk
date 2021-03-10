@@ -29,6 +29,7 @@ func TestMetric(t *testing.T) {
 
 	assert.Equal(t, "incremented", logs[len(logs)-1])
 
-	value := counter.Get()
+	value, err := host.GetCounterMetric(metricsName)
+	require.NoError(t, err)
 	assert.Equal(t, uint64(3), value)
 }
