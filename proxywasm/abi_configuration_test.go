@@ -17,10 +17,10 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type configurationContext struct {

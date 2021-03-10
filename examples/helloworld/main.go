@@ -18,9 +18,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 const tickMilliseconds uint32 = 1000
