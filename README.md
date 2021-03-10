@@ -20,10 +20,10 @@ var counter proxywasm.MetricCounter
 
 type metricRootContext struct { proxywasm.DefaultRootContext }
 
-func (ctx *metricRootContext) OnVMStart(int) bool {
+func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
 	// initialize the metric
 	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
-	return true
+	return types.OnVMStartStatusOK
 }
 
 type metricHttpContext struct { proxywasm.DefaultHttpContext }
