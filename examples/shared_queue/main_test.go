@@ -29,29 +29,38 @@ func TestQueue(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // register the queue,set tick period
+	// Call OnVMStart -> register the queue, and set tick period.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
-	assert.Equal(t, logs[0], fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
+	assert.Contains(t, logs, fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
+
+	// Check tick period.
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
+	// Initialize http context.
 	contextID := host.InitializeHttpContext()
-	host.CallOnRequestHeaders(contextID, nil, false) // call enqueue
 
+	// Call OnRequestHeaders
+	action := host.CallOnRequestHeaders(contextID, nil, false)
+	require.Equal(t, types.ActionContinue, action)
+
+	// Check the number of items in the queue.
 	assert.Equal(t, 4, host.GetQueueSize(queueID))
 
+	// Call OnTick.
 	for i := 0; i < 4; i++ {
 		host.Tick()
 	}
 
+	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 5)
-
-	assert.Equal(t, "dequeued data: hello", logs[len(logs)-4])
-	assert.Equal(t, "dequeued data: world", logs[len(logs)-3])
-	assert.Equal(t, "dequeued data: hello", logs[len(logs)-2])
-	assert.Equal(t, "dequeued data: proxy-wasm", logs[len(logs)-1])
+	assert.Contains(t, logs, "dequeued data: hello")
+	assert.Contains(t, logs, "dequeued data: world")
+	assert.Contains(t, logs, "dequeued data: hello")
+	assert.Contains(t, logs, "dequeued data: proxy-wasm")
 }

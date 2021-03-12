@@ -29,7 +29,8 @@ func main() {
 }
 
 type helloWorld struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 	contextID uint32
 }
@@ -38,7 +39,7 @@ func newHelloWorld(contextID uint32) proxywasm.RootContext {
 	return &helloWorld{contextID: contextID}
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
@@ -50,8 +51,9 @@ func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus 
 	return types.OnVMStartStatusOK
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *helloWorld) OnTick() {
 	t := time.Now().UnixNano()
 	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
+	proxywasm.LogInfof("OnTick called")
 }

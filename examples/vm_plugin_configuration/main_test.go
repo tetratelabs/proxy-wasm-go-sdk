@@ -15,7 +15,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,34 +26,39 @@ import (
 )
 
 func TestContext_OnPluginStart(t *testing.T) {
-	pluginConfigData := `{"name": "tinygo plugin configuration"}`
-
+	// Setup configurations.
+	pluginConfigData := `tinygo plugin configuration`
 	opt := proxytest.NewEmulatorOption().
 		WithPluginConfiguration([]byte(pluginConfigData)).
 		WithNewRootContext(newRootContext)
+
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartPlugin() // invoke OnPluginStart
+	// Call OnPluginStart.
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
-	msg := logs[len(logs)-1]
-	assert.True(t, strings.Contains(msg, pluginConfigData))
+	assert.Contains(t, logs, "plugin config: "+pluginConfigData)
 }
 
 func TestContext_OnVMStart(t *testing.T) {
-	vmConfigData := `{"name": "tinygo vm configuration"}`
+	// Setup configurations.
+	vmConfigData := `tinygo vm configuration`
 	opt := proxytest.NewEmulatorOption().
 		WithVMConfiguration([]byte(vmConfigData)).
 		WithNewRootContext(newRootContext)
+
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // invoke OnVMStart
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
-	msg := logs[len(logs)-1]
-	assert.True(t, strings.Contains(msg, vmConfigData))
+	assert.Contains(t, logs, "vm config: "+vmConfigData)
 }

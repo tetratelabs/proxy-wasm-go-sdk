@@ -28,22 +28,26 @@ func main() {
 }
 
 type rootContext struct {
+	// You'd better embed the default context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
 func newRootContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
+// Override DefaultRootContext.
 func (*rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &httpAuthRandom{contextID: contextID}
 }
 
 type httpAuthRandom struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 	contextID uint32
 }
 
-// override default
+// Override DefaultHttpContext.
 func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {

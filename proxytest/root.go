@@ -337,7 +337,9 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
-	if start >= len(buf) {
+	if len(buf) == 0 {
+		return types.StatusNotFound
+	} else if start >= len(buf) {
 		log.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
 		return types.StatusBadArgument
 	}
@@ -381,17 +383,17 @@ func (r *rootHostEmulator) GetCalloutAttributesFromContext(contextID uint32) []H
 }
 
 // impl HostEmulator
-func (r *rootHostEmulator) StartVM() {
-	proxywasm.ProxyOnVMStart(RootContextID, len(r.vmConfiguration))
+func (r *rootHostEmulator) StartVM() types.OnVMStartStatus {
+	return proxywasm.ProxyOnVMStart(RootContextID, len(r.vmConfiguration))
 }
 
 // impl HostEmulator
-func (r *rootHostEmulator) StartPlugin() {
-	proxywasm.ProxyOnConfigure(RootContextID, len(r.pluginConfiguration))
+func (r *rootHostEmulator) StartPlugin() types.OnPluginStartStatus {
+	return proxywasm.ProxyOnConfigure(RootContextID, len(r.pluginConfiguration))
 }
 
 // impl HostEmulator
-func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailers [][2]string, body []byte) {
+func (r *rootHostEmulator) CallOnHttpCallResponse(calloutID uint32, headers, trailers [][2]string, body []byte) {
 	r.httpCalloutResponse[calloutID] = struct {
 		headers, trailers [][2]string
 		body              []byte
@@ -408,8 +410,8 @@ func (r *rootHostEmulator) PutCalloutResponse(calloutID uint32, headers, trailer
 }
 
 // impl HostEmulator
-func (r *rootHostEmulator) FinishVM() {
-	proxywasm.ProxyOnDone(RootContextID)
+func (r *rootHostEmulator) FinishVM() bool {
+	return proxywasm.ProxyOnDone(RootContextID)
 }
 
 func (r *rootHostEmulator) GetCounterMetric(name string) (uint64, error) {

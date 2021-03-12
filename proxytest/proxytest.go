@@ -27,11 +27,11 @@ type HostEmulator interface {
 	Done()
 
 	// Root
-	StartVM()
-	StartPlugin()
-	FinishVM()
+	StartVM() types.OnVMStartStatus
+	StartPlugin() types.OnPluginStartStatus
+	FinishVM() bool
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
-	PutCalloutResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
+	CallOnHttpCallResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
 	GetCounterMetric(name string) (uint64, error)
 	GetGaugeMetric(name string) (uint64, error)
 	GetHistogramMetric(name string) (uint64, error)
@@ -41,21 +41,21 @@ type HostEmulator interface {
 	GetQueueSize(queueID uint32) int
 
 	// network
-	InitializeConnection() (contextID uint32)
-	CallOnUpstreamData(contextID uint32, data []byte)
-	CallOnDownstreamData(contextID uint32, data []byte)
+	InitializeConnection() (contextID uint32, action types.Action)
+	CallOnUpstreamData(contextID uint32, data []byte) types.Action
+	CallOnDownstreamData(contextID uint32, data []byte) types.Action
 	CloseUpstreamConnection(contextID uint32)
 	CloseDownstreamConnection(contextID uint32)
 	CompleteConnection(contextID uint32)
 
 	// http
 	InitializeHttpContext() (contextID uint32)
-	CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool)
-	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool)
-	CallOnResponseTrailers(contextID uint32, trailers types.Trailers)
-	CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool)
-	CallOnRequestTrailers(contextID uint32, trailers types.Trailers)
-	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool)
+	CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
+	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool) types.Action
+	CallOnResponseTrailers(contextID uint32, trailers types.Trailers) types.Action
+	CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
+	CallOnRequestTrailers(contextID uint32, trailers types.Trailers) types.Action
+	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool) types.Action
 	CompleteHttpContext(contextID uint32)
 	GetCurrentHttpStreamAction(contextID uint32) types.Action
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse

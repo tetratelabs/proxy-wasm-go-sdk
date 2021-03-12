@@ -14,30 +14,36 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
 	defer host.Done()
 
+	// Initialize context.
 	contextID := host.InitializeHttpContext()
-	host.CallOnRequestHeaders(contextID,
-		types.Headers{{"key", "value"}}, false) // OnHttpRequestHeaders called
 
+	// Call OnHttpRequestHeaders.
+	action := host.CallOnRequestHeaders(contextID,
+		types.Headers{{"key", "value"}}, false)
+	require.Equal(t, types.ActionPause, action)
+
+	// Verify DispatchHttpCall is called.
 	attrs := host.GetCalloutAttributesFromContext(contextID)
-	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
-
+	require.Equal(t, len(attrs), 1)
 	require.Equal(t, "httpbin", attrs[0].Upstream)
+	// Check if the current action is pause.
 	require.Equal(t, types.ActionPause,
-		host.GetCurrentHttpStreamAction(contextID)) // check if the current action is pause
+		host.GetCurrentHttpStreamAction(contextID))
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.GreaterOrEqual(t, len(logs), 2)
-
-	assert.Equal(t, "http call dispatched to "+clusterName, logs[len(logs)-1])
-	assert.Equal(t, "request header: key: value", logs[len(logs)-2])
+	assert.Contains(t, logs, "http call dispatched to "+clusterName)
+	assert.Contains(t, logs, "request header: key: value")
 }
 
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
 	defer host.Done()
 
 	// http://httpbin.org/uuid
@@ -48,39 +54,44 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 		{"Access-Control-Allow-Origin", "*"}, {"Access-Control-Allow-Credentials", "true"},
 	}
 
-	// access granted body
+	// Access granted case -> Local response must not be sent.
 	contextID := host.InitializeHttpContext()
-	host.CallOnRequestHeaders(contextID, nil,
-		false) // OnHttpRequestHeaders called
-
-	body := []byte(`{"uuid": "7b10a67a-1c67-4199-835b-cbefcd4a63d4"}`)
+	// Call OnHttpRequestHeaders.
+	action := host.CallOnRequestHeaders(contextID, nil,
+		false)
+	require.Equal(t, types.ActionPause, action)
+	// Verify DispatchHttpCall is called.
 	attrs := host.GetCalloutAttributesFromContext(contextID)
-	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
-
-	host.PutCalloutResponse(attrs[0].CalloutID, headers, nil, body)
+	require.Equal(t, len(attrs), 1)
+	// Call OnHttpCallResponse.
+	body := []byte(`{"uuid": "7b10a67a-1c67-4199-835b-cbefcd4a63d4"}`)
+	host.CallOnHttpCallResponse(attrs[0].CalloutID, headers, nil, body)
+	// Check local response.
 	assert.Nil(t, host.GetSentLocalResponse(contextID))
-
+	// CHeck Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 1)
-	assert.Equal(t, "access granted", logs[len(logs)-1])
+	assert.Contains(t, logs, "access granted")
 
-	// access denied body
+	// Access denied case -> Local response must be sent.
 	contextID = host.InitializeHttpContext()
-	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders called
-
-	body = []byte(`{"uuid": "aaaaaaaa-1c67-4199-835b-cbefcd4a63d4"}`)
+	// Call OnHttpRequestHeaders.
+	action = host.CallOnRequestHeaders(contextID, nil, false)
+	require.Equal(t, types.ActionPause, action)
+	// Verify DispatchHttpCall is called.
 	attrs = host.GetCalloutAttributesFromContext(contextID)
-	require.Equal(t, len(attrs), 1) // verify DispatchHttpCall is called
-
-	host.PutCalloutResponse(attrs[0].CalloutID, headers, nil, body)
-	localResponse := host.GetSentLocalResponse(contextID) // check local responses
+	require.Equal(t, len(attrs), 1)
+	// Call OnHttpCallResponse.
+	body = []byte(`{"uuid": "aaaaaaaa-1c67-4199-835b-cbefcd4a63d4"}`)
+	host.CallOnHttpCallResponse(attrs[0].CalloutID, headers, nil, body)
+	// Check local response.
+	localResponse := host.GetSentLocalResponse(contextID)
 	assert.NotNil(t, localResponse)
-	logs = host.GetLogs(types.LogLevelInfo)
-	assert.Equal(t, "access forbidden", logs[len(logs)-1])
-
 	assert.Equal(t, uint32(403), localResponse.StatusCode)
 	assert.Equal(t, []byte("access forbidden"), localResponse.Data)
 	require.Len(t, localResponse.Headers, 1)
 	assert.Equal(t, "powered-by", localResponse.Headers[0][0])
 	assert.Equal(t, "proxy-wasm-go-sdk!!", localResponse.Headers[0][1])
+	// Check Envoy logs.
+	logs = host.GetLogs(types.LogLevelInfo)
+	assert.Contains(t, logs, "access forbidden")
 }

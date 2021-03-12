@@ -114,13 +114,13 @@ const (
 type OnPluginStartStatus bool
 
 const (
-	OnPluginStartStatusOK     = true
-	OnPluginStartStatusFailed = false
+	OnPluginStartStatusOK     OnPluginStartStatus = true
+	OnPluginStartStatusFailed OnPluginStartStatus = false
 )
 
 type OnVMStartStatus bool
 
 const (
-	OnVMStartStatusOK     = true
-	OnVMStartStatusFailed = false
+	OnVMStartStatusOK     OnVMStartStatus = true
+	OnVMStartStatusFailed OnVMStartStatus = false
 )

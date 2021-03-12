@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,23 +15,23 @@ func TestRootContext_OnTick(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // call OnVMStart
-
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	for i := 1; i < 10; i++ {
 		host.Tick() // call OnTick
 		attrs := host.GetCalloutAttributesFromContext(proxytest.RootContextID)
-		require.Equal(t, len(attrs), i)                            // verify DispatchHttpCall is called
-		host.PutCalloutResponse(attrs[0].CalloutID, nil, nil, nil) // receive callout response
-
+		// Verify DispatchHttpCall is called
+		require.Equal(t, len(attrs), i)
+		// Receive callout response.
+		host.CallOnHttpCallResponse(attrs[0].CalloutID, nil, nil, nil)
+		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		require.Greater(t, len(logs), 0)
-		msg := logs[len(logs)-1]
-
-		assert.True(t, strings.Contains(msg, fmt.Sprintf("called! %d", i)))
+		assert.Contains(t, logs, fmt.Sprintf("called! %d", i))
 	}
 
 }
@@ -41,8 +40,10 @@ func TestRootContext_OnVMStart(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // call OnVMStart
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

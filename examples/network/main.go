@@ -33,29 +33,35 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 }
 
 type rootContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
+// Override DefaultRootContext.
 func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	counter = proxywasm.DefineCounterMetric(connectionCounterName)
 	return types.OnVMStartStatusOK
 }
 
+// Override DefaultRootContext.
 func (ctx *rootContext) NewStreamContext(contextID uint32) proxywasm.StreamContext {
 	return &networkContext{}
 }
 
 type networkContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default stream context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultStreamContext
 }
 
+// Override DefaultStreamContext.
 func (ctx *networkContext) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
+// Override DefaultStreamContext.
 func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -71,11 +77,13 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 	return types.ActionContinue
 }
 
+// Override DefaultStreamContext.
 func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }
 
+// Override DefaultStreamContext.
 func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -98,6 +106,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	return types.ActionContinue
 }
 
+// Override DefaultStreamContext.
 func (ctx *networkContext) OnStreamDone() {
 	counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")

@@ -25,12 +25,14 @@ func main() {
 
 type (
 	sharedDataRootContext struct {
-		// you must embed the default context so that you need not to reimplement all the methods by yourself
+		// You'd better embed the default root context
+		// so that you don't need to reimplement all the methods by yourself.
 		proxywasm.DefaultRootContext
 	}
 
 	sharedDataHttpContext struct {
-		// you must embed the default context so that you need not to reimplement all the methods by yourself
+		// You'd better embed the default http context
+		// so that you don't need to reimplement all the methods by yourself.
 		proxywasm.DefaultHttpContext
 	}
 )
@@ -41,7 +43,7 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 
 const sharedDataKey = "shared_data_key"
 
-// override
+// Override DefaultRootContext.
 func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
@@ -49,12 +51,12 @@ func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) types.OnVMS
 	return types.OnVMStartStatusOK
 }
 
-// override
+// Override DefaultRootContext.
 func (*sharedDataRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &sharedDataHttpContext{}
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {

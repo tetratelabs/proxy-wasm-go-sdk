@@ -14,21 +14,26 @@ func TestMetric(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // call OnVMStart: define metric
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
+	// Initialize http context.
 	contextID := host.InitializeHttpContext()
 	exp := uint64(3)
 	for i := uint64(0); i < exp; i++ {
-		host.CallOnRequestHeaders(contextID, nil, false)
+		// Call OnRequestHeaders
+		action := host.CallOnRequestHeaders(contextID, nil, false)
+		assert.Equal(t, types.ActionContinue, action)
 	}
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
+	assert.Contains(t, logs, "incremented")
 
-	assert.Equal(t, "incremented", logs[len(logs)-1])
-
+	// Check metrics.
 	value, err := host.GetCounterMetric(metricsName)
 	require.NoError(t, err)
 	assert.Equal(t, uint64(3), value)

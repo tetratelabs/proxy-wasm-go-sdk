@@ -15,7 +15,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,23 +26,26 @@ import (
 )
 
 func TestContext_OnPluginStart(t *testing.T) {
-	pluginConfigData := `{"name": "tinygo plugin configuration"}`
-
+	// Setup plugin configuration.
+	pluginConfigData := `tinygo plugin configuration`
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext).
 		WithPluginConfiguration([]byte(pluginConfigData))
+
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartPlugin() // invoke OnPluginStart
+	// Call OnPluginStart.
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
+	// Create http context.
 	host.InitializeHttpContext()
 
+	// Check Envoy logs.
 	errLogs := host.GetLogs(types.LogLevelError)
 	require.Len(t, errLogs, 0)
 
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
-	msg := logs[len(logs)-1]
-	assert.True(t, strings.Contains(msg, pluginConfigData))
+	assert.Contains(t, logs, "read plugin config from root context: "+pluginConfigData)
 }
