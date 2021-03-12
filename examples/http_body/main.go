@@ -24,22 +24,26 @@ func main() {
 }
 
 type rootContext struct {
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
 func newContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
+// Override DefaultRootContext.
 func (*rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &httpBody{contextID: contextID}
 }
 
 type httpBody struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 	contextID uint32
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *httpBody) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("body size: %d", bodySize)
 	if bodySize != 0 {

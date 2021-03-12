@@ -26,7 +26,8 @@ func main() {
 }
 
 type rootContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 	contextID uint32
 }
@@ -35,15 +36,17 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &rootContext{contextID: contextID}
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
+		return types.OnVMStartStatusFailed
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
 	return types.OnVMStartStatusOK
 }
 
+// Override DefaultRootContext.
 func (ctx *rootContext) OnTick() {
 	hs := types.Headers{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},

@@ -70,7 +70,7 @@ func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.Bu
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) CallOnUpstreamData(contextID uint32, data []byte) {
+func (n *networkHostEmulator) CallOnUpstreamData(contextID uint32, data []byte) types.Action {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -83,16 +83,16 @@ func (n *networkHostEmulator) CallOnUpstreamData(contextID uint32, data []byte) 
 	action := proxywasm.ProxyOnUpstreamData(contextID, len(stream.upstream), false)
 	switch action {
 	case types.ActionPause:
-		return
 	case types.ActionContinue:
 		stream.upstream = []byte{}
 	default:
 		log.Fatalf("invalid action type: %d", action)
 	}
+	return action
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) CallOnDownstreamData(contextID uint32, data []byte) {
+func (n *networkHostEmulator) CallOnDownstreamData(contextID uint32, data []byte) types.Action {
 	stream, ok := n.streamStates[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -104,19 +104,19 @@ func (n *networkHostEmulator) CallOnDownstreamData(contextID uint32, data []byte
 	action := proxywasm.ProxyOnDownstreamData(contextID, len(stream.downstream), false)
 	switch action {
 	case types.ActionPause:
-		return
 	case types.ActionContinue:
 		stream.downstream = []byte{}
 	default:
 		log.Fatalf("invalid action type: %d", action)
 	}
+	return action
 }
 
 // impl HostEmulator
-func (n *networkHostEmulator) InitializeConnection() (contextID uint32) {
+func (n *networkHostEmulator) InitializeConnection() (contextID uint32, action types.Action) {
 	contextID = getNextContextID()
 	proxywasm.ProxyOnContextCreate(contextID, RootContextID)
-	proxywasm.ProxyOnNewConnection(contextID)
+	action = proxywasm.ProxyOnNewConnection(contextID)
 	n.streamStates[contextID] = &streamState{}
 	return
 }

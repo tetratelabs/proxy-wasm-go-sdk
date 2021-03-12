@@ -24,7 +24,8 @@ func main() {
 }
 
 type context struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
@@ -32,23 +33,24 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &context{}
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx context) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
 	}
 
-	proxywasm.LogInfof("vm config: %s\n", string(data))
+	proxywasm.LogInfof("vm config: %s", string(data))
 	return types.OnVMStartStatusOK
 }
 
+// Override DefaultRootContext.
 func (ctx context) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 	}
 
-	proxywasm.LogInfof("plugin config: %s\n", string(data))
+	proxywasm.LogInfof("plugin config: %s", string(data))
 	return types.OnPluginStartStatusOK
 }

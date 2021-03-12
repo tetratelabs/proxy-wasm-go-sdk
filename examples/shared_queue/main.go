@@ -29,7 +29,8 @@ func main() {
 }
 
 type queueRootContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
@@ -39,7 +40,7 @@ func newRootContext(uint32) proxywasm.RootContext {
 
 var queueID uint32
 
-// override
+// Override DefaultRootContext.
 func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	qID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
@@ -55,9 +56,9 @@ func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartS
 	return types.OnVMStartStatusOK
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *queueRootContext) OnTick() {
-	// TODO: use OnQueueReady after the bug fixed is available in istio 1.8.1
+	// TODO: use OnQueueReady after the bug fixed is available in istio 1.8.1.
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:
@@ -69,17 +70,18 @@ func (ctx *queueRootContext) OnTick() {
 	}
 }
 
-// override
+// Override DefaultRootContext.
 func (*queueRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &queueHttpContext{}
 }
 
 type queueHttpContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default http context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *queueHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
 		if err := proxywasm.EnqueueSharedQueue(queueID, []byte(msg)); err != nil {

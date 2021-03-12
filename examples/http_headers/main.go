@@ -24,22 +24,26 @@ func main() {
 }
 
 type rootContext struct {
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
 func newRootContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
+// Override DefaultRootContext.
 func (*rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &httpHeaders{contextID: contextID}
 }
 
 type httpHeaders struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 	contextID uint32
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
@@ -52,7 +56,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	return types.ActionContinue
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpResponseHeaders()
 	if err != nil {
@@ -65,7 +69,7 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) 
 	return types.ActionContinue
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpStreamDone() {
 	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

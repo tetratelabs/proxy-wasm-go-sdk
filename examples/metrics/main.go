@@ -28,7 +28,8 @@ var counter proxywasm.MetricCounter
 const metricsName = "proxy_wasm_go.request_counter"
 
 type metricRootContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
@@ -36,22 +37,24 @@ func newRootContext(uint32) proxywasm.RootContext {
 	return &metricRootContext{}
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	counter = proxywasm.DefineCounterMetric(metricsName)
 	return types.OnVMStartStatusOK
 }
 
+// Override DefaultRootContext.
 func (*metricRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	return &metricHttpContext{}
 }
 
 type metricHttpContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default http context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 }
 
-// override
+// Override DefaultHttpContext.
 func (ctx *metricHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	prev := counter.Get()
 	proxywasm.LogInfof("previous value of %s: %d", metricsName, prev)

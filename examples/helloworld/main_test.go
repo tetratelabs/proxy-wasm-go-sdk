@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,30 +14,33 @@ func TestHelloWorld_OnTick(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newHelloWorld)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // call OnVMStart
-
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
-	host.Tick() // call OnTick
 
+	// Call OnTick.
+	host.Tick()
+
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
-	msg := logs[len(logs)-1]
-
-	assert.True(t, strings.Contains(msg, "It's"))
+	assert.Contains(t, logs, "OnTick called")
 }
 
 func TestHelloWorld_OnVMStart(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newHelloWorld)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // call OnVMStart
+	// Call OnVMStart.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	msg := logs[len(logs)-1]
-
-	assert.True(t, strings.Contains(msg, "proxy_on_vm_start from Go!"))
+	assert.Contains(t, logs, "proxy_on_vm_start from Go!")
 	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

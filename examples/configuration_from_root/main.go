@@ -24,7 +24,8 @@ func main() {
 }
 
 type rootContext struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 	config []byte
 }
@@ -33,6 +34,7 @@ func newRootContext(contextID uint32) proxywasm.RootContext {
 	return &rootContext{}
 }
 
+// Override DefaultRootContext.
 func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
@@ -43,14 +45,14 @@ func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPlugi
 	return types.OnPluginStartStatusOK
 }
 
+// Override DefaultRootContext.
 func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
 	ret := &httpContext{config: ctx.config}
-	proxywasm.LogInfof("read plugin config from root context: %s\n", string(ret.config))
+	proxywasm.LogInfof("read plugin config from root context: %s", string(ret.config))
 	return ret
 }
 
 type httpContext struct {
 	proxywasm.DefaultHttpContext
-
 	config []byte
 }

@@ -28,19 +28,28 @@ func TestData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
 	host := proxytest.NewHostEmulator(opt)
-	defer host.Done() // release the host emulation lock so that other test cases can insert their own host emulation
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
 
-	host.StartVM() // set initial value
+	// Call OnVMStart -> set initial value.
+	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	// Initialize http context.
 	contextID := host.InitializeHttpContext()
-	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
+	// Call OnHttpRequestHeaders.
+	action := host.CallOnRequestHeaders(contextID, nil, false)
+	require.Equal(t, types.ActionContinue, action)
 
+	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 0)
+	assert.Contains(t, logs, "shared value: 1")
 
-	assert.Equal(t, "shared value: 1", logs[len(logs)-1])
-	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
-	host.CallOnRequestHeaders(contextID, nil, false) // OnHttpRequestHeaders is called
+	// Call OnHttpRequestHeaders again.
+	action = host.CallOnRequestHeaders(contextID, nil, false)
+	require.Equal(t, types.ActionContinue, action)
+	action = host.CallOnRequestHeaders(contextID, nil, false)
+	require.Equal(t, types.ActionContinue, action)
 
+	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)
-	assert.Equal(t, "shared value: 3", logs[len(logs)-1])
+	assert.Contains(t, logs, "shared value: 3")
 }

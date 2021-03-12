@@ -13,15 +13,20 @@ func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newContext)
 	host := proxytest.NewHostEmulator(opt)
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
 	defer host.Done()
 
+	// Create http context.
 	id := host.InitializeHttpContext()
-	host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), false)
+
+	// Call OnRequestBody.
+	action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), false)
+	require.Equal(t, types.ActionContinue, action)
 
 	logs := host.GetLogs(types.LogLevelInfo)
-	require.Greater(t, len(logs), 1)
 
-	assert.Equal(t, "on http request body finished", logs[len(logs)-1])
-	assert.Equal(t, `initial request body: { "initial": "request body" }`, logs[len(logs)-2])
-	assert.Equal(t, "body size: 29", logs[len(logs)-3])
+	// Check Envoy logs.
+	assert.Contains(t, logs, "on http request body finished")
+	assert.Contains(t, logs, `initial request body: { "initial": "request body" }`)
+	assert.Contains(t, logs, "body size: 29")
 }

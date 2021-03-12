@@ -23,7 +23,8 @@ func main() {
 }
 
 type accessLogger struct {
-	// you must embed the default context so that you need not to reimplement all the methods by yourself
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
@@ -31,7 +32,7 @@ func newAccessLogger(contextID uint32) proxywasm.RootContext {
 	return &accessLogger{}
 }
 
-// override
+// Override DefaultRootContext.
 func (ctx *accessLogger) OnLog() {
 	hdr, err := proxywasm.GetHttpRequestHeader(":path")
 	if err != nil {
