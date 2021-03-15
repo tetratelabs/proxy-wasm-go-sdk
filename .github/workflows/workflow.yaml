@@ -78,7 +78,7 @@ jobs:
   e2e-tests-istio:
     strategy:
       matrix:
-        istio-version: [ 1.8.1, 1.8.2, 1.8.3, 1.9.0, 1.9.1 ]
+        istio-version: [ 1.8.1, 1.8.2, 1.8.3, 1.8.4, 1.9.0, 1.9.1 ]
     name: e2e tests on Istio
     needs: build-examples
     runs-on: ubuntu-latest

@@ -46,9 +46,8 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main |  0.2.0|   1.8.x | 1.17.x |
-| v0.0.15 |  0.2.0|   1.8.1, 1.8.2, 1.8.3, 1.9.0, 1.9.1 | 1.17.0, 1.17.1 |
-| v0.0.14 |  0.2.0|   1.8.1 | 1.17.0 |
+| main |  0.2.0|   1.8.1+ | 1.17.x |
+| v0.1.0 |  0.2.0|   1.8.{1,2,3,4}, 1.9.{0,1} | 1.17.{0,1} |
 
 
 ## run examples
