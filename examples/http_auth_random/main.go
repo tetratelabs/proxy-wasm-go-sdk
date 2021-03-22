@@ -100,9 +100,12 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 		return
 	}
 
-	msg := "access forbidden"
-	proxywasm.LogInfo(msg)
-	proxywasm.SendHttpResponse(403, types.Headers{
+	body := "access forbidden"
+	proxywasm.LogInfo(body)
+	if err := proxywasm.SendHttpResponse(403, types.Headers{
 		{"powered-by", "proxy-wasm-go-sdk!!"},
-	}, msg)
+	}, []byte(body)); err != nil {
+		proxywasm.LogErrorf("failed to send local response: %v", err)
+		proxywasm.ResumeHttpRequest()
+	}
 }

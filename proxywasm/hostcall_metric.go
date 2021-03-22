@@ -33,6 +33,7 @@ func DefineCounterMetric(name string) MetricCounter {
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeCounter, ptr, len(name), &id)
 	if err := types.StatusToError(st); err != nil {
 		LogCriticalf("define metric of name %s: %v", name, types.StatusToError(st))
+		panic("") // abort
 	}
 	return MetricCounter(id)
 }
