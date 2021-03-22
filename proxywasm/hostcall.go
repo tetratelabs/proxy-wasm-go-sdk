@@ -19,8 +19,6 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-// wrappers on the rawhostcall package
-
 func GetPluginConfiguration(size int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, size)
 	return ret, types.StatusToError(st)
@@ -31,12 +29,15 @@ func GetVMConfiguration(size int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SendHttpResponse(statusCode uint32, headers types.Headers, body string) types.Status {
+func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
 	shs := SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
-	return rawhostcall.ProxySendLocalResponse(statusCode, nil, 0,
-		stringBytePtr(body), len(body), hp, hl, -1,
+	return types.StatusToError(
+		rawhostcall.ProxySendLocalResponse(
+			statusCode, nil, 0,
+			&body[0], len(body), hp, hl, -1,
+		),
 	)
 }
 
