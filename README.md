@@ -4,8 +4,8 @@
 
 __This project is in its early stage, and the API is likely to change and not stable.__
 
-The Go sdk for
- [proxy-wasm](https://github.com/proxy-wasm/spec), enabling developers to write Envoy extensions in Go.
+The Go SDK for
+ [Proxy-Wasm](https://github.com/proxy-wasm/spec), enabling developers to write Envoy extensions in Go.
 
 proxy-wasm-go-sdk is powered by [TinyGo](https://tinygo.org/) and does not support the official Go compiler.
 
@@ -21,7 +21,7 @@ var counter proxywasm.MetricCounter
 type metricRootContext struct { proxywasm.DefaultRootContext }
 
 func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
-	// initialize the metric
+	// Initialize the metric.
 	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
 	return types.OnVMStartStatusOK
 }
@@ -29,18 +29,19 @@ func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
 type metricHttpContext struct { proxywasm.DefaultHttpContext }
 
 func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
-	// increment the request counter when we receive request headers
+	// Increment the request counter when we receive request headers.
 	counter.Increment(1)
 	return types.ActionContinue
 }
 ```
 
-### requirements
+## Requirements
 
 proxy-wasm-go-sdk depends on TinyGo's [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target
 which is introduced in [v0.16.0](https://github.com/tinygo-org/tinygo/releases/tag/v0.16.0).
 
 Please follow the official instruction [here](https://tinygo.org/getting-started/).
+
 
 ### compatible ABI / Envoy builds (verified on CI)
 
@@ -50,7 +51,7 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 | v0.1.0 |  0.2.0|   1.8.{1,2,3,4}, 1.9.{0,1} | 1.17.{0,1} |
 
 
-## run examples
+## Run examples
 
 build:
 
@@ -65,10 +66,10 @@ make build.example.docker name=helloworld # in docker
 run:
 
 ```bash
-make run name=helloworld
+make run name=helloworld # requires a locally installed Envoy binary
 ``` 
 
-## sdk development
+## SDK development
 
 ```bash
 make test # run local tests without running envoy processes
@@ -80,14 +81,14 @@ make test.e2e # run e2e tests
 make test.e2e.single name=helloworld # run e2e tests
 ```
 
-## limitations and considerations
+## Limitations and Considerations
 
 - Some of existing libraries are not available (importable but runtime panic / non-importable)
     - There are several reasons for this:
         1. TinyGo's WASI target does not support some of syscall: For example, we cannot import `crypto/rand` package.
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
         3. [proxy-wasm-cpp-host](https://github.com/proxy-wasm/proxy-wasm-cpp-host) has not supported some of WASI APIs yet 
-        (see the [supported functions](https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/master/include/proxy-wasm/exports.h#L134-L147)).
+        (See the [supported functions](https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/master/include/proxy-wasm/exports.h#L135-L150), though some of them are just nop).
     - These issues will be mitigated as TinyGo and proxy-wasm-cpp-host evolve.
 - There's performance overhead of using Go/TinyGo due to GC
     - `runtime.GC` is called whenever the heap runs out (see [1](https://tinygo.org/lang-support/#garbage-collection),
@@ -105,13 +106,13 @@ make test.e2e.single name=helloworld # run e2e tests
     - We strongly recommend that you implement the `OnTick` function for any asynchronous task instead of using Goroutine.
     - The scheduler can be disabled with `-scheduler=none` option of TinyGo.
 
-## references
+## References
 
-- https://github.com/proxy-wasm/spec
-- https://github.com/proxy-wasm/proxy-wasm-cpp-sdk
-- https://github.com/proxy-wasm/proxy-wasm-rust-sdk
-- https://github.com/tetratelabs/envoy-wasm-rust-sdk
-- https://tinygo.org/
+- [WebAssembly for Proxies (ABI specification)](https://github.com/proxy-wasm/spec)
+- [WebAssembly for Proxies (C++ SDK)](https://github.com/proxy-wasm/proxy-wasm-cpp-sdk)
+- [WebAssembly for Proxies (Rust SDK)](https://github.com/proxy-wasm/proxy-wasm-rust-sdk)
+- [Rust SDK for WebAssembly-based Envoy extensions](https://github.com/tetratelabs/envoy-wasm-rust-sdk)
+- [TinyGo - Go compiler for small places](https://tinygo.org/)
 
 
 Special thanks to TinyGo folks:)
