@@ -17,8 +17,8 @@ package e2e
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
-    "io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -26,7 +26,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-    "github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 )
 
 func TestMain(m *testing.M) {

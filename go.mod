@@ -9,6 +9,7 @@ require (
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
+	golang.org/x/tools v0.1.1-0.20210319172145-bda8f5cee399 // indirect
 	golang.org/x/tools/gopls v0.6.9 // indirect
 	honnef.co/go/tools v0.1.3 // indirect
 	mvdan.cc/gofumpt v0.1.1 // indirect
