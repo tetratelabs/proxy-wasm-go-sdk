@@ -406,6 +406,16 @@ func (h *httpHostEmulator) GetCurrentHttpStreamAction(contextID uint32) types.Ac
 }
 
 // impl HostEmulator
+func (h *httpHostEmulator) GetHttpRequestHeaders(contextID uint32) types.Headers {
+	stream, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+	
+	return stream.requestHeaders
+}
+
+// impl HostEmulator
 func (h *httpHostEmulator) GetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.httpStreams[contextID].sentLocalResponse
 }
