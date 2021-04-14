@@ -28,9 +28,6 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 		hs, false)
 	require.Equal(t, types.ActionContinue, action)
 
-	// Call OnHttpStreamDone.
-	host.CompleteHttpContext(id)
-
 	// Check headers.
 	resultHeaders := host.GetCurrentRequestHeaders(id)
 	var found bool
@@ -41,6 +38,9 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 		}
 	}
 	require.True(t, found)
+
+	// Call OnHttpStreamDone.
+	host.CompleteHttpContext(id)
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
