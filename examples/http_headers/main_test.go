@@ -33,14 +33,14 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 
 	// Check headers.
 	resultHeaders := host.GetCurrentRequestHeaders(id)
-	var headerValue *string
+	var found bool
 	for _, val := range resultHeaders {
 		if val[0] == "test" {
-			headerValue = &val[1]
+			require.Equal(t, "best", val[1])
+			found = true
 		}
 	}
-	require.NotNil(t, headerValue)
-	assert.Equal(t, *headerValue, "best")
+	require.True(t, found)
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
