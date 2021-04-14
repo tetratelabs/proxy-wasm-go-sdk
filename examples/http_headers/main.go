@@ -45,6 +45,11 @@ type httpHeaders struct {
 
 // Override DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	err := proxywasm.SetHttpRequestHeader("test", "best")
+	if err != nil {
+		proxywasm.LogCritical("failed to set request header: test")
+	}
+	
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)

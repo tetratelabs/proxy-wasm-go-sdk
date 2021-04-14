@@ -28,6 +28,17 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 		hs, false)
 	require.Equal(t, types.ActionContinue, action)
 
+	// Check headers.
+	resultHeaders := host.GetCurrentRequestHeaders(id)
+	var found bool
+	for _, val := range resultHeaders {
+		if val[0] == "test" {
+			require.Equal(t, "best", val[1])
+			found = true
+		}
+	}
+	require.True(t, found)
+
 	// Call OnHttpStreamDone.
 	host.CompleteHttpContext(id)
 
