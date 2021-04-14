@@ -406,7 +406,7 @@ func (h *httpHostEmulator) GetCurrentHttpStreamAction(contextID uint32) types.Ac
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) GetHttpRequestHeaders(contextID uint32) types.Headers {
+func (h *httpHostEmulator) GetCurrentRequestHeaders(contextID uint32) types.Headers {
 	stream, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)

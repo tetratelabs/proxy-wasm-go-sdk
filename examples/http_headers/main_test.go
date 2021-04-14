@@ -32,7 +32,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	host.CompleteHttpContext(id)
 
 	// Check headers.
-	resultHeaders := host.GetHttpRequestHeaders(id)
+	resultHeaders := host.GetCurrentRequestHeaders(id)
 	
 	var headerValue *string
 	
