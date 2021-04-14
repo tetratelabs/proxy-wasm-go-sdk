@@ -41,5 +41,5 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
         }
     }
 	
-	assert.Equal(t, *headerValue, "best2")
+	assert.Equal(t, *headerValue, "best")
 }
