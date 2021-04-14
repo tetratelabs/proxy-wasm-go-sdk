@@ -31,6 +31,20 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	// Call OnHttpStreamDone.
 	host.CompleteHttpContext(id)
 
+	// Check headers.
+	resultHeaders := host.GetHttpRequestHeaders(id)
+	
+	var headerValue *string
+	
+	for _, val := range resultHeaders {
+        if val[0] == "test" {
+            headerValue = &val[1]
+		}
+    }
+	
+	require.NotNil(t, headerValue)
+    assert.Equal(t, *headerValue, "best")
+
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
 	assert.Contains(t, logs, fmt.Sprintf("%d finished", id))
