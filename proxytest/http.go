@@ -411,7 +411,6 @@ func (h *httpHostEmulator) GetHttpRequestHeaders(contextID uint32) types.Headers
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
 	}
-	
 	return stream.requestHeaders
 }
 
