@@ -17,7 +17,6 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
@@ -41,7 +40,7 @@ func TestData(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "shared value: 1")
+	require.Contains(t, logs, "shared value: 1")
 
 	// Call OnHttpRequestHeaders again.
 	action = host.CallOnRequestHeaders(contextID, nil, false)
@@ -51,5 +50,5 @@ func TestData(t *testing.T) {
 
 	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "shared value: 3")
+	require.Contains(t, logs, "shared value: 3")
 }

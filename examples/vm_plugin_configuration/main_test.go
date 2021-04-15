@@ -19,8 +19,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -41,7 +39,7 @@ func TestContext_OnPluginStart(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "plugin config: "+pluginConfigData)
+	require.Contains(t, logs, "plugin config: "+pluginConfigData)
 }
 
 func TestContext_OnVMStart(t *testing.T) {
@@ -60,5 +58,5 @@ func TestContext_OnVMStart(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "vm config: "+vmConfigData)
+	require.Contains(t, logs, "vm config: "+vmConfigData)
 }

@@ -17,8 +17,6 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,5 +38,5 @@ func Test_queueReady(t *testing.T) {
 	ctx, ok := currentState.rootContexts[id].context.(*queueContext)
 	require.True(t, ok)
 	proxyOnQueueReady(id, 10)
-	assert.True(t, ctx.onQueueReady)
+	require.True(t, ctx.onQueueReady)
 }

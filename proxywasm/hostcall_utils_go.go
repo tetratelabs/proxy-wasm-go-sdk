@@ -26,6 +26,7 @@ import (
 )
 
 func RawBytePtrToString(raw *byte, size int) string {
+	//nolint
 	return *(*string)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(raw)),
 		Len:  size,
@@ -34,6 +35,7 @@ func RawBytePtrToString(raw *byte, size int) string {
 }
 
 func RawBytePtrToByteSlice(raw *byte, size int) []byte {
+	//nolint
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(raw)),
 		Len:  size,

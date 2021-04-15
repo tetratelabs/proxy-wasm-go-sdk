@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -26,7 +26,7 @@ func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	logs := host.GetLogs(types.LogLevelInfo)
 
 	// Check Envoy logs.
-	assert.Contains(t, logs, "on http request body finished")
-	assert.Contains(t, logs, `initial request body: { "initial": "request body" }`)
-	assert.Contains(t, logs, "body size: 29")
+	require.Contains(t, logs, "on http request body finished")
+	require.Contains(t, logs, `initial request body: { "initial": "request body" }`)
+	require.Contains(t, logs, "body size: 29")
 }

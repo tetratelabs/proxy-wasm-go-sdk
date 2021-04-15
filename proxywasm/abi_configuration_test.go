@@ -17,7 +17,6 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -48,10 +47,10 @@ func Test_proxyOnVMStart(t *testing.T) {
 	proxyOnVMStart(rID, 0)
 	ctx, ok := currentState.rootContexts[rID].context.(*configurationContext)
 	require.True(t, ok)
-	assert.True(t, ctx.onVMStartCalled)
-	assert.Equal(t, rID, currentState.activeContextID)
+	require.True(t, ctx.onVMStartCalled)
+	require.Equal(t, rID, currentState.activeContextID)
 
 	proxyOnConfigure(rID, 0)
-	assert.True(t, ctx.onPluginStartCalled)
-	assert.Equal(t, rID, currentState.activeContextID)
+	require.True(t, ctx.onPluginStartCalled)
+	require.Equal(t, rID, currentState.activeContextID)
 }

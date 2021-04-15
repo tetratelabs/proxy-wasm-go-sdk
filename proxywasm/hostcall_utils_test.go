@@ -19,17 +19,18 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_stringBytePtr(t *testing.T) {
 	exp := "abcd"
 	ptr := stringBytePtr(exp)
 
+	//nolint
 	actual := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(ptr)),
 		Len:  len(exp),
 		Cap:  len(exp),
 	}))
-	assert.Equal(t, exp, actual)
+	require.Equal(t, exp, actual)
 }

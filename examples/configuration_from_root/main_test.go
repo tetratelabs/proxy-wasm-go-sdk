@@ -19,8 +19,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -47,5 +45,5 @@ func TestContext_OnPluginStart(t *testing.T) {
 	require.Len(t, errLogs, 0)
 
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "read plugin config from root context: "+pluginConfigData)
+	require.Contains(t, logs, "read plugin config from root context: "+pluginConfigData)
 }

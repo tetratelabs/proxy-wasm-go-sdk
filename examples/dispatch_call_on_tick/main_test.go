@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
@@ -20,7 +19,7 @@ func TestRootContext_OnTick(t *testing.T) {
 
 	// Call OnVMStart.
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
-	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	for i := 1; i < 10; i++ {
 		host.Tick() // call OnTick
@@ -31,7 +30,7 @@ func TestRootContext_OnTick(t *testing.T) {
 		host.CallOnHttpCallResponse(attrs[0].CalloutID, nil, nil, nil)
 		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		assert.Contains(t, logs, fmt.Sprintf("called! %d", i))
+		require.Contains(t, logs, fmt.Sprintf("called! %d", i))
 	}
 
 }
@@ -45,5 +44,5 @@ func TestRootContext_OnVMStart(t *testing.T) {
 
 	// Call OnVMStart.
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
-	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

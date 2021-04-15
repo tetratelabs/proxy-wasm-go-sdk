@@ -17,7 +17,6 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -63,13 +62,13 @@ func Test_l4(t *testing.T) {
 	require.True(t, ok)
 
 	proxyOnNewConnection(cID)
-	assert.True(t, ctx.onNewConnection)
+	require.True(t, ctx.onNewConnection)
 	proxyOnDownstreamData(cID, 0, false)
-	assert.True(t, ctx.onDownstreamData)
+	require.True(t, ctx.onDownstreamData)
 	proxyOnDownstreamConnectionClose(cID, 0)
-	assert.True(t, ctx.onDownStreamClose)
+	require.True(t, ctx.onDownStreamClose)
 	proxyOnUpstreamData(cID, 0, false)
-	assert.True(t, ctx.onUpstreamData)
+	require.True(t, ctx.onUpstreamData)
 	proxyOnUpstreamConnectionClose(cID, 0)
-	assert.True(t, ctx.onUpstreamStreamClose)
+	require.True(t, ctx.onUpstreamStreamClose)
 }

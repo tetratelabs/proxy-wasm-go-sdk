@@ -18,7 +18,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,7 +34,7 @@ func TestSetNewRootContext(t *testing.T) {
 	}
 	SetNewRootContext(f)
 	currentState.newRootContext(0)
-	assert.Equal(t, 1, cnt)
+	require.Equal(t, 1, cnt)
 }
 
 func TestState_createRootContext(t *testing.T) {
@@ -49,7 +48,7 @@ func TestState_createRootContext(t *testing.T) {
 
 		var cid uint32 = 100
 		s.createRootContext(cid)
-		assert.NotNil(t, s.rootContexts[cid])
+		require.NotNil(t, s.rootContexts[cid])
 	})
 
 	t.Run("non exists", func(t *testing.T) {
@@ -59,7 +58,7 @@ func TestState_createRootContext(t *testing.T) {
 		c, ok := s.rootContexts[cid]
 		require.True(t, ok)
 		_, ok = c.context.(*DefaultRootContext)
-		assert.True(t, ok)
+		require.True(t, ok)
 	})
 }
 
@@ -102,8 +101,8 @@ func TestState_createStreamContext(t *testing.T) {
 	c, ok := s.streams[cid]
 	require.True(t, ok)
 	ctx, ok := c.(*testStateStreamContext)
-	assert.True(t, ok)
-	assert.Equal(t, cid, ctx.contextID)
+	require.True(t, ok)
+	require.Equal(t, cid, ctx.contextID)
 }
 
 func TestState_createHttpContext(t *testing.T) {
@@ -125,6 +124,6 @@ func TestState_createHttpContext(t *testing.T) {
 	c, ok := s.httpStreams[cid]
 	require.True(t, ok)
 	ctx, ok := c.(*testStateHttpContext)
-	assert.True(t, ok)
-	assert.Equal(t, cid, ctx.contextID)
+	require.True(t, ok)
+	require.Equal(t, cid, ctx.contextID)
 }

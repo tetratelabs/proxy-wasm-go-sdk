@@ -17,7 +17,8 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -97,7 +98,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Increment(c.offset)
 
 				// get
-				assert.Equal(t, c.offset, m.Get())
+				require.Equal(t, c.offset, m.Get())
 			})
 		}
 	})
@@ -117,7 +118,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Add(c.offset)
 
 				// get
-				assert.Equal(t, c.offset, m.Get())
+				require.Equal(t, c.offset, m.Get())
 			})
 		}
 	})
@@ -137,7 +138,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Record(c.value)
 
 				// get
-				assert.Equal(t, c.value, m.Get())
+				require.Equal(t, c.value, m.Get())
 			})
 		}
 	})
