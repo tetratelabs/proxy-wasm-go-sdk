@@ -12,6 +12,11 @@ jobs:
     name: code style check
     runs-on: ubuntu-latest
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
       - name: checkout
         uses: actions/checkout@v2
 
@@ -28,13 +33,13 @@ jobs:
     name: sdk tests
     runs-on: ubuntu-latest
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
       - name: checkout
         uses: actions/checkout@v2
-
-      - name: set up go 1.15
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.15
 
       - name: run tests
         run: make test
@@ -45,6 +50,11 @@ jobs:
     container:
       image: tinygo/tinygo:0.17.0
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
       - name: checkout
         uses: actions/checkout@v2
 
@@ -69,6 +79,11 @@ jobs:
     container:
       image: envoyproxy/envoy:v${{ matrix.envoy-tag }}
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
       - name: checkout
         uses: actions/checkout@v2
 
@@ -77,11 +92,6 @@ jobs:
         with:
           path: examples
           key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
-
-      - name: set up go 1.15
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.15
 
       - name: run e2e test
         run: CGO_ENABLED=0 go test ./e2e/... -v
@@ -96,13 +106,13 @@ jobs:
     container:
       image: istio/proxyv2:${{ matrix.istio-version }}
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
       - name: checkout
         uses: actions/checkout@v2
-
-      - name: set up go 1.15
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.15
 
       - name: fetch built examples
         uses: actions/cache@v2
