@@ -32,6 +32,11 @@ test.e2e.single:
 run:
 	@envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
 
+
+install-style-dep:
+	@go get golang.org/x/tools/cmd/goimports@v0.1.0
+	@go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
+
 format:
 	@echo "--- format ---"
 	@find . -type f -name '*.go' | xargs gofmt -s -w

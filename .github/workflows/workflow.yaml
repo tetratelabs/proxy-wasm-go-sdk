@@ -8,17 +8,18 @@ on:
       - main
 
 jobs:
-  format:
-    name: format
+  style:
+    name: code style check
     runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: run golangci-lint
-        uses: docker://golangci/golangci-lint:v1.31.0
-        with:
-          args: make lint
+      - name: install style dependencies
+        run: make install-style-dep
+
+      - name: run lint
+        run: make lint
 
       - name: run format check
         run: make check
