@@ -26,6 +26,7 @@ func Test_stringBytePtr(t *testing.T) {
 	exp := "abcd"
 	ptr := stringBytePtr(exp)
 
+	//nolint
 	actual := *(*string)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(ptr)),
 		Len:  len(exp),
