@@ -38,7 +38,7 @@ format:
 	@for f in `find . -name '*.go'`; do \
 	    awk '/^import \($$/,/^\)$$/{if($$0=="")next}{print}' $$f > /tmp/fmt; \
 	    mv /tmp/fmt $$f; \
-	    goimports -w -local github.com/tetratelabs/getenvoy $$f; \
+	    goimports -w -local github.com/tetratelabs/proxy-wasm-go-sdk $$f; \
 	done
 
 check:
@@ -46,6 +46,5 @@ check:
 	@go mod tidy
 	@if [ ! -z "`git status -s`" ]; then \
 		echo "The following differences will fail CI until committed:"; \
-		git diff; \
-		exit 1; \
+		git diff --exit-code; \
 	fi
