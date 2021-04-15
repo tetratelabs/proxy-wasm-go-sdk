@@ -3,8 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/stretchr/testify/require"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -21,5 +20,5 @@ func TestAccessLogger_OnTick(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "OnLog: :path = /this/is/path")
+	require.Contains(t, logs, "OnLog: :path = /this/is/path")
 }

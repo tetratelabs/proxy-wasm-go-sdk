@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var mapSerdeTestCases = []struct {
@@ -65,7 +65,7 @@ var mapSerdeTestCases = []struct {
 func TestDeserializeMap(t *testing.T) {
 	for i, c := range mapSerdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			assert.Equal(t, c.maps, DeserializeMap(c.bytes))
+			require.Equal(t, c.maps, DeserializeMap(c.bytes))
 		})
 	}
 }
@@ -73,7 +73,7 @@ func TestDeserializeMap(t *testing.T) {
 func TestSerializeMap(t *testing.T) {
 	for i, c := range mapSerdeTestCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			assert.Equal(t, c.bytes, SerializeMap(c.maps))
+			require.Equal(t, c.bytes, SerializeMap(c.maps))
 		})
 	}
 }
@@ -100,7 +100,7 @@ func TestSerializePropertyPath(t *testing.T) {
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			assert.Equal(t, c.exp, SerializePropertyPath(c.path))
+			require.Equal(t, c.exp, SerializePropertyPath(c.path))
 		})
 	}
 }

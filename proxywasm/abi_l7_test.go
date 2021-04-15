@@ -17,9 +17,7 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -79,17 +77,17 @@ func Test_l7(t *testing.T) {
 	require.True(t, ok)
 
 	proxyOnRequestHeaders(cID, 0, false)
-	assert.True(t, ctx.onHttpRequestHeaders)
+	require.True(t, ctx.onHttpRequestHeaders)
 	proxyOnRequestBody(cID, 0, false)
-	assert.True(t, ctx.onHttpRequestBody)
+	require.True(t, ctx.onHttpRequestBody)
 	proxyOnRequestTrailers(cID, 0)
-	assert.True(t, ctx.onHttpRequestTrailers)
+	require.True(t, ctx.onHttpRequestTrailers)
 	proxyOnResponseHeaders(cID, 0, false)
-	assert.True(t, ctx.onHttpResponseHeaders)
+	require.True(t, ctx.onHttpResponseHeaders)
 	proxyOnResponseBody(cID, 0, false)
-	assert.True(t, ctx.onHttpResponseBody)
+	require.True(t, ctx.onHttpResponseBody)
 	proxyOnResponseTrailers(cID, 0)
-	assert.True(t, ctx.onHttpResponseTrailers)
+	require.True(t, ctx.onHttpResponseTrailers)
 }
 
 func Test_proxyOnHttpCallResponse(t *testing.T) {
@@ -115,7 +113,7 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
 	_, ok := currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
-	assert.True(t, ctx.onHttpCallResponse)
+	require.True(t, ctx.onHttpCallResponse)
 
 	ctx = &l7Context{}
 	currentState = &state{
@@ -127,5 +125,5 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
 	_, ok = currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
-	assert.True(t, ctx.onHttpCallResponse)
+	require.True(t, ctx.onHttpCallResponse)
 }

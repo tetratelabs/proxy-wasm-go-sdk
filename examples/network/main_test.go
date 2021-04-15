@@ -17,9 +17,7 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -40,7 +38,7 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "new connection!")
+	require.Contains(t, logs, "new connection!")
 }
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
@@ -59,7 +57,7 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "downstream connection close!")
+	require.Contains(t, logs, "downstream connection close!")
 }
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
@@ -80,7 +78,7 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, ">>>>>> downstream data received >>>>>>\n"+msg)
+	require.Contains(t, logs, ">>>>>> downstream data received >>>>>>\n"+msg)
 }
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
@@ -101,7 +99,7 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "<<<<<< upstream data received <<<<<<\n"+msg)
+	require.Contains(t, logs, "<<<<<< upstream data received <<<<<<\n"+msg)
 }
 
 func TestNetwork_counter(t *testing.T) {
@@ -123,10 +121,10 @@ func TestNetwork_counter(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "connection complete!")
+	require.Contains(t, logs, "connection complete!")
 
 	// Check counter metric.
 	value, err := host.GetCounterMetric("proxy_wasm_go.connection_counter")
 	require.NoError(t, err)
-	assert.Equal(t, uint64(1), value)
+	require.Equal(t, uint64(1), value)
 }

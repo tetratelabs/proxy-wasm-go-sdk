@@ -3,9 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -19,14 +17,14 @@ func TestHelloWorld_OnTick(t *testing.T) {
 
 	// Call OnVMStart.
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
-	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	// Call OnTick.
 	host.Tick()
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "OnTick called")
+	require.Contains(t, logs, "OnTick called")
 }
 
 func TestHelloWorld_OnVMStart(t *testing.T) {
@@ -41,6 +39,6 @@ func TestHelloWorld_OnVMStart(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "proxy_on_vm_start from Go!")
-	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	require.Contains(t, logs, "proxy_on_vm_start from Go!")
+	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

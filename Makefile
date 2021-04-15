@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := build.examples
 
-.PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e
+.PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e format check
 
 build.example:
 	tinygo build -o ./examples/${name}/main.go.wasm -scheduler=none -target=wasi ./examples/${name}/main.go
@@ -30,4 +30,22 @@ test.e2e.single:
 	go test -v ./e2e -run ${name}
 
 run:
-	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
+	@envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
+
+format:
+	@echo "--- format ---"
+	@find . -type f -name '*.go' | xargs gofmt -s -w
+	@for f in `find . -name '*.go'`; do \
+	    awk '/^import \($$/,/^\)$$/{if($$0=="")next}{print}' $$f > /tmp/fmt; \
+	    mv /tmp/fmt $$f; \
+	    goimports -w -local github.com/tetratelabs/getenvoy $$f; \
+	done
+
+check:
+	@$(MAKE) format
+	@go mod tidy
+	@if [ ! -z "`git status -s`" ]; then \
+		echo "The following differences will fail CI until committed:"; \
+		git diff; \
+		exit 1; \
+	fi

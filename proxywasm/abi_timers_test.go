@@ -17,7 +17,6 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,5 +38,5 @@ func Test_onTick(t *testing.T) {
 	ctx, ok := currentState.rootContexts[id].context.(*timerContext)
 	require.True(t, ok)
 	proxyOnTick(id)
-	assert.True(t, ctx.onTick)
+	require.True(t, ctx.onTick)
 }

@@ -18,9 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -37,10 +35,10 @@ func TestQueue(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
+	require.Contains(t, logs, fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
 
 	// Check tick period.
-	assert.Equal(t, tickMilliseconds, host.GetTickPeriod())
+	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	// Initialize http context.
 	contextID := host.InitializeHttpContext()
@@ -50,7 +48,7 @@ func TestQueue(t *testing.T) {
 	require.Equal(t, types.ActionContinue, action)
 
 	// Check the number of items in the queue.
-	assert.Equal(t, 4, host.GetQueueSize(queueID))
+	require.Equal(t, 4, host.GetQueueSize(queueID))
 
 	// Call OnTick.
 	for i := 0; i < 4; i++ {
@@ -59,8 +57,8 @@ func TestQueue(t *testing.T) {
 
 	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "dequeued data: hello")
-	assert.Contains(t, logs, "dequeued data: world")
-	assert.Contains(t, logs, "dequeued data: hello")
-	assert.Contains(t, logs, "dequeued data: proxy-wasm")
+	require.Contains(t, logs, "dequeued data: hello")
+	require.Contains(t, logs, "dequeued data: world")
+	require.Contains(t, logs, "dequeued data: hello")
+	require.Contains(t, logs, "dequeued data: proxy-wasm")
 }

@@ -19,7 +19,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_stringBytePtr(t *testing.T) {
@@ -31,5 +31,5 @@ func Test_stringBytePtr(t *testing.T) {
 		Len:  len(exp),
 		Cap:  len(exp),
 	}))
-	assert.Equal(t, exp, actual)
+	require.Equal(t, exp, actual)
 }

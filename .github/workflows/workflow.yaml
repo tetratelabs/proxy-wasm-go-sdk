@@ -8,8 +8,8 @@ on:
       - main
 
 jobs:
-  sdk-tests:
-    name: sdk tests
+  format:
+    name: format
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -19,6 +19,16 @@ jobs:
         uses: docker://golangci/golangci-lint:v1.31.0
         with:
           args: make lint
+
+      - name: run format check
+        run: make check
+
+  sdk-tests:
+    name: sdk tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
 
       - name: set up go 1.15
         uses: actions/setup-go@v1

@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -35,8 +34,8 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "http call dispatched to "+clusterName)
-	assert.Contains(t, logs, "request header: key: value")
+	require.Contains(t, logs, "http call dispatched to "+clusterName)
+	require.Contains(t, logs, "request header: key: value")
 }
 
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
@@ -70,7 +69,7 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	assert.Nil(t, host.GetSentLocalResponse(contextID))
 	// CHeck Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "access granted")
+	require.Contains(t, logs, "access granted")
 
 	// Access denied case -> Local response must be sent.
 	contextID = host.InitializeHttpContext()
@@ -86,12 +85,12 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	// Check local response.
 	localResponse := host.GetSentLocalResponse(contextID)
 	assert.NotNil(t, localResponse)
-	assert.Equal(t, uint32(403), localResponse.StatusCode)
-	assert.Equal(t, []byte("access forbidden"), localResponse.Data)
+	require.Equal(t, uint32(403), localResponse.StatusCode)
+	require.Equal(t, []byte("access forbidden"), localResponse.Data)
 	require.Len(t, localResponse.Headers, 1)
-	assert.Equal(t, "powered-by", localResponse.Headers[0][0])
-	assert.Equal(t, "proxy-wasm-go-sdk!!", localResponse.Headers[0][1])
+	require.Equal(t, "powered-by", localResponse.Headers[0][0])
+	require.Equal(t, "proxy-wasm-go-sdk!!", localResponse.Headers[0][1])
 	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, "access forbidden")
+	require.Contains(t, logs, "access forbidden")
 }

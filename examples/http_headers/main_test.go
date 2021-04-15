@@ -5,9 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -44,9 +41,9 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, fmt.Sprintf("%d finished", id))
-	assert.Contains(t, logs, "request header --> key2: value2")
-	assert.Contains(t, logs, "request header --> key1: value1")
+	require.Contains(t, logs, fmt.Sprintf("%d finished", id))
+	require.Contains(t, logs, "request header --> key2: value2")
+	require.Contains(t, logs, "request header --> key1: value1")
 }
 
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
@@ -69,7 +66,7 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetLogs(types.LogLevelInfo)
-	assert.Contains(t, logs, fmt.Sprintf("%d finished", id))
-	assert.Contains(t, logs, "response header <-- key2: value2")
-	assert.Contains(t, logs, "response header <-- key1: value1")
+	require.Contains(t, logs, fmt.Sprintf("%d finished", id))
+	require.Contains(t, logs, "response header <-- key2: value2")
+	require.Contains(t, logs, "response header <-- key1: value1")
 }

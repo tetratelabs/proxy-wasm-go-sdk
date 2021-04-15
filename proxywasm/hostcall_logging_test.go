@@ -17,8 +17,7 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/stretchr/testify/require"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -32,8 +31,8 @@ type logHost struct {
 
 func (l logHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
 	actual := RawBytePtrToString(messageData, messageSize)
-	assert.Equal(l.t, l.expMessage, actual)
-	assert.Equal(l.t, l.expLogLevel, logLevel)
+	require.Equal(l.t, l.expMessage, actual)
+	require.Equal(l.t, l.expLogLevel, logLevel)
 	return types.StatusOK
 }
 

@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -161,8 +160,8 @@ func getEnvoyConfigurationPath(t *testing.T, name string, ps envoyPorts) (string
 func helloworld(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "helloworld: proxy_on_vm_start from Go!")
-	assert.Contains(t, out, "helloworld: It's")
+	require.Contains(t, out, "helloworld: proxy_on_vm_start from Go!")
+	require.Contains(t, out, "helloworld: It's")
 }
 
 func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -182,9 +181,9 @@ func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "access forbidden")
-	assert.Contains(t, out, "access granted")
-	assert.Contains(t, out, "response header from httpbin: :status: 200")
+	require.Contains(t, out, "access forbidden")
+	require.Contains(t, out, "access granted")
+	require.Contains(t, out, "response header from httpbin: :status: 200")
 }
 
 func httpHeaders(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -201,9 +200,9 @@ func httpHeaders(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, key)
-	assert.Contains(t, out, value)
-	assert.Contains(t, out, "server: envoy")
+	require.Contains(t, out, key)
+	require.Contains(t, out, value)
+	require.Contains(t, out, "server: envoy")
 }
 
 func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -217,15 +216,15 @@ func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "body size: 21")
-	assert.Contains(t, out, `initial request body: { "example": "body" }`)
-	assert.Contains(t, out, "on http request body finished")
-	assert.NotContains(t, out, "failed to set request body")
-	assert.NotContains(t, out, "failed to get request body")
+	require.Contains(t, out, "body size: 21")
+	require.Contains(t, out, `initial request body: { "example": "body" }`)
+	require.Contains(t, out, "on http request body finished")
+	require.NotContains(t, out, "failed to set request body")
+	require.NotContains(t, out, "failed to get request body")
 
 	body, err := ioutil.ReadAll(r.Body)
 	require.NoError(t, err)
-	assert.Contains(t, string(body), `"another": "body"`)
+	require.Contains(t, string(body), `"another": "body"`)
 }
 
 func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -246,14 +245,14 @@ func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, key)
-	assert.Contains(t, out, value)
-	assert.Contains(t, out, "downstream data received")
-	assert.Contains(t, out, "new connection!")
-	assert.Contains(t, out, "downstream connection close!")
-	assert.Contains(t, out, "upstream data received")
-	assert.Contains(t, out, "connection complete!")
-	assert.Contains(t, out, "remote address: 127.0.0.1:")
+	require.Contains(t, out, key)
+	require.Contains(t, out, value)
+	require.Contains(t, out, "downstream data received")
+	require.Contains(t, out, "new connection!")
+	require.Contains(t, out, "downstream connection close!")
+	require.Contains(t, out, "upstream data received")
+	require.Contains(t, out, "connection complete!")
+	require.Contains(t, out, "remote address: 127.0.0.1:")
 }
 
 func metrics(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -278,7 +277,7 @@ func metrics(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	b, err := ioutil.ReadAll(r.Body)
 	require.NoError(t, err)
-	assert.Contains(t, string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count))
+	require.Contains(t, string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count))
 }
 
 func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -294,7 +293,7 @@ func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, fmt.Sprintf("shared value: %d", count))
+	require.Contains(t, out, fmt.Sprintf("shared value: %d", count))
 }
 
 func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -312,16 +311,16 @@ func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "dequeued data: hello")
-	assert.Contains(t, out, "dequeued data: world")
-	assert.Contains(t, out, "dequeued data: proxy-wasm")
+	require.Contains(t, out, "dequeued data: hello")
+	require.Contains(t, out, "dequeued data: world")
+	require.Contains(t, out, "dequeued data: proxy-wasm")
 }
 
 func vmPluginConfiguration(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "name\": \"vm configuration")
-	assert.Contains(t, out, "name\": \"plugin configuration")
+	require.Contains(t, out, "name\": \"vm configuration")
+	require.Contains(t, out, "name\": \"plugin configuration")
 }
 
 func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -334,8 +333,8 @@ func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, "plugin config from root context")
-	assert.Contains(t, out, "name\": \"plugin configuration")
+	require.Contains(t, out, "plugin config from root context")
+	require.Contains(t, out, "name\": \"plugin configuration")
 }
 
 func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -349,7 +348,7 @@ func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 	out := stdErr.String()
 	fmt.Println(out)
-	assert.Contains(t, out, exp)
+	require.Contains(t, out, exp)
 }
 
 func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -357,6 +356,6 @@ func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	for i := 1; i < 6; i++ {
-		assert.Contains(t, out, fmt.Sprintf("called! %d", i))
+		require.Contains(t, out, fmt.Sprintf("called! %d", i))
 	}
 }
