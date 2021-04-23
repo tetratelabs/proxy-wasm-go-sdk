@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: envoyproxy/envoy:v${{ matrix.envoy-tag }}
-      optinos: --privileged
+      options: --privileged
     steps:
       - name: install Go
         uses: actions/setup-go@v2
