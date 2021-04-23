@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: istio/proxyv2:${{ matrix.istio-version }}
-      optinos: --privileged
+      options: --privileged
     steps:
       - name: install Go
         uses: actions/setup-go@v2
