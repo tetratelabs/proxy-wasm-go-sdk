@@ -20,9 +20,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: install style dependencies
-        run: make install-style-dep
-
       - name: run lint
         run: make lint
 
@@ -72,7 +69,7 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-tag: [ 1.17.0, 1.17.1 ]
+        envoy-tag: [ 1.17.1, 1.18.2 ]
     name: e2e tests on Envoy
     needs: build-examples
     runs-on: ubuntu-latest
@@ -99,7 +96,7 @@ jobs:
   e2e-tests-istio:
     strategy:
       matrix:
-        istio-version: [ 1.8.1, 1.8.2, 1.8.3, 1.8.4, 1.9.0, 1.9.1 ]
+        istio-version: [ 1.8.5, 1.9.3 ]
     name: e2e tests on Istio
     needs: build-examples
     runs-on: ubuntu-latest
