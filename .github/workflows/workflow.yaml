@@ -51,6 +51,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '1.16.3'
+
       # TinyGo's release container does not have Make command.
       - name: install Make
         run: apt install make
@@ -84,6 +85,10 @@ jobs:
         with:
           go-version: '1.16.3'
 
+      # Envoy's release container does not have Make command.
+      - name: install Make
+        run: apt install make
+
       - name: checkout
         uses: actions/checkout@v2
 
@@ -112,6 +117,10 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '1.16.3'
+
+      # Istio's release container does not have Make command.
+      - name: install Make
+        run: apt install make
 
       - name: checkout
         uses: actions/checkout@v2
