@@ -20,9 +20,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: install style dependencies
-        run: make install-style-dep
-
       - name: run lint
         run: make lint
 

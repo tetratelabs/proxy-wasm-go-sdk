@@ -1,4 +1,5 @@
-.DEFAULT_GOAL := build.examples
+# bingo manages go binaries needed for building the project
+include .bingo/Variables.mk
 
 .PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e format check
 
@@ -17,9 +18,6 @@ build.examples.docker:
 	docker run -it -w /tmp/proxy-wasm-go -v $(shell pwd):/tmp/proxy-wasm-go tinygo/tinygo:0.17.0 /bin/bash -c \
 		'find /tmp/proxy-wasm-go/examples/ -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p'
 
-lint:
-	golangci-lint run --build-tags proxytest
-
 test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
 
@@ -30,15 +28,12 @@ test.e2e.single:
 	go test -v ./e2e -run ${name}
 
 run:
-	@envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
+	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
 
+lint: $(GOLANGCI_LINT)
+	@golangci-lint run --build-tags proxytest
 
-install-style-dep:
-	@go get golang.org/x/tools/cmd/goimports@v0.1.0
-	@go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
-
-format:
-	@echo "--- format ---"
+format: $(GOIMPORTS)
 	@find . -type f -name '*.go' | xargs gofmt -s -w
 	@for f in `find . -name '*.go'`; do \
 	    awk '/^import \($$/,/^\)$$/{if($$0=="")next}{print}' $$f > /tmp/fmt; \
