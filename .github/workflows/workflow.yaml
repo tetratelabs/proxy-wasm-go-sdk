@@ -51,6 +51,9 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '1.16.3'
+      # TinyGo's release container does not have Make command.
+      - name: install Make
+        run: apt install make
 
       - name: checkout
         uses: actions/checkout@v2
@@ -64,7 +67,7 @@ jobs:
 
       - name: build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
-        run: find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
+        run: make build.examples
 
   e2e-tests-envoy:
     strategy:
@@ -91,7 +94,9 @@ jobs:
           key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: run e2e test
-        run: CGO_ENABLED=0 go test ./e2e/... -v
+        run: make test.e2e
+        env:
+          CGO_ENABLED: "0"
 
   e2e-tests-istio:
     strategy:
@@ -118,4 +123,6 @@ jobs:
           key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: run e2e test
-        run: CGO_ENABLED=0 go test ./e2e/... -v
+        run: make test.e2e
+        env:
+          CGO_ENABLED: "0"
