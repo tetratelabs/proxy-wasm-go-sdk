@@ -31,14 +31,14 @@ run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
 
 lint: $(GOLANGCI_LINT)
-	@golangci-lint run --build-tags proxytest
+	@$(GOLANGCI_LINT) run --build-tags proxytest
 
 format: $(GOIMPORTS)
 	@find . -type f -name '*.go' | xargs gofmt -s -w
 	@for f in `find . -name '*.go'`; do \
 	    awk '/^import \($$/,/^\)$$/{if($$0=="")next}{print}' $$f > /tmp/fmt; \
 	    mv /tmp/fmt $$f; \
-	    goimports -w -local github.com/tetratelabs/proxy-wasm-go-sdk $$f; \
+	    $(GOIMPORTS) -w -local github.com/tetratelabs/proxy-wasm-go-sdk $$f; \
 	done
 
 check:
