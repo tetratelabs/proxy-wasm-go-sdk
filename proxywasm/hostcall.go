@@ -92,6 +92,22 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
+func ContinueDownStream() error {
+	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeDownstream))
+}
+
+func ContinueUpstream() error {
+	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeUpstream))
+}
+
+func CloseDownStream() error {
+	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeDownstream))
+}
+
+func CloseUpstream() error {
+	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeUpstream))
+}
+
 func GetHttpRequestHeaders() (types.Headers, error) {
 	ret, st := getMap(types.MapTypeHttpRequestHeaders)
 	return ret, types.StatusToError(st)

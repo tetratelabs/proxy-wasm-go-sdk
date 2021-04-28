@@ -99,8 +99,10 @@ const (
 type StreamType uint32
 
 const (
-	StreamTypeRequest  StreamType = 0
-	StreamTypeResponse StreamType = 1
+	StreamTypeRequest    StreamType = 0
+	StreamTypeResponse   StreamType = 1
+	StreamTypeDownstream StreamType = 2
+	StreamTypeUpstream   StreamType = 3
 )
 
 type MetricType uint32
