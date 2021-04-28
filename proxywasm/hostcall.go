@@ -87,9 +87,27 @@ func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
+func SetDownStreamData(body []byte) error {
+	var bufferData *byte
+	if len(body) != 0 {
+		bufferData = &body[0]
+	}
+	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeDownstreamData, 0, len(body), bufferData, len(body))
+	return types.StatusToError(st)
+}
+
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
+}
+
+func SetUpstreamData(body []byte) error {
+	var bufferData *byte
+	if len(body) != 0 {
+		bufferData = &body[0]
+	}
+	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeUpstreamData, 0, len(body), bufferData, len(body))
+	return types.StatusToError(st)
 }
 
 func ContinueDownStream() error {
