@@ -91,6 +91,7 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
 }
+
 func ContinueDownStream() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeDownstream))
 }
