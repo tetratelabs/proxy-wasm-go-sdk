@@ -109,6 +109,11 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8011,
 		admin:       28311,
 	}, dispatchCallOnTick))
+	t.Run("http_routing", testRunnerGetter(envoyPorts{
+		endpoint:    11012,
+		staticReply: 8012,
+		admin:       28312,
+	}, httpRouting))
 }
 
 type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
@@ -162,6 +167,34 @@ func helloworld(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	fmt.Println(out)
 	require.Contains(t, out, "helloworld: proxy_on_vm_start from Go!")
 	require.Contains(t, out, "helloworld: It's")
+}
+
+func httpRouting(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	var primary, canary bool
+	for i := 0; i < 25; i++ { // TODO: maybe flaky
+		req, err := http.NewRequest("GET",
+			fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+		require.NoError(t, err)
+
+		r, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		raw, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		body := string(raw)
+		if strings.Contains(body, "canary") {
+			canary = true
+		}
+		if strings.Contains(body, "primary") {
+			primary = true
+		}
+		r.Body.Close()
+		fmt.Println("received body: ", body)
+	}
+
+	out := stdErr.String()
+	fmt.Println(out)
+	require.True(t, primary, "must be routed to primary at least once")
+	require.True(t, canary, "must be routed to canary at least once")
 }
 
 func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -241,7 +274,7 @@ func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	require.NoError(t, err)
 	r.Body.Close()
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 5)
 
 	out := stdErr.String()
 	fmt.Println(out)
@@ -307,7 +340,7 @@ func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 		r.Body.Close()
 	}
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 
 	out := stdErr.String()
 	fmt.Println(out)
@@ -352,7 +385,7 @@ func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 }
 
 func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	out := stdErr.String()
 	fmt.Println(out)
 	for i := 1; i < 6; i++ {

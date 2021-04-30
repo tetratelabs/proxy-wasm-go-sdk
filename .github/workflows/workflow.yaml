@@ -64,7 +64,7 @@ jobs:
         id: cache-built-examples
         with:
           path: examples
-          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
@@ -73,7 +73,7 @@ jobs:
   e2e-tests-envoy:
     strategy:
       matrix:
-        envoy-tag: [ 1.17.1, 1.18.2 ]
+        envoy-tag: [ 1.18.2 ]
     name: e2e tests on Envoy
     needs: build-examples
     runs-on: ubuntu-latest
@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: examples
-          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: run e2e test
         run: make test.e2e
@@ -107,7 +107,7 @@ jobs:
   e2e-tests-istio:
     strategy:
       matrix:
-        istio-version: [ 1.8.5, 1.9.3 ]
+        istio-version: [ 1.9.3 ]
     name: e2e tests on Istio
     needs: build-examples
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: examples
-          key: ${{ hashFiles('examples/**', 'proxywasm/**') }}
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: run e2e test
         run: make test.e2e
