@@ -188,12 +188,13 @@ func httpRouting(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 			primary = true
 		}
 		r.Body.Close()
+		fmt.Println("received body: ", body)
 	}
 
 	out := stdErr.String()
 	fmt.Println(out)
-	require.True(t, primary, "access granted")
-	require.True(t, canary, "response header from httpbin: :status: 200")
+	require.True(t, primary, "must be routed to primary at least once")
+	require.True(t, canary, "must be routed to canary at least once")
 }
 
 func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
