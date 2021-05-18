@@ -82,6 +82,22 @@ func GetHttpCallResponseTrailers() (types.Trailers, error) {
 	return ret, types.StatusToError(st)
 }
 
+func DispatchForeignFuncCall(funcName string, param string) (ret string, err error) {
+	f := stringBytePtr(funcName)
+	p := stringBytePtr(param)
+
+	var returnData *byte
+	var returnSize int
+
+	switch st := rawhostcall.ProxyCallForeignFunction(f, len(funcName), p, len(param), &returnData, &returnSize); st {
+	case types.StatusOK:
+		return RawBytePtrToString(returnData, returnSize), nil
+	default:
+		return "", types.StatusToError(st)
+	}
+}
+
+
 func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
