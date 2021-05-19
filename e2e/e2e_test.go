@@ -98,30 +98,26 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8009,
 		admin:       28309,
 	}, configurationFromRoot))
-
 	t.Run("access_logger", testRunnerGetter(envoyPorts{
 		endpoint:    11010,
 		staticReply: 8010,
 		admin:       28310,
 	}, accessLogger))
-
 	t.Run("dispatch_call_on_tick", testRunnerGetter(envoyPorts{
 		endpoint:    11011,
 		staticReply: 8011,
 		admin:       28311,
 	}, dispatchCallOnTick))
-
-	t.Run("foreign_call_on_tick", testRunnerGetter(envoyPorts{
-		endpoint:    11011,
-		staticReply: 8011,
-		admin:       28311,
-	}, callForeignOnTick))
-
 	t.Run("http_routing", testRunnerGetter(envoyPorts{
 		endpoint:    11012,
 		staticReply: 8012,
 		admin:       28312,
 	}, httpRouting))
+	t.Run("foreign_call_on_tick", testRunnerGetter(envoyPorts{
+		endpoint:    11013,
+		staticReply: 8013,
+		admin:       28313,
+	}, callForeignOnTick))
 }
 
 type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
@@ -406,6 +402,6 @@ func callForeignOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	out := stdErr.String()
 	fmt.Println(out)
 	for i := 1; i < 6; i++ {
-		require.Contains(t, out, fmt.Sprintf("called! %d", i))
+		require.Contains(t, out, fmt.Sprintf("CallForeignFunction callNum: %d", i))
 	}
 }

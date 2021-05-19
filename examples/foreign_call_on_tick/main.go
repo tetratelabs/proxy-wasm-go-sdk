@@ -30,6 +30,7 @@ type rootContext struct {
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 	contextID uint32
+	callNum uint32
 }
 
 func newRootContext(contextID uint32) proxywasm.RootContext {
@@ -48,9 +49,10 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 
 // Override DefaultRootContext.
 func (ctx *rootContext) OnTick() {
-	ret, err := proxywasm.CallForeignFunction("hello", "hello world!")
+	ctx.callNum++
+	ret, err := proxywasm.CallForeignFunction("compress", []byte("hello world!"))
 	if err != nil {
 		proxywasm.LogCriticalf("CallForeignFunction failed: %v", err)
 	}
-	proxywasm.LogInfof("CallForeignFunction result: %s", ret)
+	proxywasm.LogInfof("CallForeignFunction callNum: %d, result: %s", ctx.callNum, string(ret))
 }

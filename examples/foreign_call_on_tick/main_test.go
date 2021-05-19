@@ -26,7 +26,7 @@ func TestRootContext_OnTick(t *testing.T) {
 		host.Tick() // call OnTick
 		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction result: %s", "hello world!"))
+		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction callNum: %d, result: %s", i, "hello world!"))
 	}
 
 }
