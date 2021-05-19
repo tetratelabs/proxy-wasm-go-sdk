@@ -78,7 +78,7 @@ type lifecycleContext struct {
 	onDoneCalled, onLogCalled bool
 }
 
-func (ctx *lifecycleContext) OnVMDone() bool {
+func (ctx *lifecycleContext) OnPluginDone() bool {
 	ctx.onDoneCalled = true
 	return true
 }
