@@ -30,7 +30,7 @@ type rootContext struct {
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 	contextID uint32
-	callNum uint32
+	callNum   uint32
 }
 
 func newRootContext(contextID uint32) proxywasm.RootContext {

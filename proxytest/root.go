@@ -263,10 +263,10 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	return types.StatusOK
 }
 
-var foreignFunctions = map[string]func([]byte)[]byte {
-	"compress":func (param []byte) []byte {
-				return param
-			},
+var foreignFunctions = map[string]func([]byte) []byte{
+	"compress": func(param []byte) []byte {
+		return param
+	},
 }
 
 // impl rawhostcall.ProxyWASMHost

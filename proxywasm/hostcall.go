@@ -96,7 +96,6 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-
 func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
