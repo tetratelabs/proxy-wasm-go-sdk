@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	queueName               = "proxy_wasm_go.queue"
-	tickMilliseconds uint32 = 100
+	queueName = "proxy_wasm_go.queue"
 )
 
 func main() {
@@ -48,17 +47,11 @@ func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartS
 	}
 	queueID = qID
 	proxywasm.LogInfof("queue registered, name: %s, id: %d", queueName, qID)
-
-	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		proxywasm.LogCriticalf("failed to set tick period: %v", err)
-	}
-	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
 	return types.OnVMStartStatusOK
 }
 
 // Override DefaultRootContext.
-func (ctx *queueRootContext) OnTick() {
-	// TODO: use OnQueueReady after the bug fixed is available in istio 1.8.1.
+func (ctx *queueRootContext) OnQueueReady(_ uint32) {
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:

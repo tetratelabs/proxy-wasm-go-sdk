@@ -38,23 +38,12 @@ func TestQueue(t *testing.T) {
 	logs := host.GetLogs(types.LogLevelInfo)
 	require.Contains(t, logs, fmt.Sprintf("queue registered, name: %s, id: %d", queueName, queueID))
 
-	// Check tick period.
-	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
-
 	// Initialize http context.
 	contextID := host.InitializeHttpContext()
 
 	// Call OnRequestHeaders
 	action := host.CallOnRequestHeaders(contextID, nil, false)
 	require.Equal(t, types.ActionContinue, action)
-
-	// Check the number of items in the queue.
-	require.Equal(t, 4, host.GetQueueSize(queueID))
-
-	// Call OnTick.
-	for i := 0; i < 4; i++ {
-		host.Tick()
-	}
 
 	// Check Envoy logs.
 	logs = host.GetLogs(types.LogLevelInfo)

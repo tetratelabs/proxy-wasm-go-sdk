@@ -19,13 +19,13 @@ build.examples.docker:
 		'find /tmp/proxy-wasm-go/examples/ -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p'
 
 test:
-	go test -tags=proxytest $(shell go list ./... | grep -v e2e | sed 's/github.com\/tetratelabs\/proxy-wasm-go-sdk/./g')
+	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
 test.e2e:
 	go test -v ./e2e
 
 test.e2e.single:
-	go test -v ./e2e -run ${name}
+	go test -v ./e2e -run '/${name}'
 
 run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'

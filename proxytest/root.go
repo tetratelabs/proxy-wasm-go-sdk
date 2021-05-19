@@ -142,10 +142,7 @@ func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *by
 	}
 
 	r.queues[queueID] = append(queue, proxywasm.RawBytePtrToByteSlice(valueData, valueSize))
-
-	// note that this behavior is not accurate for some old host implementations:
-	//	see: https://github.com/proxy-wasm/proxy-wasm-cpp-host/pull/36
-	proxywasm.ProxyOnQueueReady(RootContextID, queueID) // Note that this behavior is not accurate on Istio before 1.8.x
+	proxywasm.ProxyOnQueueReady(RootContextID, queueID)
 	return types.StatusOK
 }
 
