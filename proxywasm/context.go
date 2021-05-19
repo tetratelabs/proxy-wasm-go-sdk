@@ -23,7 +23,7 @@ type RootContext interface {
 	OnTick()
 	OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 	OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus
-	OnVMDone() bool
+	OnPluginDone() bool
 	OnLog()
 
 	// Child context factories
@@ -71,7 +71,7 @@ func (*DefaultRootContext) OnVMStart(int) types.OnVMStartStatus { return types.O
 func (*DefaultRootContext) OnPluginStart(int) types.OnPluginStartStatus {
 	return types.OnPluginStartStatusOK
 }
-func (*DefaultRootContext) OnVMDone() bool                        { return true }
+func (*DefaultRootContext) OnPluginDone() bool                    { return true }
 func (*DefaultRootContext) OnLog()                                {}
 func (*DefaultRootContext) NewStreamContext(uint32) StreamContext { return nil }
 func (*DefaultRootContext) NewHttpContext(uint32) HttpContext     { return nil }
