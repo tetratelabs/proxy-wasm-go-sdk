@@ -9,7 +9,7 @@ on:
 
 jobs:
   style:
-    name: code style check
+    name: Code style check
     runs-on: ubuntu-latest
     steps:
       - name: install Go
@@ -27,7 +27,7 @@ jobs:
         run: make check
 
   sdk-tests:
-    name: sdk tests
+    name: SDK tests
     runs-on: ubuntu-latest
     steps:
       - name: install Go
@@ -42,7 +42,7 @@ jobs:
         run: make test
 
   build-examples:
-    name: build examples
+    name: Build examples
     runs-on: ubuntu-latest
     container:
       image: tinygo/tinygo:0.17.0
@@ -74,7 +74,7 @@ jobs:
     strategy:
       matrix:
         image: [ "envoyproxy/envoy:v1.18.2", "istio/proxyv2:1.9.3" ]
-    name: E2E test (${{ matrix.image }})
+    name: E2E Test (${{ matrix.image }})
     needs: build-examples
     runs-on: ubuntu-latest
     container:
