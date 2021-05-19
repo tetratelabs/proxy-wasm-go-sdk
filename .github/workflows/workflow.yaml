@@ -70,15 +70,15 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
-  e2e-tests-envoy:
+  e2e-tests:
     strategy:
       matrix:
-        envoy-tag: [ 1.18.2 ]
-    name: e2e tests on Envoy
+        image: [ envoyproxy/envoy:v1.18.2, istio/proxyv2:1.9.3 ]
+    name: E2E test (${{ matrix.image }})
     needs: build-examples
     runs-on: ubuntu-latest
     container:
-      image: envoyproxy/envoy:v${{ matrix.envoy-tag }}
+      image: ${{ matrix.image }}
       options: --privileged
     steps:
       - name: install Go
@@ -86,41 +86,6 @@ jobs:
         with:
           go-version: '1.16.3'
 
-      # Envoy's release container does not have Make command.
-      - name: install Make
-        run: apt update && apt install make
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: cache built examples
-        uses: actions/cache@v2
-        with:
-          path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
-
-      - name: run e2e test
-        run: make test.e2e
-        env:
-          CGO_ENABLED: "0"
-
-  e2e-tests-istio:
-    strategy:
-      matrix:
-        istio-version: [ 1.9.3 ]
-    name: e2e tests on Istio
-    needs: build-examples
-    runs-on: ubuntu-latest
-    container:
-      image: istio/proxyv2:${{ matrix.istio-version }}
-      options: --privileged
-    steps:
-      - name: install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.3'
-
-      # Istio's release container does not have Make command.
       - name: install Make
         run: apt update && apt install make
 
