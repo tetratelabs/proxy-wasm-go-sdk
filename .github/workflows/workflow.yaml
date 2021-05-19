@@ -1,4 +1,4 @@
-name: build-test
+name: test
 on:
   pull_request:
     branches:
@@ -73,7 +73,7 @@ jobs:
   e2e-tests:
     strategy:
       matrix:
-        image: [ envoyproxy/envoy:v1.18.2, istio/proxyv2:1.9.3 ]
+        image: [ "envoyproxy/envoy:v1.18.2", "istio/proxyv2:1.9.3" ]
     name: E2E test (${{ matrix.image }})
     needs: build-examples
     runs-on: ubuntu-latest
