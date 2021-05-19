@@ -46,6 +46,7 @@ type ProxyWASMHost interface {
 	ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) types.Status
 	ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status
 	ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status
+	ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) types.Status
 	ProxySetTickPeriodMilliseconds(period uint32) types.Status
 	ProxySetEffectiveContext(contextID uint32) types.Status
 	ProxyDone() types.Status
@@ -116,6 +117,9 @@ func (d DefaultProxyWAMSHost) ProxySetBufferBytes(bt types.BufferType, start int
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) types.Status {
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxySetTickPeriodMilliseconds(period uint32) types.Status { return 0 }
@@ -217,6 +221,10 @@ func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, heade
 	bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
 	return currentHost.ProxyHttpCall(upstreamData, upstreamSize,
 		headerData, headerSize, bodyData, bodySize, trailersData, trailersSize, timeout, calloutIDPtr)
+}
+
+func ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) types.Status {
+	return currentHost.ProxyCallForeignFunction(funcNamePtr, funcNameSize, paramPtr, paramSize, returnData, returnSize)
 }
 
 func ProxySetTickPeriodMilliseconds(period uint32) types.Status {

@@ -104,11 +104,19 @@ func Test_E2E(t *testing.T) {
 		staticReply: 8010,
 		admin:       28310,
 	}, accessLogger))
+
 	t.Run("dispatch_call_on_tick", testRunnerGetter(envoyPorts{
 		endpoint:    11011,
 		staticReply: 8011,
 		admin:       28311,
 	}, dispatchCallOnTick))
+
+	t.Run("foreign_call_on_tick", testRunnerGetter(envoyPorts{
+		endpoint:    11011,
+		staticReply: 8011,
+		admin:       28311,
+	}, callForeignOnTick))
+
 	t.Run("http_routing", testRunnerGetter(envoyPorts{
 		endpoint:    11012,
 		staticReply: 8012,
@@ -385,6 +393,15 @@ func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 }
 
 func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
+	time.Sleep(5 * time.Second)
+	out := stdErr.String()
+	fmt.Println(out)
+	for i := 1; i < 6; i++ {
+		require.Contains(t, out, fmt.Sprintf("called! %d", i))
+	}
+}
+
+func callForeignOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	time.Sleep(5 * time.Second)
 	out := stdErr.String()
 	fmt.Println(out)

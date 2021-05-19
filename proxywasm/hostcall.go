@@ -82,7 +82,7 @@ func GetHttpCallResponseTrailers() (types.Trailers, error) {
 	return ret, types.StatusToError(st)
 }
 
-func DispatchForeignFuncCall(funcName string, param string) (ret string, err error) {
+func CallForeignFunction(funcName string, param string) (ret string, err error) {
 	f := stringBytePtr(funcName)
 	p := stringBytePtr(param)
 

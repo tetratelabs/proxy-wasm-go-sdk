@@ -263,6 +263,27 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	return types.StatusOK
 }
 
+var funcMap = map[string]func(string)string {
+	"hello":func (param string) string {
+				return param
+			},
+}
+
+// impl rawhostcall.ProxyWASMHost
+func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) types.Status {
+	funcName := proxywasm.RawBytePtrToString(funcNamePtr, funcNameSize)
+	param := proxywasm.RawBytePtrToString(paramPtr, paramSize)
+
+	log.Printf("[foreign call] funcname: %s", funcName)
+	log.Printf("[foreign call] param: %s", param)
+
+	ret := funcMap[funcName](param)
+	*returnData = &[]byte(ret)[0]
+	*returnSize = len(ret)
+
+	return types.StatusOK
+}
+
 // // impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
 func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
 	res, ok := r.httpCalloutResponse[r.activeCalloutID]
