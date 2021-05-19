@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	queueName               = "proxy_wasm_go.queue"
-	tickMilliseconds uint32 = 100
+	queueName = "proxy_wasm_go.queue"
 )
 
 func main() {
@@ -48,11 +47,6 @@ func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartS
 	}
 	queueID = qID
 	proxywasm.LogInfof("queue registered, name: %s, id: %d", queueName, qID)
-
-	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		proxywasm.LogCriticalf("failed to set tick period: %v", err)
-	}
-	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
 	return types.OnVMStartStatusOK
 }
 
