@@ -71,7 +71,6 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 	hs, err := proxywasm.GetHttpCallResponseHeaders()
 	if err != nil {
-
 		proxywasm.LogCriticalf("failed to get response body: %v", err)
 		return
 	}

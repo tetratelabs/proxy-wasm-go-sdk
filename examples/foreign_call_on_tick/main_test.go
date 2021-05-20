@@ -22,11 +22,13 @@ func TestRootContext_OnTick(t *testing.T) {
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
+	// Register foreign function named "compress".
+	host.RegisterForeignFunction("compress", func(b []byte) []byte { return b })
+
 	for i := 1; i < 10; i++ {
-		host.Tick() // call OnTick
+		host.Tick()
 		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction callNum: %d, result: %s", i, "hello world!"))
+		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction callNum: %d, result: %s", i, "68656c6c6f20776f726c6421"))
 	}
-
 }

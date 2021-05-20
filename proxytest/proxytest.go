@@ -39,6 +39,7 @@ type HostEmulator interface {
 	GetTickPeriod() uint32
 	Tick()
 	GetQueueSize(queueID uint32) int
+	RegisterForeignFunction(name string, f func([]byte) []byte)
 
 	// network
 	InitializeConnection() (contextID uint32, action types.Action)
