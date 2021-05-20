@@ -262,12 +262,11 @@ func httpHeaders(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 
 func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	req, err := http.NewRequest("GET", ps.getEndpointAddress()+"/anything",
-		bytes.NewBuffer([]byte(`{ "example": "body" }`)))
+		bytes.NewBuffer([]byte(`{ "initial": "body" }`)))
 	require.NoError(t, err)
 	require.Eventually(t, func() bool {
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
-			fmt.Println(err)
 			return false
 		}
 		defer res.Body.Close()
@@ -275,11 +274,11 @@ func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 		require.NoError(t, err)
 		return checkMessage(stdErr.String(), []string{
 			"body size: 21",
-			`initial request body: { "example": "body" }`,
+			`initial request body: { "initial": "body" }`,
 			"on http request body finished"},
 			[]string{"failed to set request body", "failed to get request body"},
 		) && checkMessage(string(body), []string{`"another": "body"`}, nil)
-	}, 5*time.Second, 100*time.Millisecond, stdErr.String())
+	}, 5*time.Second, 500*time.Millisecond, stdErr.String())
 }
 
 func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -400,7 +399,6 @@ func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	require.Eventually(t, func() bool {
 		res, err := http.Get(ps.getEndpointAddress() + exp)
 		if err != nil {
-			fmt.Println(err)
 			return false
 		}
 		defer res.Body.Close()

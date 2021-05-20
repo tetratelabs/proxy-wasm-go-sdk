@@ -13,9 +13,9 @@ static_resources:
                 stat_prefix: ingress_http
                 codec_type: auto
                 route_config:
-                  name: httpbin
+                  name: web_service
                   virtual_hosts:
-                    - name: httpbin
+                    - name: web_service
                       domains:
                         - "*"
                       routes:
