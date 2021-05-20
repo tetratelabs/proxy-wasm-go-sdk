@@ -15,6 +15,8 @@
 package main
 
 import (
+	"encoding/hex"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -54,5 +56,5 @@ func (ctx *rootContext) OnTick() {
 	if err != nil {
 		proxywasm.LogCriticalf("CallForeignFunction failed: %v", err)
 	}
-	proxywasm.LogInfof("CallForeignFunction callNum: %d, result: %s", ctx.callNum, string(ret))
+	proxywasm.LogInfof("CallForeignFunction callNum: %d, result: %s", ctx.callNum, hex.EncodeToString(ret))
 }
