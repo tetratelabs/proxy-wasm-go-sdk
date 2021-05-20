@@ -21,24 +21,18 @@ import (
 
 func DeserializeMap(bs []byte) [][2]string {
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
-	sizes := make([]int, numHeaders*2)
-	for i := 0; i < len(sizes); i++ {
-		s := 4 + i*4
-		sizes[i] = int(binary.LittleEndian.Uint32(bs[s : s+4]))
-	}
-
-	var sizeIndex int
-	var dataIndex = 4 * (1 + 2*int(numHeaders))
+	var sizeIndex = 4
+	var dataIndex = 4 + 4*2*int(numHeaders)
 	ret := make([][2]string, numHeaders)
-	for i := range ret {
-		keySize := sizes[sizeIndex]
-		sizeIndex++
+	for i := 0; i < int(numHeaders); i++ {
+		keySize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
+		sizeIndex += 4
 		keyPtr := bs[dataIndex : dataIndex+keySize]
 		key := *(*string)(unsafe.Pointer(&keyPtr))
 		dataIndex += keySize + 1
 
-		valueSize := sizes[sizeIndex]
-		sizeIndex++
+		valueSize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
+		sizeIndex += 4
 		valuePtr := bs[dataIndex : dataIndex+valueSize]
 		value := *(*string)(unsafe.Pointer(&valuePtr))
 		dataIndex += valueSize + 1
