@@ -73,7 +73,7 @@ jobs:
   e2e-tests:
     strategy:
       matrix:
-        image: [ "envoyproxy/envoy:v1.18.2", "istio/proxyv2:1.9.3" ]
+        image: [ "envoyproxy/envoy:v1.18.2", "istio/proxyv2:1.9.3", "istio/proxyv2:1.10.0" ]
     name: E2E Test (${{ matrix.image }})
     needs: build-examples
     runs-on: ubuntu-latest

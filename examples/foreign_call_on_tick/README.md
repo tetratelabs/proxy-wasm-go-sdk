@@ -3,20 +3,20 @@
 this example periodically call foreign functions named "compress"
 
 ```
-CallForeignFunction callNum: 1, result: 
-CallForeignFunction callNum: 1, result: 
-CallForeignFunction callNum: 2, result: 
-CallForeignFunction callNum: 2, result: 
-CallForeignFunction callNum: 3, result: 
-CallForeignFunction callNum: 3, result: 
-CallForeignFunction callNum: 4, result: 
-CallForeignFunction callNum: 4, result: 
-CallForeignFunction callNum: 5, result: 
-CallForeignFunction callNum: 5, result: 
-CallForeignFunction callNum: 6, result: 
-CallForeignFunction callNum: 6, result: 
-CallForeignFunction callNum: 7, result: 
-CallForeignFunction callNum: 7, result: 
-CallForeignFunction callNum: 8, result: 
-CallForeignFunction callNum: 8, result: 
+CallForeignFunction callNum: 1, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 1, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 2, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 2, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 3, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 3, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 4, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 4, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 5, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 5, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 6, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 6, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 7, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 7, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 8, result: 789ccb48cdc9c95728cf2fca495104001e89047e
+CallForeignFunction callNum: 8, result: 789ccb48cdc9c95728cf2fca495104001e89047e
 ```
