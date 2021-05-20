@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,11 +23,13 @@ func TestRootContext_OnTick(t *testing.T) {
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
+	// Register foreign function named "compress".
+	host.RegisterForeignFunction("compress", func(b []byte) []byte { return []byte(strings.ToUpper(string(b))) })
+
 	for i := 1; i < 10; i++ {
-		host.Tick() // call OnTick
+		host.Tick()
 		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction callNum: %d, result: %s", i, "hello world!"))
+		require.Contains(t, logs, fmt.Sprintf("CallForeignFunction callNum: %d, result: %s", i, "HELLO WORLD!"))
 	}
-
 }

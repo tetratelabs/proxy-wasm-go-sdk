@@ -24,17 +24,14 @@ import (
 
 type (
 	rootHostEmulator struct {
-		logs       [types.LogLevelMax][]string
-		tickPeriod uint32
+		activeCalloutID  uint32
+		logs             [types.LogLevelMax][]string
+		tickPeriod       uint32
+		foreignFunctions map[string]func([]byte) []byte
 
-		queues      map[uint32][][]byte
-		queueNameID map[string]uint32
-
+		queues        map[uint32][][]byte
+		queueNameID   map[string]uint32
 		sharedDataKVS map[string]*sharedData
-
-		metricIDToValue map[uint32]uint64
-		metricIDToType  map[uint32]types.MetricType
-		metricNameToID  map[string]uint32
 
 		httpContextIDToCalloutInfos map[uint32][]HttpCalloutAttribute // key: contextID
 		httpCalloutIDToContextID    map[uint32]uint32                 // key: calloutID
@@ -44,9 +41,11 @@ type (
 			body     []byte
 		}
 
-		pluginConfiguration, vmConfiguration []byte
+		metricIDToType  map[uint32]types.MetricType
+		metricNameToID  map[string]uint32
+		metricIDToValue map[uint32]uint64
 
-		activeCalloutID uint32
+		pluginConfiguration, vmConfiguration []byte
 	}
 
 	HttpCalloutAttribute struct {
@@ -56,15 +55,16 @@ type (
 		Trailers  types.Trailers
 		Body      []byte
 	}
-)
 
-type sharedData struct {
-	data []byte
-	cas  uint32
-}
+	sharedData struct {
+		data []byte
+		cas  uint32
+	}
+)
 
 func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostEmulator {
 	host := &rootHostEmulator{
+		foreignFunctions:            map[string]func([]byte) []byte{},
 		queues:                      map[uint32][][]byte{},
 		queueNameID:                 map[string]uint32{},
 		sharedDataKVS:               map[string]*sharedData{},
@@ -260,10 +260,9 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	return types.StatusOK
 }
 
-var foreignFunctions = map[string]func([]byte) []byte{
-	"compress": func(param []byte) []byte {
-		return param
-	},
+// impl rawhostcall.ProxyWASMHost
+func (r *rootHostEmulator) RegisterForeignFunction(name string, f func([]byte) []byte) {
+	r.foreignFunctions[name] = f
 }
 
 // impl rawhostcall.ProxyWASMHost
@@ -274,7 +273,11 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 	log.Printf("[foreign call] funcname: %s", funcName)
 	log.Printf("[foreign call] param: %s", param)
 
-	ret := foreignFunctions[funcName](param)
+	f, ok := r.foreignFunctions[funcName]
+	if !ok {
+		log.Fatalf("%s not registered as a foreign function", funcName)
+	}
+	ret := f(param)
 	*returnData = &ret[0]
 	*returnSize = len(ret)
 
