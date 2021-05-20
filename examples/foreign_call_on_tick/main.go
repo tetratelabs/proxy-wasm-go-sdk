@@ -21,7 +21,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const tickMilliseconds uint32 = 1000
+const tickMilliseconds uint32 = 1
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
@@ -54,7 +54,7 @@ func (ctx *rootContext) OnTick() {
 	ctx.callNum++
 	ret, err := proxywasm.CallForeignFunction("compress", []byte("hello world!"))
 	if err != nil {
-		proxywasm.LogCriticalf("CallForeignFunction failed: %v", err)
+		proxywasm.LogCriticalf("foreign function (compress) failed: %v", err)
 	}
-	proxywasm.LogInfof("CallForeignFunction callNum: %d, result: %s", ctx.callNum, hex.EncodeToString(ret))
+	proxywasm.LogInfof("foreign function (compress) called: %d, result: %s", ctx.callNum, hex.EncodeToString(ret))
 }

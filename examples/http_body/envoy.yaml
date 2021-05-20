@@ -13,16 +13,16 @@ static_resources:
                 stat_prefix: ingress_http
                 codec_type: auto
                 route_config:
-                  name: local_route
+                  name: echo
                   virtual_hosts:
-                    - name: local_service
+                    - name: echo
                       domains:
                         - "*"
                       routes:
                         - match:
                             prefix: "/"
                           route:
-                            cluster: httpbin
+                            cluster: echo
                 http_filters:
                   - name: envoy.filters.http.wasm
                     typed_config:
@@ -32,30 +32,76 @@ static_resources:
                         config:
                           name: "my_plugin"
                           root_id: "my_root_id"
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "body-set"
                           vm_config:
                             vm_id: "my_vm_id"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
                                 filename: "./examples/http_body/main.go.wasm"
-                            allow_precompiled: true
+                  - name: envoy.filters.http.router
+                    typed_config: {}
+
+    - name: echo
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 38140
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                codec_type: auto
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains:
+                        - "*"
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: echo
+                http_filters:
+                  - name: envoy.filters.http.wasm
+                    typed_config:
+                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+                      value:
+                        config:
+                          name: "echo"
+                          root_id: "echo"
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "echo"
+                          vm_config:
+                            vm_id: "my_vm_id"
+                            runtime: "envoy.wasm.runtime.v8"
+                            code:
+                              local:
+                                filename: "./examples/http_body/main.go.wasm"
                   - name: envoy.filters.http.router
                     typed_config: {}
 
   clusters:
-    - name: httpbin
+    - name: echo
       connect_timeout: 5000s
       type: strict_dns
       lb_policy: round_robin
       load_assignment:
-        cluster_name: httpbin
+        cluster_name: echo
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
-                      address: httpbin.org
-                      port_value: 80
+                      address: 0.0.0.0
+                      port_value: 38140
 
 admin:
   access_log_path: "/dev/null"

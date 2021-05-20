@@ -47,6 +47,28 @@ type envoyPorts struct {
 	endpoint, staticReply, admin int
 }
 
+func (e *envoyPorts) getAdminAddress() string {
+	return fmt.Sprintf("http://localhost:%d", e.admin)
+}
+
+func (e *envoyPorts) getEndpointAddress() string {
+	return fmt.Sprintf("http://localhost:%d", e.endpoint)
+}
+
+func checkMessage(str string, exps, nexps []string) bool {
+	for _, exp := range exps {
+		if !strings.Contains(str, exp) {
+			return false
+		}
+	}
+	for _, nexp := range nexps {
+		if strings.Contains(str, nexp) {
+			return false
+		}
+	}
+	return true
+}
+
 func Test_E2E(t *testing.T) {
 	t.Run("network", testRunnerGetter(envoyPorts{
 		endpoint:    11000,
@@ -120,17 +142,15 @@ func Test_E2E(t *testing.T) {
 	}, callForeignOnTick))
 }
 
-type runner = func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)
-
-func testRunnerGetter(ps envoyPorts, r runner) func(t *testing.T) {
+func testRunnerGetter(ps envoyPorts, r func(t *testing.T, nps envoyPorts, stdErr *bytes.Buffer)) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Parallel()
 		cmd, buf, conf := startEnvoy(t, ps)
-		r(t, ps, buf)
 		defer func() {
 			require.NoError(t, cmd.Process.Kill())
 			require.NoError(t, os.Remove(conf))
 		}()
+		r(t, ps, buf)
 	}
 }
 
@@ -140,14 +160,20 @@ func startEnvoy(t *testing.T, ps envoyPorts) (cmd *exec.Cmd, stdErr *bytes.Buffe
 	require.NoError(t, err)
 	cmd = exec.Command("envoy",
 		"--base-id", strconv.Itoa(ps.admin),
-		"--concurrency", "1",
+		"--concurrency", "1", "--component-log-level", "wasm:trace",
 		"-c", conf)
 
 	buf := new(bytes.Buffer)
 	cmd.Stderr = buf
 	require.NoError(t, cmd.Start())
-
-	time.Sleep(time.Second * 5)
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getAdminAddress() + "/listeners?format=json")
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return res.StatusCode == http.StatusOK
+	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started")
 	return cmd, buf, conf
 }
 
@@ -167,23 +193,24 @@ func getEnvoyConfigurationPath(t *testing.T, name string, ps envoyPorts) (string
 }
 
 func helloworld(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "helloworld: proxy_on_vm_start from Go!")
-	require.Contains(t, out, "helloworld: It's")
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{
+			"helloworld: proxy_on_vm_start from Go!",
+			"helloworld: It's",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func httpRouting(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	var primary, canary bool
-	for i := 0; i < 25; i++ { // TODO: maybe flaky
-		req, err := http.NewRequest("GET",
-			fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress())
+		if err != nil {
+			return false
+		}
+		raw, err := ioutil.ReadAll(res.Body)
 		require.NoError(t, err)
-
-		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		raw, err := ioutil.ReadAll(r.Body)
-		require.NoError(t, err)
+		defer res.Body.Close()
 		body := string(raw)
 		if strings.Contains(body, "canary") {
 			canary = true
@@ -191,217 +218,212 @@ func httpRouting(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 		if strings.Contains(body, "primary") {
 			primary = true
 		}
-		r.Body.Close()
-		fmt.Println("received body: ", body)
-	}
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.True(t, primary, "must be routed to primary at least once")
-	require.True(t, canary, "must be routed to canary at least once")
+		return primary && canary
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func httpAuthRandom(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	key := "this-is-key"
 	value := "this-is-value"
-
-	for i := 0; i < 25; i++ { // TODO: maybe flaky
-		req, err := http.NewRequest("GET",
-			fmt.Sprintf("http://localhost:%d/uuid", ps.endpoint), nil)
-		require.NoError(t, err)
-		req.Header.Add(key, value)
-
-		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		r.Body.Close()
-	}
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "access forbidden")
-	require.Contains(t, out, "access granted")
-	require.Contains(t, out, "response header from httpbin: :status: 200")
+	req, err := http.NewRequest("GET", ps.getEndpointAddress()+"/uuid", nil)
+	require.NoError(t, err)
+	req.Header.Add(key, value)
+	require.Eventually(t, func() bool {
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return checkMessage(stdErr.String(), []string{
+			"access forbidden",
+			"access granted",
+			"response header from httpbin: :status: 200",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func httpHeaders(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	req, err := http.NewRequest("GET", ps.getEndpointAddress(), nil)
 	require.NoError(t, err)
-
 	key := "this-is-key"
 	value := "this-is-value"
 	req.Header.Add(key, value)
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer r.Body.Close()
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, key)
-	require.Contains(t, out, value)
-	require.Contains(t, out, "server: envoy")
+	require.Eventually(t, func() bool {
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return checkMessage(stdErr.String(), []string{
+			key, value, "server: envoy",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func httpBody(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/anything", ps.endpoint),
-		bytes.NewBuffer([]byte(`{ "example": "body" }`)))
+	req, err := http.NewRequest("GET", ps.getEndpointAddress()+"/anything",
+		bytes.NewBuffer([]byte(`{ "initial": "body" }`)))
 	require.NoError(t, err)
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer r.Body.Close()
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "body size: 21")
-	require.Contains(t, out, `initial request body: { "example": "body" }`)
-	require.Contains(t, out, "on http request body finished")
-	require.NotContains(t, out, "failed to set request body")
-	require.NotContains(t, out, "failed to get request body")
-
-	body, err := ioutil.ReadAll(r.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), `"another": "body"`)
+	require.Eventually(t, func() bool {
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		require.NoError(t, err)
+		return checkMessage(stdErr.String(), []string{
+			"body size: 21",
+			`initial request body: { "initial": "body" }`,
+			"on http request body finished"},
+			[]string{"failed to set request body", "failed to get request body"},
+		) && checkMessage(string(body), []string{`"another": "body"`}, nil)
+	}, 5*time.Second, 500*time.Millisecond, stdErr.String())
 }
 
 func network(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	key := "This-Is-Key"
 	value := "this-is-value"
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
+	req, err := http.NewRequest("GET", ps.getEndpointAddress(), nil)
 	require.NoError(t, err)
-
 	req.Header.Add(key, value)
 	req.Header.Add("Connection", "close")
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	r.Body.Close()
-
-	time.Sleep(time.Second * 5)
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, key)
-	require.Contains(t, out, value)
-	require.Contains(t, out, "downstream data received")
-	require.Contains(t, out, "new connection!")
-	require.Contains(t, out, "downstream connection close!")
-	require.Contains(t, out, "upstream data received")
-	require.Contains(t, out, "connection complete!")
-	require.Contains(t, out, "remote address: 127.0.0.1:")
+	require.Eventually(t, func() bool {
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return checkMessage(stdErr.String(), []string{
+			key, value,
+			"downstream data received",
+			"new connection!",
+			"downstream connection close!",
+			"upstream data received",
+			"connection complete!",
+			"remote address: 127.0.0.1:",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func metrics(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
-	require.NoError(t, err)
-
-	count := 10
-	for i := 0; i < count; i++ {
-		r, err := http.DefaultClient.Do(req)
+	var count int
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress())
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		if res.StatusCode != http.StatusOK {
+			return false
+		}
+		count++
+		return count == 10
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getAdminAddress() + "/stats")
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		raw, err := ioutil.ReadAll(res.Body)
 		require.NoError(t, err)
-		r.Body.Close()
-	}
-
-	fmt.Println(stdErr.String())
-
-	req, err = http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/stats", ps.admin), nil)
-	require.NoError(t, err)
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer r.Body.Close()
-
-	b, err := ioutil.ReadAll(r.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(b), fmt.Sprintf("proxy_wasm_go.request_counter: %d", count))
+		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
+	}, 5*time.Second, time.Millisecond, "Expected stats not found")
 }
 
 func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
-	require.NoError(t, err)
-
-	count := 10
-	for i := 0; i < count; i++ {
-		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		r.Body.Close()
-	}
+	var count int
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress())
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		if res.StatusCode != http.StatusOK {
+			return false
+		}
+		count++
+		return count == 10
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 
 	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, fmt.Sprintf("shared value: %d", count))
+	require.Contains(t, out, fmt.Sprintf("shared value: %d", count), out)
 }
 
 func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
-	require.NoError(t, err)
-
-	count := 10
-	for i := 0; i < count; i++ {
-		r, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		r.Body.Close()
-	}
-
-	time.Sleep(time.Second * 5)
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "dequeued data: hello")
-	require.Contains(t, out, "dequeued data: world")
-	require.Contains(t, out, "dequeued data: proxy-wasm")
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress())
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return res.StatusCode == http.StatusOK
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{
+			"dequeued data: hello",
+			"dequeued data: world",
+			"dequeued data: proxy-wasm",
+		}, nil)
+	}, 5*time.Second, time.Millisecond)
 }
 
 func vmPluginConfiguration(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "name\": \"vm configuration")
-	require.Contains(t, out, "name\": \"plugin configuration")
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{
+			"name\": \"vm configuration", "name\": \"plugin configuration",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func configurationFromRoot(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ps.endpoint), nil)
-	require.NoError(t, err)
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	r.Body.Close()
-
-	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, "plugin config from root context")
-	require.Contains(t, out, "name\": \"plugin configuration")
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress())
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return res.StatusCode == http.StatusOK
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{
+			"plugin config from root context",
+			"name\": \"plugin configuration",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func accessLogger(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 	exp := "/this/is/my/path"
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d%s", ps.endpoint, exp), nil)
-	require.NoError(t, err)
-
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer r.Body.Close()
-
+	require.Eventually(t, func() bool {
+		res, err := http.Get(ps.getEndpointAddress() + exp)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return res.StatusCode == http.StatusOK
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy")
 	out := stdErr.String()
-	fmt.Println(out)
-	require.Contains(t, out, exp)
+	require.Contains(t, out, exp, out)
 }
 
 func dispatchCallOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	time.Sleep(5 * time.Second)
-	out := stdErr.String()
-	fmt.Println(out)
-	for i := 1; i < 6; i++ {
-		require.Contains(t, out, fmt.Sprintf("called! %d", i))
-	}
+	var count int = 1
+	require.Eventually(t, func() bool {
+		if strings.Contains(stdErr.String(), fmt.Sprintf("called! %d", count)) {
+			count++
+		}
+		return count == 6
+	}, 5*time.Second, 10*time.Millisecond, stdErr.String())
 }
 
 func callForeignOnTick(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
-	time.Sleep(5 * time.Second)
-	out := stdErr.String()
-	fmt.Println(out)
-	for i := 1; i < 6; i++ {
-		require.Contains(t, out, fmt.Sprintf("CallForeignFunction callNum: %d", i))
-	}
+	var count int = 1
+	require.Eventually(t, func() bool {
+		if strings.Contains(stdErr.String(), fmt.Sprintf("foreign function (compress) called: %d", count)) {
+			count++
+		}
+		return count == 6
+	}, 5*time.Second, 10*time.Millisecond, stdErr.String())
 }

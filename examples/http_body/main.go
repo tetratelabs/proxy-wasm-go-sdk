@@ -15,6 +15,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -22,29 +24,41 @@ import (
 func main() {
 	proxywasm.SetNewRootContext(newContext)
 }
+func newContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
+	shouldEchoBody bool
 }
-
-func newContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
 // Override DefaultRootContext.
-func (*rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
-	return &httpBody{contextID: contextID}
+func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	if ctx.shouldEchoBody {
+		return &echoBodyContext{}
+	}
+	return &setBodyContext{}
 }
 
-type httpBody struct {
+// Override DefaultRootContext.
+func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
+	if err != nil {
+		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
+	}
+	ctx.shouldEchoBody = string(data) == "echo"
+	return types.OnPluginStartStatusOK
+}
+
+type setBodyContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
-	contextID uint32
 }
 
 // Override DefaultHttpContext.
-func (ctx *httpBody) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("body size: %d", bodySize)
 	if bodySize != 0 {
 		initialBody, err := proxywasm.GetHttpRequestBody(0, bodySize)
@@ -66,4 +80,40 @@ func (ctx *httpBody) OnHttpRequestBody(bodySize int, endOfStream bool) types.Act
 	}
 
 	return types.ActionContinue
+}
+
+type echoBodyContext struct {
+	// You'd better embed the default root context
+	// so that you don't need to reimplement all the methods by yourself.
+	proxywasm.DefaultHttpContext
+}
+
+func (ctx *echoBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	var reject bool
+	clen, err := proxywasm.GetHttpRequestHeader("content-length")
+	if err != nil {
+		reject = true
+	} else if l, err := strconv.Atoi(clen); err != nil || l < 1 {
+		reject = true
+	}
+
+	if reject {
+		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided")); err != nil {
+			panic(err)
+		}
+		return types.ActionPause
+	}
+	return types.ActionContinue
+}
+
+// Override DefaultHttpContext.
+func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+	if bodySize != 0 {
+		body, _ := proxywasm.GetHttpRequestBody(0, bodySize)
+		if err := proxywasm.SendHttpResponse(200, nil, body); err != nil {
+			panic(err)
+		}
+		return types.ActionPause
+	}
+	return types.ActionPause
 }
