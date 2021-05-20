@@ -1,5 +1,5 @@
 # Go SDK for WebAssembly-based Envoy extensions
-[![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/build-test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions)
+[![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 __This project is in its early stage, and the API is likely to change and not stable.__
@@ -43,12 +43,12 @@ which is introduced in [v0.16.0](https://github.com/tinygo-org/tinygo/releases/t
 Please follow the official instruction [here](https://tinygo.org/getting-started/).
 
 
-### compatible ABI / Envoy builds (verified on CI)
+### Compatible ABI / Envoy builds (tested on CI)
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
-| main | 0.2.0| 1.9.x | 1.18.x |
-| v0.1.1 | 0.2.0| 1.8.x, 1.9.x | 1.17.x |
+| main | 0.2.0| 1.9, 1.10 | 1.18 |
+| v0.1.1 | 0.2.0| 1.8, 1.9 | 1.17 |
 
 
 ## Run examples
