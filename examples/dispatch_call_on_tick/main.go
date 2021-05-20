@@ -19,7 +19,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const tickMilliseconds uint32 = 100
+const tickMilliseconds uint32 = 1
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)

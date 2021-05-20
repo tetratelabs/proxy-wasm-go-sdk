@@ -72,6 +72,7 @@ jobs:
 
   e2e-tests:
     strategy:
+      fail-fast: false
       matrix:
         image: [ "envoyproxy/envoy:v1.18.2", "istio/proxyv2:1.9.3", "istio/proxyv2:1.10.0" ]
     name: E2E Test (${{ matrix.image }})
