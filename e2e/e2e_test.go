@@ -346,9 +346,9 @@ func sharedData(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 		count++
 		return count == 10
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
-
-	out := stdErr.String()
-	require.Contains(t, out, fmt.Sprintf("shared value: %d", count), out)
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)}, nil)
+	}, 5*time.Second, time.Millisecond, "Expected shared data value not logged")
 }
 
 func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
@@ -366,7 +366,7 @@ func sharedQueue(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {
 			"dequeued data: world",
 			"dequeued data: proxy-wasm",
 		}, nil)
-	}, 5*time.Second, time.Millisecond)
+	}, 5*time.Second, time.Millisecond, "Dequeued message not found")
 }
 
 func vmPluginConfiguration(t *testing.T, ps envoyPorts, stdErr *bytes.Buffer) {

@@ -15,6 +15,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -58,18 +60,29 @@ func (*sharedDataRootContext) NewHttpContext(contextID uint32) proxywasm.HttpCon
 
 // Override DefaultHttpContext.
 func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	for {
+		value, err := ctx.incrementData()
+		if err == nil {
+			proxywasm.LogInfof("shared value: %d", value[0])
+		} else if errors.Is(err, types.ErrorStatusCasMismatch) {
+			continue
+		}
+		break
+	}
+	return types.ActionContinue
+}
+
+func (ctx *sharedDataHttpContext) incrementData() ([]byte, error) {
 	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)
-		return types.ActionContinue
+		return value, err
 	}
 
 	value[0]++
 	if err := proxywasm.SetSharedData(sharedDataKey, value, cas); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnHttpRequestHeaders: %v", err)
-		return types.ActionContinue
+		return value, err
 	}
-
-	proxywasm.LogInfof("shared value: %d", value[0])
-	return types.ActionContinue
+	return value, err
 }
