@@ -1,3 +1,16 @@
+bootstrap_extensions:
+- name: envoy.bootstrap.wasm
+  typed_config:
+    "@type": type.googleapis.com/envoy.extensions.wasm.v3.WasmService
+    singleton: true
+    config:
+      vm_config:
+        vm_id: "receiver"
+        runtime: "envoy.wasm.runtime.v8"
+        code:
+          local:
+            filename: "./examples/shared_queue/receiver/main.go.wasm"
+
 static_resources:
   listeners:
     - name: main
@@ -26,19 +39,15 @@ static_resources:
                 http_filters:
                   - name: envoy.filters.http.wasm
                     typed_config:
-                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
-                      value:
-                        config:
-                          name: "my_plugin"
-                          root_id: "my_root_id"
-                          vm_config:
-                            vm_id: "my_vm_id"
-                            runtime: "envoy.wasm.runtime.v8"
-                            code:
-                              local:
-                                filename: "./examples/shared_queue/main.go.wasm"
-                            allow_precompiled: true
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+                      config:
+                        vm_config:
+                          vm_id: "sender"
+                          runtime: "envoy.wasm.runtime.v8"
+                          code:
+                            local:
+                              filename: "./examples/shared_queue/sender/main.go.wasm"
+                          allow_precompiled: true
                   - name: envoy.filters.http.router
                     typed_config: {}
 

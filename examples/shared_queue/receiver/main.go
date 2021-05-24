@@ -19,39 +19,34 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const (
-	queueName = "proxy_wasm_go.queue"
-)
+const queueName = "http_headers"
 
 func main() {
 	proxywasm.SetNewRootContext(newRootContext)
 }
 
-type queueRootContext struct {
+type receiverRootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultRootContext
 }
 
 func newRootContext(uint32) proxywasm.RootContext {
-	return &queueRootContext{}
+	return &receiverRootContext{}
 }
 
-var queueID uint32
-
 // Override DefaultRootContext.
-func (ctx *queueRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	qID, err := proxywasm.RegisterSharedQueue(queueName)
+func (ctx *receiverRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	queueID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
-		panic(err.Error())
+		panic("failed register queue")
 	}
-	queueID = qID
-	proxywasm.LogInfof("queue registered, name: %s, id: %d", queueName, qID)
+	proxywasm.LogInfof("queue \"%s\" registered as id=%d", queueName, queueID)
 	return types.OnVMStartStatusOK
 }
 
 // Override DefaultRootContext.
-func (ctx *queueRootContext) OnQueueReady(_ uint32) {
+func (ctx *receiverRootContext) OnQueueReady(queueID uint32) {
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:
@@ -61,25 +56,4 @@ func (ctx *queueRootContext) OnQueueReady(_ uint32) {
 	default:
 		proxywasm.LogCriticalf("error retrieving data from queue %d: %v", queueID, err)
 	}
-}
-
-// Override DefaultRootContext.
-func (*queueRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
-	return &queueHttpContext{}
-}
-
-type queueHttpContext struct {
-	// You'd better embed the default http context
-	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultHttpContext
-}
-
-// Override DefaultHttpContext.
-func (ctx *queueHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
-	for _, msg := range []string{"hello", "world", "hello", "proxy-wasm"} {
-		if err := proxywasm.EnqueueSharedQueue(queueID, []byte(msg)); err != nil {
-			proxywasm.LogCriticalf("error queueing: %v", err)
-		}
-	}
-	return types.ActionContinue
 }
