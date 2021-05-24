@@ -274,8 +274,8 @@ func Test_shared_queue(t *testing.T) {
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
-			`wasm log sender: enqueued data: {"key": ":method","value": "GET"}`,
-			`wasm log receiver: dequeued data: {"key": ":method","value": "GET"}`,
+			`enqueued data: {"key": ":method","value": "GET"}`,
+			`dequeued data: {"key": ":method","value": "GET"}`,
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
