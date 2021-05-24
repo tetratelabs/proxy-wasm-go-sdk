@@ -57,10 +57,8 @@ build:
 
 ```bash
 make build.examples        # build all examples
-make build.examples.docker # in docker
 
 make build.example name=helloworld        # build a specific example
-make build.example.docker name=helloworld # in docker
 ```
 
 run:
