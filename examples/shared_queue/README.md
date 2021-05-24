@@ -1,15 +1,17 @@
 
 ## shared_queue
 
-This example describe how to use a shared queue to communicate between seprate Wasm VMs.
+This example describes how to use a shared queue to communicate between seprate Wasm VMs.
 
-There are two Wasm VMs are loaded:
+There are two Wasm VMs are configured (See `envoy.yaml` for detail):
 1. The one with `vm_id="receiver"` and the binary of `receiver/main.go`.
 2. Another one with `vm_id="sender"` and the binary of `sender/main.go`.
 
-`receiver` VM runs as a singleton [Wasm Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/other_features/wasm_service.html) which runs in the main thread, and registered the queue named `http_headers` by calling the `RegisterSharedQueue` host call.
+`receiver` VM runs as a singleton [Wasm Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/other_features/wasm_service.html) which runs in the main thread, and registered a shared queue named `http_headers` by calling the `RegisterSharedQueue` host call.
 
 `sender` VM runs in the http filter chain on worker threads, and enqueue request headers to the shared queue resolved by the `ResolveSharedQueue` with the args of `vm_id=receiver` and `name=http_headers`.
+
+See [this talk](https://www.youtube.com/watch?v=XdWmm_mtVXI&t=1171s) for detail.
 
 
 ```bash
