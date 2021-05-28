@@ -70,7 +70,7 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 
 		b := []byte(`{ "another": "body" }`)
 
-		err = proxywasm.SetHttpRequestBody(b)
+		err = proxywasm.ReplaceHttpRequestBody(b)
 		if err != nil {
 			proxywasm.LogErrorf("failed to set request body: %v", err)
 			return types.ActionContinue

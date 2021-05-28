@@ -17,7 +17,7 @@ package e2e
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -132,7 +132,7 @@ func Test_http_body(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		return checkMessage(stdErr.String(), []string{
 			"body size: 21",
@@ -172,7 +172,7 @@ func Test_http_routing(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		raw, err := ioutil.ReadAll(res.Body)
+		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		defer res.Body.Close()
 		body := string(raw)
@@ -207,7 +207,7 @@ func Test_metrics(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		raw, err := ioutil.ReadAll(res.Body)
+		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, "Expected stats not found")
