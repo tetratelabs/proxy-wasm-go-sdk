@@ -1,6 +1,6 @@
 ## http_body
 
-this example demnstrates how to perform operation on a request body like append/prepend/replace.
+this example demonstrates how to perform operation on a request body like append/prepend/replace.
 
 
 ```
