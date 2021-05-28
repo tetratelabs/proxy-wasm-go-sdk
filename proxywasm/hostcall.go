@@ -15,6 +15,8 @@
 package proxywasm
 
 import (
+	"math"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -31,12 +33,16 @@ func GetVMConfiguration(size int) ([]byte, error) {
 
 func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
 	shs := SerializeMap(headers)
+	var bp *byte
+	if len(body) > 0 {
+		bp = &body[0]
+	}
 	hp := &shs[0]
 	hl := len(shs)
 	return types.StatusToError(
 		rawhostcall.ProxySendLocalResponse(
 			statusCode, nil, 0,
-			&body[0], len(body), hp, hl, -1,
+			bp, len(body), hp, hl, -1,
 		),
 	)
 }
@@ -101,13 +107,16 @@ func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SetDownStreamData(body []byte) error {
-	var bufferData *byte
-	if len(body) != 0 {
-		bufferData = &body[0]
-	}
-	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeDownstreamData, 0, len(body), bufferData, len(body))
-	return types.StatusToError(st)
+func AppendDownStreamData(data []byte) error {
+	return appendToBuffer(types.BufferTypeDownstreamData, data)
+}
+
+func PrependDownStreamData(data []byte) error {
+	return prependToBuffer(types.BufferTypeDownstreamData, data)
+}
+
+func ReplaceDownStreamData(data []byte) error {
+	return replaceBuffer(types.BufferTypeDownstreamData, data)
 }
 
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
@@ -115,13 +124,16 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SetUpstreamData(body []byte) error {
-	var bufferData *byte
-	if len(body) != 0 {
-		bufferData = &body[0]
-	}
-	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeUpstreamData, 0, len(body), bufferData, len(body))
-	return types.StatusToError(st)
+func AppendUpstreammData(data []byte) error {
+	return appendToBuffer(types.BufferTypeUpstreamData, data)
+}
+
+func PrependUpstreamData(data []byte) error {
+	return prependToBuffer(types.BufferTypeUpstreamData, data)
+}
+
+func ReplaceUpstreamData(data []byte) error {
+	return replaceBuffer(types.BufferTypeUpstreamData, data)
 }
 
 func ContinueDownStream() error {
@@ -171,13 +183,16 @@ func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpRequestBody(body []byte) error {
-	var bufferData *byte
-	if len(body) != 0 {
-		bufferData = &body[0]
-	}
-	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpRequestBody, 0, len(body), bufferData, len(body))
-	return types.StatusToError(st)
+func AppendHttpRequestBody(data []byte) error {
+	return appendToBuffer(types.BufferTypeHttpRequestBody, data)
+}
+
+func PrependHttpRequestBody(data []byte) error {
+	return prependToBuffer(types.BufferTypeHttpRequestBody, data)
+}
+
+func ReplaceHttpRequestBody(data []byte) error {
+	return replaceBuffer(types.BufferTypeHttpRequestBody, data)
 }
 
 func GetHttpRequestTrailers() (types.Trailers, error) {
@@ -241,13 +256,16 @@ func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func SetHttpResponseBody(body []byte) error {
-	var bufferData *byte
-	if len(body) != 0 {
-		bufferData = &body[0]
-	}
-	st := rawhostcall.ProxySetBufferBytes(types.BufferTypeHttpResponseBody, 0, len(body), bufferData, len(body))
-	return types.StatusToError(st)
+func AppendHttpResponseBody(data []byte) error {
+	return appendToBuffer(types.BufferTypeHttpResponseBody, data)
+}
+
+func PrependHttpResponseBody(data []byte) error {
+	return prependToBuffer(types.BufferTypeHttpResponseBody, data)
+}
+
+func ReplaceHttpResponseBody(data []byte) error {
+	return replaceBuffer(types.BufferTypeHttpResponseBody, data)
 }
 
 func GetHttpResponseTrailers() (types.Trailers, error) {
@@ -402,4 +420,28 @@ func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Stat
 	default:
 		return nil, st
 	}
+}
+
+func appendToBuffer(bufType types.BufferType, buffer []byte) error {
+	var bufferData *byte
+	if len(buffer) != 0 {
+		bufferData = &buffer[0]
+	}
+	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, math.MaxInt32, 0, bufferData, len(buffer)))
+}
+
+func prependToBuffer(bufType types.BufferType, buffer []byte) error {
+	var bufferData *byte
+	if len(buffer) != 0 {
+		bufferData = &buffer[0]
+	}
+	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
+}
+
+func replaceBuffer(bufType types.BufferType, buffer []byte) error {
+	var bufferData *byte
+	if len(buffer) != 0 {
+		bufferData = &buffer[0]
+	}
+	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, math.MaxInt32, bufferData, len(buffer)))
 }

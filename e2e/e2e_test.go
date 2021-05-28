@@ -17,7 +17,7 @@ package e2e
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -123,24 +123,37 @@ func Test_http_auth_random(t *testing.T) {
 func Test_http_body(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()
-	req, err := http.NewRequest("GET", "http://localhost:18000/anything",
-		bytes.NewBuffer([]byte(`{ "initial": "body" }`)))
-	require.NoError(t, err)
-	require.Eventually(t, func() bool {
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return false
-		}
-		defer res.Body.Close()
-		body, err := ioutil.ReadAll(res.Body)
-		require.NoError(t, err)
-		return checkMessage(stdErr.String(), []string{
-			"body size: 21",
-			`initial request body: { "initial": "body" }`,
-			"on http request body finished"},
-			[]string{"failed to set request body", "failed to get request body"},
-		) && checkMessage(string(body), []string{`"another": "body"`}, nil)
-	}, 5*time.Second, 500*time.Millisecond, stdErr.String())
+
+	for _, tc := range []struct {
+		op, expBody string
+	}{
+		{op: "append", expBody: `[original body][this is appended body]`},
+		{op: "prepend", expBody: `[this is prepended body][original body]`},
+		{op: "replace", expBody: `[this is replaced body]`},
+		// Shoud fall back to to the replace.
+		{op: "invalid", expBody: `[this is replaced body]`},
+	} {
+		t.Run(tc.op, func(t *testing.T) {
+			require.Eventually(t, func() bool {
+				req, err := http.NewRequest("PUT", "http://localhost:18000/anything",
+					bytes.NewBuffer([]byte(`[original body]`)))
+				require.NoError(t, err)
+				req.Header.Add("buffer-operation", tc.op)
+				res, err := http.DefaultClient.Do(req)
+				if err != nil {
+					return false
+				}
+				defer res.Body.Close()
+				body, err := io.ReadAll(res.Body)
+				require.NoError(t, err)
+				return string(body) == tc.expBody &&
+					checkMessage(stdErr.String(), []string{
+						`original request body: [original body]`},
+						[]string{"failed to"},
+					) && checkMessage(string(body), []string{tc.expBody}, nil)
+			}, 5*time.Second, 500*time.Millisecond, stdErr.String())
+		})
+	}
 }
 
 func Test_http_headers(t *testing.T) {
@@ -172,7 +185,7 @@ func Test_http_routing(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		raw, err := ioutil.ReadAll(res.Body)
+		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		defer res.Body.Close()
 		body := string(raw)
@@ -207,7 +220,7 @@ func Test_metrics(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		raw, err := ioutil.ReadAll(res.Body)
+		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, "Expected stats not found")

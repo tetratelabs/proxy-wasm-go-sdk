@@ -15,6 +15,7 @@
 package proxytest
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -60,6 +61,7 @@ type HostEmulator interface {
 	CompleteHttpContext(contextID uint32)
 	GetCurrentHttpStreamAction(contextID uint32) types.Action
 	GetCurrentRequestHeaders(contextID uint32) types.Headers
+	GetCurrentRequestBody(contextID uint32) []byte
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
 	CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers)
 }
@@ -136,7 +138,7 @@ func (h *hostEmulator) ProxySetBufferBytes(bt types.BufferType, start int, maxSi
 	case types.BufferTypeHttpRequestBody, types.BufferTypeHttpResponseBody:
 		return h.httpHostEmulatorProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
 	default:
-		panic("unreachable: maybe a bug in this host emulation or SDK")
+		panic(fmt.Sprintf("buffer type %d is not supported by proxytest frame work yet", bt))
 	}
 }
 
