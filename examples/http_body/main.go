@@ -57,7 +57,7 @@ type setBodyContext struct {
 }
 
 // Override DefaultHttpContext.
-func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
+func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	// Remove Content-Length in order to prevent severs from crashing if we set different body from downstream.
 	if err := proxywasm.RemoveHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided")); err != nil {
