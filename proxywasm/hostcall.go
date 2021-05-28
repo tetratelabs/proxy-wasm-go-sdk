@@ -124,7 +124,7 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func AppendUpstreammData(data []byte) error {
+func AppendUpstreamData(data []byte) error {
 	return appendToBuffer(types.BufferTypeUpstreamData, data)
 }
 
