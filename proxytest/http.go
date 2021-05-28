@@ -80,18 +80,38 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 
 func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt types.BufferType, start int, maxSize int,
 	bufferData *byte, bufferSize int) types.Status {
-	body := proxywasm.RawBytePtrToByteSlice(bufferData, bufferSize)
 	active := proxywasm.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
+	var targetBuf *[]byte
 	switch bt {
 	case types.BufferTypeHttpRequestBody:
-		stream.requestBody = body
+		targetBuf = &stream.requestBody
 	case types.BufferTypeHttpResponseBody:
-		stream.responseBody = body
+		targetBuf = &stream.responseBody
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
-	return types.StatusOK
+
+	body := proxywasm.RawBytePtrToByteSlice(bufferData, bufferSize)
+	if start == 0 {
+		if maxSize == 0 {
+			// Prepend
+			*targetBuf = append(body, *targetBuf...)
+			return types.StatusOK
+		} else if maxSize >= len(*targetBuf) {
+			// Replace
+			*targetBuf = body
+			return types.StatusOK
+		} else {
+			return types.StatusBadArgument
+		}
+	} else if start >= len(*targetBuf) {
+		// Append.
+		*targetBuf = append(*targetBuf, body...)
+		return types.StatusOK
+	} else {
+		return types.StatusBadArgument
+	}
 }
 
 // impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
@@ -366,7 +386,7 @@ func (h *httpHostEmulator) CallOnRequestBody(contextID uint32, body []byte, endO
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestBody = body
+	cs.requestBody = append(cs.requestBody, body...)
 	cs.action = proxywasm.ProxyOnRequestBody(contextID,
 		len(body), endOfStream)
 	return cs.action

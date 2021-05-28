@@ -33,12 +33,16 @@ func GetVMConfiguration(size int) ([]byte, error) {
 
 func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
 	shs := SerializeMap(headers)
+	var bp *byte
+	if len(body) > 0 {
+		bp = &body[0]
+	}
 	hp := &shs[0]
 	hl := len(shs)
 	return types.StatusToError(
 		rawhostcall.ProxySendLocalResponse(
 			statusCode, nil, 0,
-			&body[0], len(body), hp, hl, -1,
+			bp, len(body), hp, hl, -1,
 		),
 	)
 }

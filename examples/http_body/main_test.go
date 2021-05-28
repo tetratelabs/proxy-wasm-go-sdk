@@ -9,23 +9,124 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestHttpBody_OnHttpRequestBody(t *testing.T) {
+func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newContext)
 	host := proxytest.NewHostEmulator(opt)
 	// Release the host emulation lock so that other test cases can insert their own host emulation.
 	defer host.Done()
 
-	// Create http context.
-	id := host.InitializeHttpContext()
+	t.Run("remove content length", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
 
-	// Call OnRequestBody.
-	action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), true)
-	require.Equal(t, types.ActionContinue, action)
+		// Call OnRequestHeaders.
+		action := host.CallOnRequestHeaders(id, types.Headers{
+			{"content-length", "10"},
+		}, false)
 
-	logs := host.GetLogs(types.LogLevelInfo)
+		// Must be continued.
+		require.Equal(t, types.ActionContinue, action)
 
-	// Check Envoy logs.
-	require.Contains(t, logs, "on http request body finished")
-	require.Contains(t, logs, `initial request body: { "initial": "request body" }`)
+		// Check the final request headers
+		headers := host.GetCurrentRequestHeaders(id)
+		require.Len(t, headers, 0, "content-length header must be removed.")
+	})
+
+	t.Run("400 response", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestHeaders without "content-length"
+		action := host.CallOnRequestHeaders(id, nil, false)
+
+		// Must be paused.
+		require.Equal(t, types.ActionPause, action)
+
+		// Check the local response.
+		localResponse := host.GetSentLocalResponse(id)
+		require.NotNil(t, localResponse)
+		require.Equal(t, uint32(400), localResponse.StatusCode)
+		require.Equal(t, "content must be provided", string(localResponse.Data))
+	})
+}
+
+func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().
+		WithNewRootContext(newContext)
+	host := proxytest.NewHostEmulator(opt)
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
+
+	t.Run("pause until EOS", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestBody.
+		action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
+
+		// Must be paused
+		require.Equal(t, types.ActionPause, action)
+	})
+
+	t.Run("body replacement", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestBody.
+		action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), true)
+		require.Equal(t, types.ActionContinue, action)
+
+		// Check Envoy logs.
+		logs := host.GetLogs(types.LogLevelInfo)
+		require.Contains(t, logs, "on http request body finished")
+		require.Contains(t, logs, `initial request body: { "initial": "request body" }`)
+	})
+}
+
+func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().
+		WithNewRootContext(newContext).
+		WithPluginConfiguration([]byte("echo"))
+	host := proxytest.NewHostEmulator(opt)
+	// Release the host emulation lock so that other test cases can insert their own host emulation.
+	defer host.Done()
+
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
+
+	t.Run("pause until EOS", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestBody.
+		action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
+
+		// Must be paused
+		require.Equal(t, types.ActionPause, action)
+	})
+
+	t.Run("echo request", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		for _, frame := range []string{"frame1...", "frame2..."} {
+			// Call OnRequestHeaders without "content-length"
+			action := host.CallOnRequestBody(id, []byte(frame), false /* end of stream */)
+
+			// Must be paused.
+			require.Equal(t, types.ActionPause, action)
+		}
+
+		// End stream.
+		action := host.CallOnRequestBody(id, nil, true /* end of stream */)
+
+		// Must be paused.
+		require.Equal(t, types.ActionPause, action)
+
+		// Check the local response.
+		localResponse := host.GetSentLocalResponse(id)
+		require.NotNil(t, localResponse)
+		require.Equal(t, uint32(200), localResponse.StatusCode)
+		require.Equal(t, "frame1...frame2...", string(localResponse.Data))
+	})
 }
