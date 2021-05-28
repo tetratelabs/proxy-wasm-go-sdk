@@ -1,11 +1,12 @@
-# Go SDK for WebAssembly-based Envoy extensions
+# WebAssembly for Proxies (Go SDK)
+
 [![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 __This project is in its early stage, and the API is likely to change and not stable.__
 
 The Go SDK for
- [Proxy-Wasm](https://github.com/proxy-wasm/spec), enabling developers to write Envoy extensions in Go.
+ [Proxy-Wasm](https://github.com/proxy-wasm/spec), enabling developers to write Proxy-Wasm extensions in Go.
 
 proxy-wasm-go-sdk is powered by [TinyGo](https://tinygo.org/) and does not support the official Go compiler.
 
@@ -24,6 +25,10 @@ func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
 	// Initialize the metric.
 	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
 	return types.OnVMStartStatusOK
+}
+
+func (*metricRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+	return &metricHttpContext{}
 }
 
 type metricHttpContext struct { proxywasm.DefaultHttpContext }
@@ -86,7 +91,6 @@ make test.e2e.single name=helloworld # run e2e tests
         1. TinyGo's WASI target does not support some of syscall: For example, we cannot import `crypto/rand` package.
         2. TinyGo does not implement all of reflect package([examples](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/reflect/value.go#L299-L305)).
         3. [proxy-wasm-cpp-host](https://github.com/proxy-wasm/proxy-wasm-cpp-host) has not supported some of WASI APIs yet 
-        (See the [supported functions](https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/master/include/proxy-wasm/exports.h#L135-L150), though some of them are just nop).
     - These issues will be mitigated as TinyGo and proxy-wasm-cpp-host evolve.
 - There's performance overhead of using Go/TinyGo due to GC
     - `runtime.GC` is called whenever the heap runs out (see [1](https://tinygo.org/lang-support/#garbage-collection),
@@ -109,8 +113,4 @@ make test.e2e.single name=helloworld # run e2e tests
 - [WebAssembly for Proxies (ABI specification)](https://github.com/proxy-wasm/spec)
 - [WebAssembly for Proxies (C++ SDK)](https://github.com/proxy-wasm/proxy-wasm-cpp-sdk)
 - [WebAssembly for Proxies (Rust SDK)](https://github.com/proxy-wasm/proxy-wasm-rust-sdk)
-- [Rust SDK for WebAssembly-based Envoy extensions](https://github.com/tetratelabs/envoy-wasm-rust-sdk)
 - [TinyGo - Go compiler for small places](https://tinygo.org/)
-
-
-Special thanks to TinyGo folks:)
