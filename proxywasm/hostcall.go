@@ -107,12 +107,12 @@ func GetDownStreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func PrependDownStreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeDownstreamData, data)
-}
-
 func AppendDownStreamData(data []byte) error {
 	return appendToBuffer(types.BufferTypeDownstreamData, data)
+}
+
+func PrependDownStreamData(data []byte) error {
+	return prependToBuffer(types.BufferTypeDownstreamData, data)
 }
 
 func ReplaceDownStreamData(data []byte) error {
@@ -124,12 +124,12 @@ func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func PrependUpstreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeUpstreamData, data)
-}
-
 func AppendUpstreammData(data []byte) error {
 	return appendToBuffer(types.BufferTypeUpstreamData, data)
+}
+
+func PrependUpstreamData(data []byte) error {
+	return prependToBuffer(types.BufferTypeUpstreamData, data)
 }
 
 func ReplaceUpstreamData(data []byte) error {
@@ -183,12 +183,12 @@ func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func PrependHttpRequestBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpRequestBody, data)
-}
-
 func AppendHttpRequestBody(data []byte) error {
 	return appendToBuffer(types.BufferTypeHttpRequestBody, data)
+}
+
+func PrependHttpRequestBody(data []byte) error {
+	return prependToBuffer(types.BufferTypeHttpRequestBody, data)
 }
 
 func ReplaceHttpRequestBody(data []byte) error {
@@ -256,12 +256,12 @@ func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 	return ret, types.StatusToError(st)
 }
 
-func PrependHttpResponseBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpResponseBody, data)
-}
-
 func AppendHttpResponseBody(data []byte) error {
 	return appendToBuffer(types.BufferTypeHttpResponseBody, data)
+}
+
+func PrependHttpResponseBody(data []byte) error {
+	return prependToBuffer(types.BufferTypeHttpResponseBody, data)
 }
 
 func ReplaceHttpResponseBody(data []byte) error {
@@ -422,20 +422,20 @@ func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Stat
 	}
 }
 
-func prependToBuffer(bufType types.BufferType, buffer []byte) error {
-	var bufferData *byte
-	if len(buffer) != 0 {
-		bufferData = &buffer[0]
-	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
-}
-
 func appendToBuffer(bufType types.BufferType, buffer []byte) error {
 	var bufferData *byte
 	if len(buffer) != 0 {
 		bufferData = &buffer[0]
 	}
 	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, math.MaxInt32, 0, bufferData, len(buffer)))
+}
+
+func prependToBuffer(bufType types.BufferType, buffer []byte) error {
+	var bufferData *byte
+	if len(buffer) != 0 {
+		bufferData = &buffer[0]
+	}
+	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
 }
 
 func replaceBuffer(bufType types.BufferType, buffer []byte) error {
