@@ -23,6 +23,7 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 		// Call OnRequestHeaders.
 		action := host.CallOnRequestHeaders(id, types.Headers{
 			{"content-length", "10"},
+			{"buffer-operation", "replace"},
 		}, false)
 
 		// Must be continued.
@@ -30,7 +31,10 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 
 		// Check the final request headers
 		headers := host.GetCurrentRequestHeaders(id)
-		require.Len(t, headers, 0, "content-length header must be removed.")
+		require.Equal(t,
+			types.Headers{{"buffer-operation", "replace"}},
+			headers,
+			"content-length header must be removed.")
 	})
 
 	t.Run("400 response", func(t *testing.T) {
@@ -69,18 +73,79 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		require.Equal(t, types.ActionPause, action)
 	})
 
-	t.Run("body replacement", func(t *testing.T) {
+	t.Run("append", func(t *testing.T) {
 		// Create http context.
 		id := host.InitializeHttpContext()
 
+		// Call OnRequestHeaders.
+		action := host.CallOnRequestHeaders(id, types.Headers{
+			{"content-length", "10"},
+			{"buffer-operation", "append"},
+		}, false)
+
+		// Must be continued.
+		require.Equal(t, types.ActionContinue, action)
+
 		// Call OnRequestBody.
-		action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), true)
+		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
 		require.Equal(t, types.ActionContinue, action)
 
 		// Check Envoy logs.
 		logs := host.GetLogs(types.LogLevelInfo)
-		require.Contains(t, logs, "on http request body finished")
-		require.Contains(t, logs, `initial request body: { "initial": "request body" }`)
+		require.Contains(t, logs, `original request body: [original body]`)
+
+		// Check the final request body is the replaced one.
+		require.Equal(t, "[original body][this is appended body]", string(host.GetCurrentRequestBody(id)))
+	})
+
+	t.Run("prepend", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestHeaders.
+		action := host.CallOnRequestHeaders(id, types.Headers{
+			{"content-length", "10"},
+			{"buffer-operation", "prepend"},
+		}, false)
+
+		// Must be continued.
+		require.Equal(t, types.ActionContinue, action)
+
+		// Call OnRequestBody.
+		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
+		require.Equal(t, types.ActionContinue, action)
+
+		// Check Envoy logs.
+		logs := host.GetLogs(types.LogLevelInfo)
+		require.Contains(t, logs, `original request body: [original body]`)
+
+		// Check the final request body is the replaced one.
+		require.Equal(t, "[this is prepended body][original body]", string(host.GetCurrentRequestBody(id)))
+	})
+
+	t.Run("replace", func(t *testing.T) {
+		// Create http context.
+		id := host.InitializeHttpContext()
+
+		// Call OnRequestHeaders.
+		action := host.CallOnRequestHeaders(id, types.Headers{
+			{"content-length", "10"},
+			{"buffer-operation", "replace"},
+		}, false)
+
+		// Must be continued.
+		require.Equal(t, types.ActionContinue, action)
+
+		// Call OnRequestBody.
+		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
+		require.Equal(t, types.ActionContinue, action)
+
+		// Check Envoy logs.
+		logs := host.GetLogs(types.LogLevelInfo)
+		require.Contains(t, logs, `original request body: [original body]`)
+
+		// Check the final request body is the replaced one.
+		require.Equal(t, "[this is replaced body]", string(host.GetCurrentRequestBody(id)))
 	})
 }
 

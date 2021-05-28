@@ -19,9 +19,16 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
+const (
+	bufferOperationAppend  = "append"
+	bufferOperationPrepend = "prepend"
+	bufferOperationReplace = "replace"
+)
+
 func main() {
 	proxywasm.SetNewRootContext(newContext)
 }
+
 func newContext(uint32) proxywasm.RootContext { return &rootContext{} }
 
 type rootContext struct {
@@ -54,6 +61,7 @@ type setBodyContext struct {
 	// so that you don't need to reimplement all the methods by yourself.
 	proxywasm.DefaultHttpContext
 	totalRequestBodySize int
+	bufferOperation      string
 }
 
 // Override DefaultHttpContext.
@@ -69,6 +77,16 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 	if err := proxywasm.RemoveHttpRequestHeader("content-length"); err != nil {
 		panic(err)
 	}
+
+	// Get "Buffer-Operation" header value.
+	op, err := proxywasm.GetHttpRequestHeader("buffer-operation")
+	if err != nil || (op != bufferOperationAppend &&
+		op != bufferOperationPrepend &&
+		op != bufferOperationReplace) {
+		// Fallback to replace
+		op = bufferOperationReplace
+	}
+	ctx.bufferOperation = op
 	return types.ActionContinue
 }
 
@@ -85,15 +103,20 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 		proxywasm.LogErrorf("failed to get request body: %v", err)
 		return types.ActionContinue
 	}
-	proxywasm.LogInfof("initial request body: %s", string(originalBody))
+	proxywasm.LogInfof("original request body: %s", string(originalBody))
 
-	b := []byte(`{ "another": "body" }`)
-	err = proxywasm.ReplaceHttpRequestBody(b)
+	switch ctx.bufferOperation {
+	case bufferOperationAppend:
+		err = proxywasm.AppendHttpRequestBody([]byte(`[this is appended body]`))
+	case bufferOperationPrepend:
+		err = proxywasm.PrependHttpRequestBody([]byte(`[this is prepended body]`))
+	case bufferOperationReplace:
+		err = proxywasm.ReplaceHttpRequestBody([]byte(`[this is replaced body]`))
+	}
 	if err != nil {
-		proxywasm.LogErrorf("failed to replace request body: %v", err)
+		proxywasm.LogErrorf("failed to %s request body: %v", ctx.bufferOperation, err)
 		return types.ActionContinue
 	}
-	proxywasm.LogInfof("on http request body finished")
 	return types.ActionContinue
 }
 
