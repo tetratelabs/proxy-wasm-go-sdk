@@ -123,7 +123,7 @@ func Test_http_auth_random(t *testing.T) {
 func Test_http_body(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()
-	req, err := http.NewRequest("GET", "http://localhost:18000/anything",
+	req, err := http.NewRequest("PUT", "http://localhost:18000/anything",
 		bytes.NewBuffer([]byte(`{ "initial": "body" }`)))
 	require.NoError(t, err)
 	require.Eventually(t, func() bool {
@@ -135,7 +135,6 @@ func Test_http_body(t *testing.T) {
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		return checkMessage(stdErr.String(), []string{
-			"body size: 21",
 			`initial request body: { "initial": "body" }`,
 			"on http request body finished"},
 			[]string{"failed to set request body", "failed to get request body"},
