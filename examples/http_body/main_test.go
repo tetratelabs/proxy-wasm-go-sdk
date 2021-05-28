@@ -20,7 +20,7 @@ func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	id := host.InitializeHttpContext()
 
 	// Call OnRequestBody.
-	action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), false)
+	action := host.CallOnRequestBody(id, []byte(`{ "initial": "request body" }`), true)
 	require.Equal(t, types.ActionContinue, action)
 
 	logs := host.GetLogs(types.LogLevelInfo)
@@ -28,5 +28,4 @@ func TestHttpBody_OnHttpRequestBody(t *testing.T) {
 	// Check Envoy logs.
 	require.Contains(t, logs, "on http request body finished")
 	require.Contains(t, logs, `initial request body: { "initial": "request body" }`)
-	require.Contains(t, logs, "body size: 29")
 }
