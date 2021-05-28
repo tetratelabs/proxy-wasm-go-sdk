@@ -66,7 +66,7 @@ static_resources:
                         - match:
                             prefix: "/"
                           route:
-                            cluster: echo
+                            cluster: admin
                 http_filters:
                   - name: envoy.filters.http.wasm
                     typed_config:
@@ -102,6 +102,20 @@ static_resources:
                     socket_address:
                       address: 0.0.0.0
                       port_value: 38140
+    - name: admin
+      connect_timeout: 5000s
+      type: strict_dns
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: admin
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 0.0.0.0
+                      port_value: 8001
+
 
 admin:
   access_log_path: "/dev/null"
