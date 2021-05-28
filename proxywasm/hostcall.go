@@ -102,20 +102,20 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-func GetDownStreamData(start, maxSize int) ([]byte, error) {
+func GetDownstreamData(start, maxSize int) ([]byte, error) {
 	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
 	return ret, types.StatusToError(st)
 }
 
-func AppendDownStreamData(data []byte) error {
+func AppendDownstreamData(data []byte) error {
 	return appendToBuffer(types.BufferTypeDownstreamData, data)
 }
 
-func PrependDownStreamData(data []byte) error {
+func PrependDownstreamData(data []byte) error {
 	return prependToBuffer(types.BufferTypeDownstreamData, data)
 }
 
-func ReplaceDownStreamData(data []byte) error {
+func ReplaceDownstreamData(data []byte) error {
 	return replaceBuffer(types.BufferTypeDownstreamData, data)
 }
 
@@ -136,7 +136,7 @@ func ReplaceUpstreamData(data []byte) error {
 	return replaceBuffer(types.BufferTypeUpstreamData, data)
 }
 
-func ContinueDownStream() error {
+func ContinueDownstream() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeDownstream))
 }
 
@@ -144,7 +144,7 @@ func ContinueUpstream() error {
 	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeUpstream))
 }
 
-func CloseDownStream() error {
+func CloseDownstream() error {
 	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeDownstream))
 }
 

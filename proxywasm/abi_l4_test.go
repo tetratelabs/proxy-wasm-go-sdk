@@ -25,7 +25,7 @@ import (
 type l4Context struct {
 	DefaultStreamContext
 	onDownstreamData,
-	onDownStreamClose,
+	onDownstreamClose,
 	onNewConnection,
 	onUpstreamData,
 	onUpstreamStreamClose bool
@@ -36,7 +36,7 @@ func (ctx *l4Context) OnDownstreamData(int, bool) types.Action {
 	return types.ActionContinue
 }
 
-func (ctx *l4Context) OnDownstreamClose(types.PeerType) { ctx.onDownStreamClose = true }
+func (ctx *l4Context) OnDownstreamClose(types.PeerType) { ctx.onDownstreamClose = true }
 
 func (ctx *l4Context) OnNewConnection() types.Action {
 	ctx.onNewConnection = true
@@ -66,7 +66,7 @@ func Test_l4(t *testing.T) {
 	proxyOnDownstreamData(cID, 0, false)
 	require.True(t, ctx.onDownstreamData)
 	proxyOnDownstreamConnectionClose(cID, 0)
-	require.True(t, ctx.onDownStreamClose)
+	require.True(t, ctx.onDownstreamClose)
 	proxyOnUpstreamData(cID, 0, false)
 	require.True(t, ctx.onUpstreamData)
 	proxyOnUpstreamConnectionClose(cID, 0)

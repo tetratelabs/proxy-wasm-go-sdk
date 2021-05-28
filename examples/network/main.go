@@ -67,7 +67,7 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 		return types.ActionContinue
 	}
 
-	data, err := proxywasm.GetDownStreamData(0, dataSize)
+	data, err := proxywasm.GetDownstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCriticalf("failed to get downstream data: %v", err)
 		return types.ActionContinue
