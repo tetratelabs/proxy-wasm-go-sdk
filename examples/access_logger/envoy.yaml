@@ -21,67 +21,22 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
-                          route:
-                            cluster: web_service
-                http_filters:
-                  - name: envoy.filters.http.router
-                    typed_config: {}
-                access_log:
-                  - name: envoy.access_loggers.wasm
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.access_loggers.wasm.v3.WasmAccessLog
-                      config:
-                        name: "access_logger"
-                        root_id: "root_id"
-                        vm_config:
-                          vm_id: "vm_id"
-                          runtime: envoy.wasm.runtime.v8
-                          code:
-                            local:
-                              filename: "./examples/access_logger/main.go.wasm"
-    - name: staticreply
-      address:
-        socket_address:
-          address: 127.0.0.1
-          port_value: 8099
-      filter_chains:
-        - filters:
-            - name: envoy.http_connection_manager
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                stat_prefix: ingress_http
-                codec_type: auto
-                route_config:
-                  name: local_route
-                  virtual_hosts:
-                    - name: local_service
-                      domains:
-                        - "*"
-                      routes:
-                        - match:
-                            prefix: "/"
                           direct_response:
                             status: 200
                             body:
                               inline_string: "example body\n"
                 http_filters:
                   - name: envoy.filters.http.router
-                    typed_config: {}
-
-  clusters:
-    - name: web_service
-      connect_timeout: 0.25s
-      type: STATIC
-      lb_policy: ROUND_ROBIN
-      load_assignment:
-        cluster_name: mock_service
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: 127.0.0.1
-                      port_value: 8099
+                access_log:
+                  - name: envoy.access_loggers.wasm
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.wasm.v3.WasmAccessLog
+                      config:
+                        vm_config:
+                          runtime: envoy.wasm.runtime.v8
+                          code:
+                            local:
+                              filename: "./examples/access_logger/main.go.wasm"
 
 admin:
   access_log_path: "/dev/null"

@@ -30,16 +30,12 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
-                          name: "dispatch"
-                          root_id: "dispatch"
                           vm_config:
-                            vm_id: "dispatch"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
                                 filename: "./examples/dispatch_call_on_tick/main.go.wasm"
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
     - name: staticreply
       address:

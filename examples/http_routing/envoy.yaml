@@ -38,16 +38,12 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
-                          name: "my_plugin"
-                          root_id: "my_root_id"
                           vm_config:
-                            vm_id: "my_vm_id"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
                                 filename: "./examples/http_routing/main.go.wasm"
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
     - name: staticreply
       address:
@@ -76,7 +72,6 @@ static_resources:
                               inline_string: "hello from primary!\n"
                 http_filters:
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
     - name: staticreply_canary
       address:
@@ -105,7 +100,6 @@ static_resources:
                               inline_string: "hello from canary!\n"
                 http_filters:
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
   clusters:
     - name: primary

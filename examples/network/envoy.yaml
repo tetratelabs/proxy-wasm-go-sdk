@@ -11,10 +11,7 @@ static_resources:
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
                 config:
-                  name: network_filter
-                  root_id: network_filter
                   vm_config:
-                    vm_id: network_filter
                     runtime: "envoy.wasm.runtime.v8"
                     code:
                       local:
@@ -53,7 +50,6 @@ static_resources:
                               inline_string: "example body\n"
                 http_filters:
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
   clusters:
     - name: web_service
