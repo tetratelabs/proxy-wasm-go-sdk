@@ -30,19 +30,15 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
-                          name: "my_plugin"
-                          root_id: "my_root_id"
                           configuration:
                             "@type": type.googleapis.com/google.protobuf.StringValue
                             value: "body-set"
                           vm_config:
-                            vm_id: "my_vm_id"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
                                 filename: "./examples/http_body/main.go.wasm"
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
     - name: echo
       address:
@@ -74,19 +70,15 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
-                          name: "echo"
-                          root_id: "echo"
                           configuration:
                             "@type": type.googleapis.com/google.protobuf.StringValue
                             value: "echo"
                           vm_config:
-                            vm_id: "my_vm_id"
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
                                 filename: "./examples/http_body/main.go.wasm"
                   - name: envoy.filters.http.router
-                    typed_config: {}
 
   clusters:
     - name: echo

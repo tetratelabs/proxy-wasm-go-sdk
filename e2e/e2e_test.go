@@ -92,8 +92,8 @@ func Test_helloworld(t *testing.T) {
 	defer kill()
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
-			"helloworld: proxy_on_vm_start from Go!",
-			"helloworld: It's",
+			"proxy_on_vm_start from Go!",
+			"It's",
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
