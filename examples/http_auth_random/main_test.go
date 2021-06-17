@@ -6,16 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// Initialize context.
 	contextID := host.InitializeHttpContext()
@@ -42,9 +41,8 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// http://httpbin.org/uuid
 	headers := [][2]string{

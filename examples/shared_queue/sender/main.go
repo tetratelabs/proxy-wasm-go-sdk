@@ -27,21 +27,21 @@ const (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type senderRootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 }
 
-func newRootContext(uint32) proxywasm.RootContext {
+func newRootContext(uint32) types.RootContext {
 	return &senderRootContext{}
 }
 
 // Override DefaultRootContext.
-func (ctx *senderRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (ctx *senderRootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	queueID, err := proxywasm.ResolveSharedQueue(receiverVMID, queueName)
 	if err != nil {
 		proxywasm.LogCriticalf("error resolving queue id: %v", err)
@@ -54,7 +54,7 @@ func (ctx *senderRootContext) NewHttpContext(contextID uint32) proxywasm.HttpCon
 type senderHttpContext struct {
 	// You'd better embed the default http context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultHttpContext
+	types.DefaultHttpContext
 	queueID uint32
 }
 

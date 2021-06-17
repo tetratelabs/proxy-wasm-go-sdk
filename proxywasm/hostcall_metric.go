@@ -15,7 +15,8 @@
 package proxywasm
 
 import (
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -25,11 +26,9 @@ type (
 	MetricHistogram uint32
 )
 
-// counter
-
 func DefineCounterMetric(name string) MetricCounter {
 	var id uint32
-	ptr := stringBytePtr(name)
+	ptr := internal.StringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeCounter, ptr, len(name), &id)
 	if err := types.StatusToError(st); err != nil {
 		LogCriticalf("define metric of name %s: %v", name, types.StatusToError(st))
@@ -59,11 +58,9 @@ func (m MetricCounter) Increment(offset uint64) {
 	}
 }
 
-// gauge
-
 func DefineGaugeMetric(name string) MetricGauge {
 	var id uint32
-	ptr := stringBytePtr(name)
+	ptr := internal.StringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeGauge, ptr, len(name), &id)
 	if err := types.StatusToError(st); err != nil {
 		LogCriticalf("error define metric of name %s: %v", name, types.StatusToError(st))
@@ -92,11 +89,9 @@ func (m MetricGauge) Add(offset int64) {
 	}
 }
 
-// histogram
-
 func DefineHistogramMetric(name string) MetricHistogram {
 	var id uint32
-	ptr := stringBytePtr(name)
+	ptr := internal.StringBytePtr(name)
 	st := rawhostcall.ProxyDefineMetric(types.MetricTypeHistogram, ptr, len(name), &id)
 	if err := types.StatusToError(st); err != nil {
 		LogCriticalf("error define metric of name %s: %v", name, types.StatusToError(st))

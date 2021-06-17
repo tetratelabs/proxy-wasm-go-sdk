@@ -5,16 +5,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	t.Run("remove content length", func(t *testing.T) {
 		// Create http context.
@@ -58,9 +57,8 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	t.Run("pause until EOS", func(t *testing.T) {
 		// Create http context.
@@ -153,9 +151,8 @@ func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newContext).
 		WithPluginConfiguration([]byte("echo"))
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 

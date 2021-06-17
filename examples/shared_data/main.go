@@ -22,24 +22,24 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type (
 	sharedDataRootContext struct {
 		// You'd better embed the default root context
 		// so that you don't need to reimplement all the methods by yourself.
-		proxywasm.DefaultRootContext
+		types.DefaultRootContext
 	}
 
 	sharedDataHttpContext struct {
 		// You'd better embed the default http context
 		// so that you don't need to reimplement all the methods by yourself.
-		proxywasm.DefaultHttpContext
+		types.DefaultHttpContext
 	}
 )
 
-func newRootContext(contextID uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) types.RootContext {
 	return &sharedDataRootContext{}
 }
 
@@ -54,7 +54,7 @@ func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) types.OnVMS
 }
 
 // Override DefaultRootContext.
-func (*sharedDataRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (*sharedDataRootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &sharedDataHttpContext{}
 }
 

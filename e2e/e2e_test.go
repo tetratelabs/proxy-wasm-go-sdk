@@ -26,24 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_access_logger(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
-	defer kill()
-	exp := "/this/is/my/path"
-	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:18000" + exp)
-		if err != nil {
-			return false
-		}
-		defer res.Body.Close()
-		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy")
-
-	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{exp}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
-}
-
 func Test_configuration_from_root(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()

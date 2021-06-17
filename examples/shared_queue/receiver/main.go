@@ -22,16 +22,16 @@ import (
 const queueName = "http_headers"
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type receiverRootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 }
 
-func newRootContext(uint32) proxywasm.RootContext {
+func newRootContext(uint32) types.RootContext {
 	return &receiverRootContext{}
 }
 

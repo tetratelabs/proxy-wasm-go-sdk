@@ -17,60 +17,61 @@ package proxywasm
 import (
 	"fmt"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func LogTrace(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelTrace, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogTracef(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelTrace, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogDebug(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelDebug, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogDebugf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelDebug, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogInfo(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelInfo, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogInfof(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelInfo, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogWarn(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelWarn, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogWarnf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelWarn, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogError(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelError, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogErrorf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelError, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogCritical(msg string) {
-	rawhostcall.ProxyLog(types.LogLevelCritical, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
 }
 
 func LogCriticalf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	rawhostcall.ProxyLog(types.LogLevelCritical, stringBytePtr(msg), len(msg))
+	rawhostcall.ProxyLog(types.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
 }

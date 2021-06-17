@@ -26,20 +26,20 @@ const (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newContext)
+	proxywasm.SetNewRootContextFn(newContext)
 }
 
-func newContext(uint32) proxywasm.RootContext { return &rootContext{} }
+func newContext(uint32) types.RootContext { return &rootContext{} }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 	shouldEchoBody bool
 }
 
 // Override DefaultRootContext.
-func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (ctx *rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	if ctx.shouldEchoBody {
 		return &echoBodyContext{}
 	}
@@ -59,7 +59,7 @@ func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPlugi
 type setBodyContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultHttpContext
+	types.DefaultHttpContext
 	totalRequestBodySize int
 	bufferOperation      string
 }
@@ -123,7 +123,7 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 type echoBodyContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultHttpContext
+	types.DefaultHttpContext
 	totalRequestBodySize int
 }
 

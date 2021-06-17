@@ -20,17 +20,17 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 	config []byte
 }
 
-func newRootContext(contextID uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) types.RootContext {
 	return &rootContext{}
 }
 
@@ -46,13 +46,13 @@ func (ctx *rootContext) OnPluginStart(pluginConfigurationSize int) types.OnPlugi
 }
 
 // Override DefaultRootContext.
-func (ctx *rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (ctx *rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	ret := &httpContext{config: ctx.config}
 	proxywasm.LogInfof("read plugin config from root context: %s", string(ret.config))
 	return ret
 }
 
 type httpContext struct {
-	proxywasm.DefaultHttpContext
+	types.DefaultHttpContext
 	config []byte
 }

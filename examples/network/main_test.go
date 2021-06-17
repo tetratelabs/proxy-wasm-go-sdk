@@ -19,16 +19,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func TestNetwork_OnNewConnection(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// Call OnVMStart -> initialize metric
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
@@ -45,9 +44,8 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 func TestNetwork_OnDownstreamClose(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// OnNewConnection is called.
 	contextID, action := host.InitializeConnection()
@@ -64,9 +62,8 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 func TestNetwork_OnDownstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// OnNewConnection is called.
 	contextID, action := host.InitializeConnection()
@@ -85,9 +82,8 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 func TestNetwork_OnUpstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// OnNewConnection is called.
 	contextID, action := host.InitializeConnection()
@@ -106,9 +102,8 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 func TestNetwork_counter(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// Call OnVMStart -> initialize metric
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
