@@ -1,15 +1,11 @@
-# WebAssembly for Proxies (Go SDK)
-
-[![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-
 __This project is in its early stage, and the API is likely to change and not stable.__
+
+# WebAssembly for Proxies (Go SDK) [![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions) [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 The Go SDK for
  [Proxy-Wasm](https://github.com/proxy-wasm/spec), enabling developers to write Proxy-Wasm extensions in Go.
 
-proxy-wasm-go-sdk is powered by [TinyGo](https://tinygo.org/) and does not support the official Go compiler.
-
+This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the official Go compiler.
 
 ```golang
 import (
@@ -42,46 +38,49 @@ func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 
 ## Requirements
 
-proxy-wasm-go-sdk depends on TinyGo's [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target
-which is introduced in [v0.16.0](https://github.com/tinygo-org/tinygo/releases/tag/v0.16.0).
+This SDK depends on TinyGo and leverages its [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target.
 
-Please follow the official instruction [here](https://tinygo.org/getting-started/).
-
+Please follow the official instruction [here](https://tinygo.org/getting-started/) for installing TinyGo.
 
 ### Compatible ABI / Envoy builds (tested on CI)
 
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
 | main | 0.2.0| 1.9, 1.10 | 1.18 |
-| v0.1.1 | 0.2.0| 1.8, 1.9 | 1.17 |
-
+| v0.2.0 | 0.2.0| 1.8, 1.9 | 1.17 |
 
 ## Run examples
 
 build:
 
 ```bash
-make build.examples        # build all examples
+# Build all examples.
+make build.examples
 
-make build.example name=helloworld        # build a specific example
+# Build a specific example.
+make build.example name=helloworld
 ```
 
 run:
 
 ```bash
-make run name=helloworld # requires a locally installed Envoy binary
+# This requires you to have Envoy binary locally.
+make run name=helloworld
 ``` 
 
 ## SDK development
 
 ```bash
-make test # run local tests without running envoy processes
+# Run local tests without running envoy processes.
+make test
 
-## requires you to have Envoy binary locally
-make test.e2e # run e2e tests
+# Run all e2e tests.
+# This requires you to have Envoy binary locally.
+make test.e2e
 
-## requires you to have Envoy binary locally
-make test.e2e.single name=helloworld # run e2e tests
+# Run e2e tests for a specific example.
+# This requires you to have Envoy binary locally.
+make test.e2e.single name=helloworld
 ```
 
 ## Limitations and Considerations
