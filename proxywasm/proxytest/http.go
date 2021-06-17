@@ -407,7 +407,7 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 
 // impl HostEmulator
 func (h *httpHostEmulator) CompleteHttpContext(contextID uint32) {
-	internal.ProxyOnDone(contextID)
+	internal.ProxyOnLog(contextID)
 	internal.ProxyOnDelete(contextID)
 }
 

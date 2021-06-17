@@ -134,7 +134,7 @@ func (n *networkHostEmulator) CloseDownstreamConnection(contextID uint32) {
 // impl HostEmulator
 func (n *networkHostEmulator) CompleteConnection(contextID uint32) {
 	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L169-L171
-	internal.ProxyOnDone(contextID)
+	internal.ProxyOnLog(contextID)
 	internal.ProxyOnDelete(contextID)
 	delete(n.streamStates, contextID)
 }
