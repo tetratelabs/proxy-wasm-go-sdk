@@ -47,7 +47,7 @@ func newHttpHostEmulator() *httpHostEmulator {
 	return host
 }
 
-// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
@@ -114,7 +114,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt types.BufferTy
 	}
 }
 
-// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
@@ -147,7 +147,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.
 	return types.StatusNotFound
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, valueData *byte, valueSize int) types.Status {
 
@@ -183,7 +183,7 @@ func addMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, valueData *byte, valueSize int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
@@ -206,7 +206,7 @@ func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType types.MapType, key
 	return types.StatusOK
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	for i, h := range base {
 		if h[0] == key {
@@ -218,7 +218,7 @@ func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxyRemoveHeaderMapValue(mapType types.MapType, keyData *byte, keySize int) types.Status {
 	key := proxywasm.RawBytePtrToString(keyData, keySize)
 	active := proxywasm.VMStateGetActiveContextID()
@@ -252,7 +252,7 @@ func removeHeaderMapValue(base [][2]string, key string) [][2]string {
 	return base
 }
 
-// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
 	returnValueSize *int) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
@@ -277,7 +277,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.
 	return types.StatusOK
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) types.Status {
 	m := proxywasm.DeserializeMap(proxywasm.RawBytePtrToByteSlice(mapData, mapSize))
 	active := proxywasm.VMStateGetActiveContextID()
@@ -298,7 +298,7 @@ func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType types.MapType, mapData
 	return types.StatusOK
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxyContinueStream(types.StreamType) types.Status {
 	active := proxywasm.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
@@ -306,7 +306,7 @@ func (h *httpHostEmulator) ProxyContinueStream(types.StreamType) types.Status {
 	return types.StatusOK
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 	statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int,
 	headersData *byte, headersSize int, grpcStatus int32) types.Status {

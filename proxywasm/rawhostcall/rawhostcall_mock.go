@@ -18,13 +18,13 @@ package rawhostcall
 
 import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 
-var currentHost ProxyWASMHost
+var currentHost ProxyWasmHost
 
-func RegisterMockWASMHost(host ProxyWASMHost) {
+func RegisterMockWasmHost(host ProxyWasmHost) {
 	currentHost = host
 }
 
-type ProxyWASMHost interface {
+type ProxyWasmHost interface {
 	ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status
 	ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) types.Status
 	ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) types.Status
@@ -58,7 +58,7 @@ type ProxyWASMHost interface {
 
 type DefaultProxyWAMSHost struct{}
 
-var _ ProxyWASMHost = DefaultProxyWAMSHost{}
+var _ ProxyWasmHost = DefaultProxyWAMSHost{}
 
 func (d DefaultProxyWAMSHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
 	return 0

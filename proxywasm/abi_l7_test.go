@@ -94,7 +94,7 @@ func Test_l7(t *testing.T) {
 func Test_proxyOnHttpCallResponse(t *testing.T) {
 	hostMutex.Lock()
 	defer hostMutex.Unlock()
-	rawhostcall.RegisterMockWASMHost(rawhostcall.DefaultProxyWAMSHost{})
+	rawhostcall.RegisterMockWasmHost(rawhostcall.DefaultProxyWAMSHost{})
 
 	var (
 		rootContextID uint32 = 1

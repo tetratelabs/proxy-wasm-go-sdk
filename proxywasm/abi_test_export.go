@@ -19,7 +19,7 @@ package proxywasm
 import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 
 // this file exists only for proxytest package which is used with the `proxytest` build tag.
-//	Therefore, these functions are not included in a resulting WASM binary
+//	Therefore, these functions are not included in a resulting Wasm binary
 
 func ProxyOnVMStart(rootContextID uint32, vmConfigurationSize int) types.OnVMStartStatus {
 	return proxyOnVMStart(rootContextID, vmConfigurationSize)
