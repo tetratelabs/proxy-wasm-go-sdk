@@ -100,7 +100,7 @@ make test.e2e.single name=helloworld
     with `-gc=none` option. This is the future TODO.
 - `recover` is [not implemented](https://github.com/tinygo-org/tinygo/issues/891) in TinyGo, and there's no way to prevent the WASM virtual machine from aborting.
 - Goroutine support
-    - In Tinygo, Goroutine is implmeneted through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
+    - In TinyGo, Goroutine is implmeneted through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
     - In Envoy, WASM modules are run in the event driven manner, and therefore the "scheduler" is not executed once the main function exits. 
         That means you cannot have the expected behavior of Goroutine as in ordinary host environments.
         - The question "How to deal with Goroutine in a thread local WASM VM executed in the event drive manner" has yet to be answered.
