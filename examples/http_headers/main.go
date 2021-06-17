@@ -20,26 +20,26 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 }
 
-func newRootContext(uint32) proxywasm.RootContext { return &rootContext{} }
+func newRootContext(uint32) types.RootContext { return &rootContext{} }
 
 // Override DefaultRootContext.
-func (*rootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (*rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpHeaders{contextID: contextID}
 }
 
 type httpHeaders struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultHttpContext
+	types.DefaultHttpContext
 	contextID uint32
 }
 

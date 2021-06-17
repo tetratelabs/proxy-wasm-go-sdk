@@ -15,9 +15,8 @@
 package proxywasm
 
 import (
-	"math"
-
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -32,7 +31,7 @@ func GetVMConfiguration(size int) ([]byte, error) {
 }
 
 func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
-	shs := SerializeMap(headers)
+	shs := internal.SerializeMap(headers)
 	var bp *byte
 	if len(body) > 0 {
 		bp = &body[0]
@@ -53,20 +52,20 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 
 func DispatchHttpCall(upstream string,
 	headers types.Headers, body string, trailers types.Trailers,
-	timeoutMillisecond uint32, callBack HttpCalloutCallBack) (calloutID uint32, err error) {
-	shs := SerializeMap(headers)
+	timeoutMillisecond uint32, callBack func(numHeaders, bodySize, numTrailers int)) (calloutID uint32, err error) {
+	shs := internal.SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
 
-	sts := SerializeMap(trailers)
+	sts := internal.SerializeMap(trailers)
 	tp := &sts[0]
 	tl := len(sts)
 
-	u := stringBytePtr(upstream)
+	u := internal.StringBytePtr(upstream)
 	switch st := rawhostcall.ProxyHttpCall(u, len(upstream),
-		hp, hl, stringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
+		hp, hl, internal.StringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
 	case types.StatusOK:
-		currentState.registerHttpCallOut(calloutID, callBack)
+		internal.RegisterHttpCallout(calloutID, callBack)
 		return calloutID, nil
 	default:
 		return 0, types.StatusToError(st)
@@ -89,14 +88,14 @@ func GetHttpCallResponseTrailers() (types.Trailers, error) {
 }
 
 func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
-	f := stringBytePtr(funcName)
+	f := internal.StringBytePtr(funcName)
 
 	var returnData *byte
 	var returnSize int
 
 	switch st := rawhostcall.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
 	case types.StatusOK:
-		return RawBytePtrToByteSlice(returnData, returnSize), nil
+		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
 	default:
 		return nil, types.StatusToError(st)
 	}
@@ -300,16 +299,15 @@ func ResumeHttpResponse() error {
 
 func RegisterSharedQueue(name string) (uint32, error) {
 	var queueID uint32
-	ptr := stringBytePtr(name)
+	ptr := internal.StringBytePtr(name)
 	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
 	return queueID, types.StatusToError(st)
 }
 
-// TODO: not sure if the ABI is correct
 func ResolveSharedQueue(vmID, queueName string) (uint32, error) {
 	var ret uint32
-	st := rawhostcall.ProxyResolveSharedQueue(stringBytePtr(vmID),
-		len(vmID), stringBytePtr(queueName), len(queueName), &ret)
+	st := rawhostcall.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
+		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
 	return ret, types.StatusToError(st)
 }
 
@@ -320,7 +318,7 @@ func DequeueSharedQueue(queueID uint32) ([]byte, error) {
 	if st != types.StatusOK {
 		return nil, types.StatusToError(st)
 	}
-	return RawBytePtrToByteSlice(raw, size), nil
+	return internal.RawBytePtrToByteSlice(raw, size), nil
 }
 
 func EnqueueSharedQueue(queueID uint32, data []byte) error {
@@ -331,15 +329,15 @@ func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
 
-	st := rawhostcall.ProxyGetSharedData(stringBytePtr(key), len(key), &raw, &size, &cas)
+	st := rawhostcall.ProxyGetSharedData(internal.StringBytePtr(key), len(key), &raw, &size, &cas)
 	if st != types.StatusOK {
 		return nil, 0, types.StatusToError(st)
 	}
-	return RawBytePtrToByteSlice(raw, size), cas, nil
+	return internal.RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
 func SetSharedData(key string, data []byte, cas uint32) error {
-	st := rawhostcall.ProxySetSharedData(stringBytePtr(key),
+	st := rawhostcall.ProxySetSharedData(internal.StringBytePtr(key),
 		len(key), &data[0], len(data), cas)
 	return types.StatusToError(st)
 }
@@ -347,101 +345,19 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 func GetProperty(path []string) ([]byte, error) {
 	var ret *byte
 	var retSize int
-	raw := SerializePropertyPath(path)
+	raw := internal.SerializePropertyPath(path)
 
 	err := types.StatusToError(rawhostcall.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
 	if err != nil {
 		return nil, err
 	}
 
-	return RawBytePtrToByteSlice(ret, retSize), nil
+	return internal.RawBytePtrToByteSlice(ret, retSize), nil
 
 }
 
 func SetProperty(path string, data []byte) error {
 	return types.StatusToError(rawhostcall.ProxySetProperty(
-		stringBytePtr(path), len(path), &data[0], len(data),
+		internal.StringBytePtr(path), len(path), &data[0], len(data),
 	))
-}
-
-func setMap(mapType types.MapType, headers [][2]string) types.Status {
-	shs := SerializeMap(headers)
-	hp := &shs[0]
-	hl := len(shs)
-	return rawhostcall.ProxySetHeaderMapPairs(mapType, hp, hl)
-}
-
-func getMapValue(mapType types.MapType, key string) (string, types.Status) {
-	var rvs int
-	var raw *byte
-	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, stringBytePtr(key), len(key), &raw, &rvs); st != types.StatusOK {
-		return "", st
-	}
-
-	ret := RawBytePtrToString(raw, rvs)
-	return ret, types.StatusOK
-}
-
-func removeMapValue(mapType types.MapType, key string) types.Status {
-	return rawhostcall.ProxyRemoveHeaderMapValue(mapType, stringBytePtr(key), len(key))
-}
-
-func setMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyReplaceHeaderMapValue(mapType, stringBytePtr(key), len(key), stringBytePtr(value), len(value))
-}
-
-func addMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyAddHeaderMapValue(mapType, stringBytePtr(key), len(key), stringBytePtr(value), len(value))
-}
-
-func getMap(mapType types.MapType) ([][2]string, types.Status) {
-	var rvs int
-	var raw *byte
-
-	st := rawhostcall.ProxyGetHeaderMapPairs(mapType, &raw, &rvs)
-	if st != types.StatusOK {
-		return nil, st
-	}
-
-	bs := RawBytePtrToByteSlice(raw, rvs)
-	return DeserializeMap(bs), types.StatusOK
-}
-
-func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Status) {
-	var retData *byte
-	var retSize int
-	switch st := rawhostcall.ProxyGetBufferBytes(bufType, start, maxSize, &retData, &retSize); st {
-	case types.StatusOK:
-		// is this correct handling...?
-		if retData == nil {
-			return nil, types.StatusNotFound
-		}
-		return RawBytePtrToByteSlice(retData, retSize), st
-	default:
-		return nil, st
-	}
-}
-
-func appendToBuffer(bufType types.BufferType, buffer []byte) error {
-	var bufferData *byte
-	if len(buffer) != 0 {
-		bufferData = &buffer[0]
-	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, math.MaxInt32, 0, bufferData, len(buffer)))
-}
-
-func prependToBuffer(bufType types.BufferType, buffer []byte) error {
-	var bufferData *byte
-	if len(buffer) != 0 {
-		bufferData = &buffer[0]
-	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
-}
-
-func replaceBuffer(bufType types.BufferType, buffer []byte) error {
-	var bufferData *byte
-	if len(buffer) != 0 {
-		bufferData = &buffer[0]
-	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, math.MaxInt32, bufferData, len(buffer)))
 }

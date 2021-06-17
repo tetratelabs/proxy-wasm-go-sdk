@@ -6,16 +6,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxytest"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/proxytest"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// Initialize http context.
 	id := host.InitializeHttpContext()
@@ -50,9 +49,8 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
 		WithNewRootContext(newRootContext)
-	host := proxytest.NewHostEmulator(opt)
-	// Release the host emulation lock so that other test cases can insert their own host emulation.
-	defer host.Done()
+	host, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
 
 	// Initialize http context.
 	id := host.InitializeHttpContext()

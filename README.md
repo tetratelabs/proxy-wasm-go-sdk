@@ -15,7 +15,7 @@ import (
 
 var counter proxywasm.MetricCounter
 
-type metricRootContext struct { proxywasm.DefaultRootContext }
+type metricRootContext struct { types.DefaultRootContext }
 
 func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
 	// Initialize the metric.
@@ -23,11 +23,11 @@ func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-func (*metricRootContext) NewHttpContext(contextID uint32) proxywasm.HttpContext {
+func (*metricRootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &metricHttpContext{}
 }
 
-type metricHttpContext struct { proxywasm.DefaultHttpContext }
+type metricHttpContext struct { types.DefaultHttpContext }
 
 func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	// Increment the request counter when we receive request headers.

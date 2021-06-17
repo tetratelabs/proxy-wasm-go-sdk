@@ -25,17 +25,17 @@ var (
 )
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
-func newRootContext(contextID uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) types.RootContext {
 	return &rootContext{}
 }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 }
 
 // Override DefaultRootContext.
@@ -45,14 +45,14 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 }
 
 // Override DefaultRootContext.
-func (ctx *rootContext) NewStreamContext(contextID uint32) proxywasm.StreamContext {
+func (ctx *rootContext) NewStreamContext(contextID uint32) types.StreamContext {
 	return &networkContext{}
 }
 
 type networkContext struct {
 	// You'd better embed the default stream context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultStreamContext
+	types.DefaultStreamContext
 }
 
 // Override DefaultStreamContext.

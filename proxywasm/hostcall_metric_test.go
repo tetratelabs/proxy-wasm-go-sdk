@@ -1,4 +1,4 @@
-// Copyright 2021 Tetratea
+// Copyright 2021 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/rawhostcall"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -32,7 +33,7 @@ type metricProxyWasmHost struct {
 
 func (m metricProxyWasmHost) ProxyDefineMetric(metricType types.MetricType,
 	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
-	name := RawBytePtrToString(metricNameData, metricNameSize)
+	name := internal.RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := m.nameToID[name]
 	if !ok {
 		id = uint32(len(m.nameToID))
@@ -79,9 +80,8 @@ func TestHostCall_Metric(t *testing.T) {
 		map[uint32]types.MetricType{},
 		map[string]uint32{},
 	}
-	hostMutex.Lock()
-	defer hostMutex.Unlock()
-	rawhostcall.RegisterMockWasmHost(host)
+	release := rawhostcall.RegisterMockWasmHost(host)
+	defer release()
 
 	t.Run("counter", func(t *testing.T) {
 		for _, c := range []struct {

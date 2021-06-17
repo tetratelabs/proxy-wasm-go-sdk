@@ -13,10 +13,10 @@ test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
 test.e2e:
-	go test -v ./e2e
+	go test -v ./e2e -count=1
 
 test.e2e.single:
-	go test -v ./e2e -run '/${name}'
+	go test -v ./e2e -run '/${name}' -count=1
 
 run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'

@@ -22,17 +22,17 @@ import (
 const tickMilliseconds uint32 = 1
 
 func main() {
-	proxywasm.SetNewRootContext(newRootContext)
+	proxywasm.SetNewRootContextFn(newRootContext)
 }
 
 type rootContext struct {
 	// You'd better embed the default root context
 	// so that you don't need to reimplement all the methods by yourself.
-	proxywasm.DefaultRootContext
+	types.DefaultRootContext
 	contextID uint32
 }
 
-func newRootContext(contextID uint32) proxywasm.RootContext {
+func newRootContext(contextID uint32) types.RootContext {
 	return &rootContext{contextID: contextID}
 }
 
