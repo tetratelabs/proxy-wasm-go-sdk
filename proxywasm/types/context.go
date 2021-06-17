@@ -56,24 +56,29 @@ type RootContext interface {
 	// at Http filters, then NewHttpContext must be implemented. Same goes for
 	// Tcp filters.
 	//
-	// NewTcpContext is used for creating TcpContext for each tcp streams.
+	// NewTcpContext is used for creating TcpContext for each Tcp streams.
 	NewTcpContext(contextID uint32) TcpContext
-	// NewHttpContext is used for creating HttpContext for each http streams.
+	// NewHttpContext is used for creating HttpContext for each Http streams.
 	NewHttpContext(contextID uint32) HttpContext
 }
 
-// TcpContext corresponds to each TCP stream and is created by RootContext via NewTcpContext.
+// TcpContext corresponds to each Tcp stream and is created by RootContext via NewTcpContext.
 type TcpContext interface {
-	// OnNewConnection is called when the tcp connection is established between Down and Upstreams.
+	// OnNewConnection is called when the Tcp connection is established between Down and Upstreams.
 	OnNewConnection() Action
+
 	// OnDownstreamData is called when a data frame arrives from the downstream connection.
 	OnDownstreamData(dataSize int, endOfStream bool) Action
+
 	// OnDownstreamClose is called when the downstream connection is closed.
 	OnDownstreamClose(peerType PeerType)
+
 	/// OnUpstreamData is called when a data frame arrives from the upstream connection.
 	OnUpstreamData(dataSize int, endOfStream bool) Action
+
 	// OnUpstreamClose is called when the upstream connection is closed.
 	OnUpstreamClose(peerType PeerType)
+
 	// OnStreamDone is called before the host deletes this context.
 	// You can retreive the stream information (such as remote addesses, etc.) during this calls
 	// This can be used for implementing logging feature.
@@ -82,12 +87,37 @@ type TcpContext interface {
 
 // HttpContext corresponds to each Http stream and is created by RootContext via NewHttpContext.
 type HttpContext interface {
+	// OnHttpRequestHeaders is called when request headers arrives.
+	// Return types.ActionPause if you want to stop sending headers to upstream.
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) Action
+
+	// OnHttpRequestBody is called when a request body *frame* arrives.
+	// Note that this is possibly called multiple times until we see end_of_stream = true.
+	// Return types.ActionPause if you want to buffer the body and stop sending body to upstream.
+	// Even after returning types.ActionPause, this will be called when a unseen frame arrives.
 	OnHttpRequestBody(bodySize int, endOfStream bool) Action
+
+	// OnHttpRequestTrailers is called when request trailers arrives.
+	// Return types.ActionPause if you want to stop sending trailers to upstream.
 	OnHttpRequestTrailers(numTrailers int) Action
+
+	// OnHttpResponseHeaders is called when response headers arrives.
+	// Return types.ActionPause if you want to stop sending headers to downstream.
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) Action
+
+	// OnHttpResponseBody is called when a response body *frame* arrives.
+	// Note that this is possibly called multiple times until we see end_of_stream = true.
+	// Return types.ActionPause if you want to buffer the body and stop sending body to downtream.
+	// Even after returning types.ActionPause, this will be called when a unseen frame arrives.
 	OnHttpResponseBody(bodySize int, endOfStream bool) Action
+
+	// OnHttpResponseTrailers is called when response trailers arrives.
+	// Return types.ActionPause if you want to stop sending trailers to downstream.
 	OnHttpResponseTrailers(numTrailers int) Action
+
+	// OnHttpStreamDone is called before the host deletes this context.
+	// You can retreive the HTTP request/response information (such headers, etc.) during this calls.
+	// This can be used for implementing logging feature.
 	OnHttpStreamDone()
 }
 
