@@ -15,8 +15,8 @@
 package types
 
 // RootContext corresponds to each different plugin configurations (config.configuration),
-// and the root context created first is alsot treated as a VM context, which can handle
-// vm_config.configuration during OnVMStart call.
+// and the root context created first is specially treated as a VM context, which can handle
+// vm_config.configuration during OnVMStart call to do VM-wise initialization.
 type RootContext interface {
 	// OnVMStart is called after the VM is created and main function is called.
 	// During this call, GetVmConfiguration hostcall is available and can be used to
@@ -62,15 +62,25 @@ type RootContext interface {
 	NewHttpContext(contextID uint32) HttpContext
 }
 
+// TcpContext corresponds to each TCP stream and is created by RootContext via NewTcpContext.
 type TcpContext interface {
-	OnDownstreamData(dataSize int, endOfStream bool) Action
-	OnDownstreamClose(peerType PeerType)
+	// OnNewConnection is called when the tcp connection is established between Down and Upstreams.
 	OnNewConnection() Action
+	// OnDownstreamData is called when a data frame arrives from the downstream connection.
+	OnDownstreamData(dataSize int, endOfStream bool) Action
+	// OnDownstreamClose is called when the downstream connection is closed.
+	OnDownstreamClose(peerType PeerType)
+	/// OnUpstreamData is called when a data frame arrives from the upstream connection.
 	OnUpstreamData(dataSize int, endOfStream bool) Action
+	// OnUpstreamClose is called when the upstream connection is closed.
 	OnUpstreamClose(peerType PeerType)
+	// OnStreamDone is called before the host deletes this context.
+	// You can retreive the stream information (such as remote addesses, etc.) during this calls
+	// This can be used for implementing logging feature.
 	OnStreamDone()
 }
 
+// HttpContext corresponds to each Http stream and is created by RootContext via NewHttpContext.
 type HttpContext interface {
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) Action
 	OnHttpRequestBody(bodySize int, endOfStream bool) Action

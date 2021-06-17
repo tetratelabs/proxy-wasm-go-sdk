@@ -40,8 +40,7 @@ func proxyOnLog(contextID uint32) {
 func proxyOnDone(contextID uint32) bool {
 	if ctx, ok := currentState.rootContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
-		response := ctx.context.OnPluginDone()
-		return response
+		return ctx.context.OnPluginDone()
 	}
 	return true
 }

@@ -28,8 +28,8 @@ var counter proxywasm.MetricCounter
 const metricsName = "proxy_wasm_go.request_counter"
 
 type metricRootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 
@@ -49,8 +49,8 @@ func (*metricRootContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 type metricHttpContext struct {
-	// You'd better embed the default http context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default http context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
 }
 

@@ -26,8 +26,8 @@ func main() {
 }
 
 type receiverRootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 

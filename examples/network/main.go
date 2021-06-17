@@ -33,8 +33,8 @@ func newRootContext(contextID uint32) types.RootContext {
 }
 
 type rootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 
@@ -50,8 +50,8 @@ func (ctx *rootContext) NewTcpContext(contextID uint32) types.TcpContext {
 }
 
 type networkContext struct {
-	// You'd better embed the default stream context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default tcp context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultTcpContext
 }
 
