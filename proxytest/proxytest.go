@@ -95,7 +95,7 @@ func NewHostEmulator(opt *EmulatorOption) HostEmulator {
 	}
 
 	hostMux.Lock() // acquire the lock of host emulation
-	rawhostcall.RegisterMockWASMHost(emulator)
+	rawhostcall.RegisterMockWasmHost(emulator)
 
 	// set up state
 	proxywasm.SetNewRootContext(opt.newRootContext)
@@ -118,7 +118,7 @@ func (*hostEmulator) Done() {
 	defer proxywasm.VMStateReset()
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 	switch bt {
@@ -142,7 +142,7 @@ func (h *hostEmulator) ProxySetBufferBytes(bt types.BufferType, start int, maxSi
 	}
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
 	switch mapType {
@@ -158,7 +158,7 @@ func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *by
 	}
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
 	returnValueSize *int) types.Status {
 	switch mapType {
@@ -172,36 +172,36 @@ func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValue
 	}
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) types.Status {
 	h.effectiveContextID = contextID
 	return types.StatusOK
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) types.Status {
 	panic("unimplemented")
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) types.Status {
 	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
 	log.Printf("ProxyResolveSharedQueue not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyCloseStream(streamType types.StreamType) types.Status {
 	log.Printf("ProxyCloseStream not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWASMHost
+// impl rawhostcall.ProxyWasmHost
 func (h *hostEmulator) ProxyDone() types.Status {
 	log.Printf("ProxyDone not implemented in the host emulator yet")
 	return 0

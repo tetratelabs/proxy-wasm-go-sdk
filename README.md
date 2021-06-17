@@ -98,12 +98,12 @@ make test.e2e.single name=helloworld
      for saving the plugin's [state](https://github.com/tetratelabs/proxy-wasm-go-sdk/blob/cf6ad74ed58b284d3d8ceeb8c5dba2280d5b1007/proxywasm/vmstate.go#L41-L46).
     - Theoretically, we can implement our own GC algorithms tailored for proxy-wasm through `alloc(uintptr)` [interface](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_none.go#L13) 
     with `-gc=none` option. This is the future TODO.
-- `recover` is [not implemented](https://github.com/tinygo-org/tinygo/issues/891) in TinyGo, and there's no way to prevent the WASM virtual machine from aborting.
+- `recover` is [not implemented](https://github.com/tinygo-org/tinygo/issues/891) in TinyGo, and there's no way to prevent the Wasm virtual machine from aborting.
 - Goroutine support
     - In TinyGo, Goroutine is implmeneted through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
-    - In Envoy, WASM modules are run in the event driven manner, and therefore the "scheduler" is not executed once the main function exits. 
+    - In Envoy, Wasm modules are run in the event driven manner, and therefore the "scheduler" is not executed once the main function exits.
         That means you cannot have the expected behavior of Goroutine as in ordinary host environments.
-        - The question "How to deal with Goroutine in a thread local WASM VM executed in the event drive manner" has yet to be answered.
+        - The question "How to deal with Goroutine in a thread local Wasm VM executed in the event drive manner" has yet to be answered.
     - We strongly recommend that you implement the `OnTick` function for any asynchronous task instead of using Goroutine.
     - The scheduler can be disabled with `-scheduler=none` option of TinyGo.
 

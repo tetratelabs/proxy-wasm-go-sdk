@@ -37,7 +37,7 @@ func newNetworkHostEmulator() *networkHostEmulator {
 	return host
 }
 
-// impl rawhostcall.ProxyWASMHost: delegated from hostEmulator
+// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
 func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
 	returnBufferData **byte, returnBufferSize *int) types.Status {
 

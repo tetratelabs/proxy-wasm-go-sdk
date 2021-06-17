@@ -23,14 +23,14 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type metricProxyWASMHost struct {
+type metricProxyWasmHost struct {
 	rawhostcall.DefaultProxyWAMSHost
 	idToValue map[uint32]uint64
 	idToType  map[uint32]types.MetricType
 	nameToID  map[string]uint32
 }
 
-func (m metricProxyWASMHost) ProxyDefineMetric(metricType types.MetricType,
+func (m metricProxyWasmHost) ProxyDefineMetric(metricType types.MetricType,
 	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
 	name := RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := m.nameToID[name]
@@ -44,7 +44,7 @@ func (m metricProxyWASMHost) ProxyDefineMetric(metricType types.MetricType,
 	return types.StatusOK
 }
 
-func (m metricProxyWASMHost) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+func (m metricProxyWasmHost) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
 	val, ok := m.idToValue[metricID]
 	if !ok {
 		return types.StatusBadArgument
@@ -54,7 +54,7 @@ func (m metricProxyWASMHost) ProxyIncrementMetric(metricID uint32, offset int64)
 	return types.StatusOK
 }
 
-func (m metricProxyWASMHost) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
+func (m metricProxyWasmHost) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
 	_, ok := m.idToValue[metricID]
 	if !ok {
 		return types.StatusBadArgument
@@ -63,7 +63,7 @@ func (m metricProxyWASMHost) ProxyRecordMetric(metricID uint32, value uint64) ty
 	return types.StatusOK
 }
 
-func (m metricProxyWASMHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+func (m metricProxyWasmHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
 	value, ok := m.idToValue[metricID]
 	if !ok {
 		return types.StatusBadArgument
@@ -73,7 +73,7 @@ func (m metricProxyWASMHost) ProxyGetMetric(metricID uint32, returnMetricValue *
 }
 
 func TestHostCall_Metric(t *testing.T) {
-	host := metricProxyWASMHost{
+	host := metricProxyWasmHost{
 		rawhostcall.DefaultProxyWAMSHost{},
 		map[uint32]uint64{},
 		map[uint32]types.MetricType{},
@@ -81,7 +81,7 @@ func TestHostCall_Metric(t *testing.T) {
 	}
 	hostMutex.Lock()
 	defer hostMutex.Unlock()
-	rawhostcall.RegisterMockWASMHost(host)
+	rawhostcall.RegisterMockWasmHost(host)
 
 	t.Run("counter", func(t *testing.T) {
 		for _, c := range []struct {
