@@ -93,10 +93,6 @@ func ProxyOnTick(rootContextID uint32) {
 	proxyOnTick(rootContextID)
 }
 
-func ProxyOnLog(contextID uint32) {
-	proxyOnLog(contextID)
-}
-
 func ProxyOnDelete(contextID uint32) {
 	proxyOnDelete(contextID)
 }

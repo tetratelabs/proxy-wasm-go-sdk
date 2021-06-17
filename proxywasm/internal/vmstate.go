@@ -33,7 +33,7 @@ type (
 type state struct {
 	newRootContext func(contextID uint32) types.RootContext
 	rootContexts   map[uint32]*rootContextState
-	streams        map[uint32]types.StreamContext
+	streams        map[uint32]types.TcpContext
 	httpStreams    map[uint32]types.HttpContext
 
 	contextIDToRootID map[uint32]uint32
@@ -43,7 +43,7 @@ type state struct {
 var currentState = &state{
 	rootContexts:      make(map[uint32]*rootContextState),
 	httpStreams:       make(map[uint32]types.HttpContext),
-	streams:           make(map[uint32]types.StreamContext),
+	streams:           make(map[uint32]types.TcpContext),
 	contextIDToRootID: make(map[uint32]uint32),
 }
 
@@ -75,7 +75,7 @@ func (s *state) createRootContext(contextID uint32) {
 	s.contextIDToRootID[contextID] = contextID
 }
 
-func (s *state) createStreamContext(contextID uint32, rootContextID uint32) bool {
+func (s *state) createTcpContext(contextID uint32, rootContextID uint32) bool {
 	root, ok := s.rootContexts[rootContextID]
 	if !ok {
 		panic("invalid root context id")
@@ -85,9 +85,9 @@ func (s *state) createStreamContext(contextID uint32, rootContextID uint32) bool
 		panic("context id duplicated")
 	}
 
-	ctx := root.context.NewStreamContext(contextID)
+	ctx := root.context.NewTcpContext(contextID)
 	if ctx == nil {
-		// NewStreamContext is not defined by the user
+		// NewTcpContext is not defined by the user
 		return false
 	}
 	s.contextIDToRootID[contextID] = rootContextID

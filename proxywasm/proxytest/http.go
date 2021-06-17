@@ -407,11 +407,6 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 
 // impl HostEmulator
 func (h *httpHostEmulator) CompleteHttpContext(contextID uint32) {
-	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/include/envoy/http/filter.h#L542-L553
-	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L1463-L1482
-	internal.ProxyOnLog(contextID)
-
-	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L1491-L1497
 	internal.ProxyOnDone(contextID)
 	internal.ProxyOnDelete(contextID)
 }
@@ -446,16 +441,4 @@ func (h *httpHostEmulator) GetCurrentRequestBody(contextID uint32) []byte {
 // impl HostEmulator
 func (h *httpHostEmulator) GetSentLocalResponse(contextID uint32) *LocalHttpResponse {
 	return h.httpStreams[contextID].sentLocalResponse
-}
-
-// impl HostEmulator
-func (h *httpHostEmulator) CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers) {
-	h.httpStreams[RootContextID] = &httpStreamState{
-		requestHeaders:   requestHeaders,
-		responseHeaders:  responseHeaders,
-		requestTrailers:  nil,
-		responseTrailers: nil,
-	}
-
-	internal.ProxyOnLog(RootContextID)
 }

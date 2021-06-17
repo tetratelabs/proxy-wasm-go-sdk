@@ -45,23 +45,23 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 }
 
 // Override DefaultRootContext.
-func (ctx *rootContext) NewStreamContext(contextID uint32) types.StreamContext {
+func (ctx *rootContext) NewTcpContext(contextID uint32) types.TcpContext {
 	return &networkContext{}
 }
 
 type networkContext struct {
 	// You'd better embed the default stream context
 	// so that you don't need to reimplement all the methods by yourself.
-	types.DefaultStreamContext
+	types.DefaultTcpContext
 }
 
-// Override DefaultStreamContext.
+// Override DefaultTcpContext.
 func (ctx *networkContext) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
-// Override DefaultStreamContext.
+// Override DefaultTcpContext.
 func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -77,13 +77,13 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 	return types.ActionContinue
 }
 
-// Override DefaultStreamContext.
+// Override DefaultTcpContext.
 func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }
 
-// Override DefaultStreamContext.
+// Override DefaultTcpContext.
 func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -106,7 +106,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	return types.ActionContinue
 }
 
-// Override DefaultStreamContext.
+// Override DefaultTcpContext.
 func (ctx *networkContext) OnStreamDone() {
 	counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")

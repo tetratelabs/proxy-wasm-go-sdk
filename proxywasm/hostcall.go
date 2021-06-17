@@ -356,8 +356,13 @@ func GetProperty(path []string) ([]byte, error) {
 
 }
 
-func SetProperty(path string, data []byte) error {
+func SetProperty(path []string, data []byte) error {
+	raw := internal.SerializePropertyPath(path)
 	return types.StatusToError(rawhostcall.ProxySetProperty(
-		internal.StringBytePtr(path), len(path), &data[0], len(data),
+		&raw[0], len(path), &data[0], len(data),
 	))
+}
+
+func Done() {
+	rawhostcall.ProxyDone()
 }
