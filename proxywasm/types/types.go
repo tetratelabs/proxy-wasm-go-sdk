@@ -16,11 +16,14 @@ package types
 
 import "errors"
 
+// Action represents the action which Wasm contexts expects hosts to take.
 type Action uint32
 
 const (
+	// ActionContinue means that the host continues the processing.
 	ActionContinue Action = 0
-	ActionPause    Action = 1
+	// ActionPause means that the host pauses the processing.
+	ActionPause Action = 1
 )
 
 // PeerType represents the type of a peer of a connection.
