@@ -58,7 +58,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 
-	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, "", nil,
+	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, nil, nil,
 		50000, httpCallResponseCallback); err != nil {
 		proxywasm.LogCriticalf("dipatch httpcall failed: %v", err)
 		return types.ActionContinue

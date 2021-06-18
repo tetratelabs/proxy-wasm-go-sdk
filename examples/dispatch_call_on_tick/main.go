@@ -51,7 +51,7 @@ func (ctx *rootContext) OnTick() {
 	hs := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
 	}
-	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", nil,
+	if _, err := proxywasm.DispatchHttpCall("web_service", hs, nil, nil,
 		5000, callback); err != nil {
 		proxywasm.LogCriticalf("dispatch httpcall failed: %v", err)
 	}

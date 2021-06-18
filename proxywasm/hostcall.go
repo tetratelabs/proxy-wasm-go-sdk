@@ -83,10 +83,17 @@ func Done() {
 	internal.ProxyDone()
 }
 
+// DispatchHttpCall is for dipatching http calls to a remote cluster. This can be used by all contexts
+// including Tcp and Root contexts. "cluster" arg specifies the remote cluster the host will send
+// the request against with "headers", "body", "trailers" arguments. If the host successfully made the request
+// and recevived the response from the remote cluster, then "callBack" function is called.
+// During callBack is called, "GetHttpCallResponseHeaders", "GetHttpCallResponseBody", "GetHttpCallResponseTrailers"
+// calls are available for accessing the response information.
 func DispatchHttpCall(
-	upstream string,
+	cluster string,
 	headers [][2]string,
-	body string, trailers [][2]string,
+	body []byte,
+	trailers [][2]string,
 	timeoutMillisecond uint32,
 	callBack func(numHeaders, bodySize, numTrailers int),
 ) (calloutID uint32, err error) {
@@ -98,9 +105,14 @@ func DispatchHttpCall(
 	tp := &sts[0]
 	tl := len(sts)
 
-	u := internal.StringBytePtr(upstream)
-	switch st := internal.ProxyHttpCall(u, len(upstream),
-		hp, hl, internal.StringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
+	var bodyPtr *byte
+	if len(body) > 0 {
+		bodyPtr = &body[0]
+	}
+
+	u := internal.StringBytePtr(cluster)
+	switch st := internal.ProxyHttpCall(u, len(cluster),
+		hp, hl, bodyPtr, len(body), tp, tl, timeoutMillisecond, &calloutID); st {
 	case internal.StatusOK:
 		internal.RegisterHttpCallout(calloutID, callBack)
 		return calloutID, nil
