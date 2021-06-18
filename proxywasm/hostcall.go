@@ -231,17 +231,24 @@ func ReplaceHttpRequestHeaders(headers [][2]string) error {
 // GetHttpRequestHeader is used for retrieving a http request header value
 // for given "key". Only available during types.HttpContext.OnHttpRequestHeaders and
 // types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpRequestHeader(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
 // GetHttpRequestHeader is used for retrieving a http request header value
-// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders and
-// types.HttpContext.OnHttpStreamDone.
+// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders.
 func RemoveHttpRequestHeader(key string) error {
 	return removeMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
+// ReplaceHttpRequestHeader replaces a value for given "key" from request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
 func ReplaceHttpRequestHeader(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
@@ -283,14 +290,24 @@ func ReplaceHttpRequestTrailers(trailers [][2]string) error {
 // GetHttpRequestTrailer is used for retrieving a http request trailer value
 // for given "key". Only available during types.HttpContext.OnHttpRequestTrailers and
 // types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpRequestTrailer(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
+// RemoveHttpRequestTrailer removes all the values for given "key" from request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
 func RemoveHttpRequestTrailer(key string) error {
 	return removeMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
+// ReplaceHttpRequestTrailer replaces a value for given "key" from request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
 func ReplaceHttpRequestTrailer(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
@@ -320,14 +337,24 @@ func ReplaceHttpResponseHeaders(headers [][2]string) error {
 // GetHttpResponseHeader is used for retrieving a http response header value
 // for given "key". Only available during types.HttpContext.OnHttpResponseHeaders and
 // types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpResponseHeader(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
+// RemoveHttpResponseHeader removes all the values for given "key" from response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func RemoveHttpResponseHeader(key string) error {
 	return removeMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
+// ReplaceHttpResponseHeader replaces a value for given "key" from response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
 func ReplaceHttpResponseHeader(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
@@ -369,14 +396,24 @@ func ReplaceHttpResponseTrailers(trailers [][2]string) error {
 // GetHttpResponseTrailer is used for retrieving a http response trailer value
 // for given "key". Only available during types.HttpContext.OnHttpResponseTrailers and
 // types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpResponseTrailer(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
+// RemoveHttpResponseTrailer removes all the values for given "key" from response trailers.
+// Only available during types.HttpContext.OnHttpResponseTrailers.
 func RemoveHttpResponseTrailer(key string) error {
 	return removeMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
+// ReplaceHttpResponseHeader replaces a value for given "key" from response trailers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
 func ReplaceHttpResponseTrailer(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
