@@ -52,7 +52,7 @@ type RootContext interface {
 
 	// onPluginDone is called right before root contexts are deleted by hosts.
 	// Return false to indicate it's in a pending state to do some more work left.
-	// In that case, must call Done() host call after the work is done to indicate that
+	// In that case, must call PluginDone() host call after the work is done to indicate that
 	// hosts can kill this contexts.
 	OnPluginDone() bool
 

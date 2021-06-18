@@ -77,9 +77,9 @@ func DequeueSharedQueue(queueID uint32) ([]byte, error) {
 	return internal.RawBytePtrToByteSlice(raw, size), nil
 }
 
-// Done must be callsed when OnPluginDone returnes false indicating that the plugin is in pending state
-// right before deletion by hots. Only available for types.RootContext.
-func Done() {
+// PluginDone must be callsed when OnPluginDone returns false indicating that the plugin is in pending state
+// right before deletion by hosts. Only available for types.RootContext.
+func PluginDone() {
 	internal.ProxyDone()
 }
 
@@ -253,22 +253,39 @@ func ReplaceHttpRequestHeader(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
+// AddHttpRequestHeader adds a value for given "key" of request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders.
 func AddHttpRequestHeader(key, value string) error {
 	return addMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
+// GetHttpRequestBody is used for retrieving the entire http request body.
+// Only available during types.HttpContext.OnHttpRequestBody.
 func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeHttpRequestBody, start, maxSize)
 }
 
+// AppendHttpRequestBody appends the given bytes to the http request body buffer.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func AppendHttpRequestBody(data []byte) error {
 	return appendToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
+// PrependHttpRequestBody prepends the given bytes to the http request body buffer.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func PrependHttpRequestBody(data []byte) error {
 	return prependToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
+// ReplaceHttpRequestBody replaces the http request body buffer with the given bytes.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash,
+// if the size of the data differs from the original one.
 func ReplaceHttpRequestBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpRequestBody, data)
 }
@@ -312,6 +329,8 @@ func ReplaceHttpRequestTrailer(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
+// AddHttpRequestTrailer adds a value for given "key" of request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
 func AddHttpRequestTrailer(key, value string) error {
 	return addMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
@@ -359,6 +378,8 @@ func ReplaceHttpResponseHeader(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
+// AddHttpResponseHeader adds a value for given "key" of response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func AddHttpResponseHeader(key, value string) error {
 	return addMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
@@ -375,6 +396,11 @@ func PrependHttpResponseBody(data []byte) error {
 	return prependToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
+// ReplaceHttpResponseBody replaces the http response body buffer with the given bytes.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash
+// if the size of the data differs from the original one.
 func ReplaceHttpResponseBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpResponseBody, data)
 }
@@ -418,6 +444,8 @@ func ReplaceHttpResponseTrailer(key, value string) error {
 	return replaceMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
+// AddHttpResponseTrailer adds a value for given "key" of response trailers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func AddHttpResponseTrailer(key, value string) error {
 	return addMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
