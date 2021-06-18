@@ -34,7 +34,7 @@ They are called RootContext, TcpContext and HttpContext, and their relationship 
                                               ╱ TcpContext = handling each Tcp stream
                                              ╱
                                             ╱ 1: N
-   each plugion configuration = RootContext
+   each plugin configuration = RootContext
                                             ╲ 1: N
                                              ╲
                                               ╲ Http = handling each Http stream
