@@ -1,4 +1,4 @@
-##  test framework for proxy-wasm-go-sdk
+##  Test framework for proxy-wasm-go-sdk
 
 With `proxytest` build tag, you can test your extension with the official command:
 
