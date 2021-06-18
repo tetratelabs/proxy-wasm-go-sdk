@@ -14,6 +14,19 @@
 
 package types
 
+// There are three types of "contexts" you are supposed to implement for writing Proxy-Wasm plugins with this SDK.
+// They are called RootContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
+//
+//              TcpContext = handling each Tcp stream
+//            ╱
+//  RootContext
+//            ╲
+//              Http = handling each Http stream
+//
+// In other words, RootContex is parent of others, and responsible for creating Tcp and Http contexts
+// corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
+// Given that, RootContext is the primary interface everyone has to implement.
+//
 // RootContext corresponds to each different plugin configurations (config.configuration),
 // and the root context created first is specially treated as a VM context, which can handle
 // vm_config.configuration during OnVMStart call to do VM-wise initialization.
@@ -121,12 +134,17 @@ type HttpContext interface {
 	OnHttpStreamDone()
 }
 
-// Default*Contexts are no-op implementation of contexts.
+// DefaultContexts are no-op implementation of contexts.
 // Users can embed them into their custom contexts, so that
 // they only have to implement methods they want.
 type (
+	// DefaultRootContext provides the no-op implementation of RootContext interface.
 	DefaultRootContext struct{}
-	DefaultTcpContext  struct{}
+
+	// DefaultTcpContext provides the no-op implementation of TcpContext interface.
+	DefaultTcpContext struct{}
+
+	// DefaultHttpContext provides the no-op implementation of HttpContext interface.
 	DefaultHttpContext struct{}
 )
 

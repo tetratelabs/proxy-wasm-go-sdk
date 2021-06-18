@@ -21,7 +21,7 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 
 	// Call OnHttpRequestHeaders.
 	action := host.CallOnRequestHeaders(contextID,
-		types.Headers{{"key", "value"}}, false)
+		[][2]string{{"key", "value"}}, false)
 	require.Equal(t, types.ActionPause, action)
 
 	// Verify DispatchHttpCall is called.

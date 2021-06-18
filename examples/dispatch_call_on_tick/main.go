@@ -48,7 +48,7 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 
 // Override DefaultRootContext.
 func (ctx *rootContext) OnTick() {
-	hs := types.Headers{
+	hs := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
 	}
 	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", nil,

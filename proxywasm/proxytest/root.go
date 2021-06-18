@@ -36,8 +36,8 @@ type (
 		httpContextIDToCalloutInfos map[uint32][]HttpCalloutAttribute // key: contextID
 		httpCalloutIDToContextID    map[uint32]uint32                 // key: calloutID
 		httpCalloutResponse         map[uint32]struct {               // key: calloutID
-			headers  types.Headers
-			trailers types.Trailers
+			headers  [][2]string
+			trailers [][2]string
 			body     []byte
 		}
 
@@ -51,8 +51,8 @@ type (
 	HttpCalloutAttribute struct {
 		CalloutID uint32
 		Upstream  string
-		Headers   types.Headers
-		Trailers  types.Trailers
+		Headers   [][2]string
+		Trailers  [][2]string
 		Body      []byte
 	}
 
@@ -74,8 +74,8 @@ func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostE
 		httpContextIDToCalloutInfos: map[uint32][]HttpCalloutAttribute{},
 		httpCalloutIDToContextID:    map[uint32]uint32{},
 		httpCalloutResponse: map[uint32]struct {
-			headers  types.Headers
-			trailers types.Trailers
+			headers  [][2]string
+			trailers [][2]string
 			body     []byte
 		}{},
 

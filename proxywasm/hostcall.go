@@ -16,7 +16,6 @@ package proxywasm
 
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func GetPluginConfiguration(size int) ([]byte, error) {
@@ -27,7 +26,7 @@ func GetVMConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
-func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
+func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
 	shs := internal.SerializeMap(headers)
 	var bp *byte
 	if len(body) > 0 {
@@ -48,7 +47,7 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 }
 
 func DispatchHttpCall(upstream string,
-	headers types.Headers, body string, trailers types.Trailers,
+	headers [][2]string, body string, trailers [][2]string,
 	timeoutMillisecond uint32, callBack func(numHeaders, bodySize, numTrailers int)) (calloutID uint32, err error) {
 	shs := internal.SerializeMap(headers)
 	hp := &shs[0]
@@ -69,7 +68,7 @@ func DispatchHttpCall(upstream string,
 	}
 }
 
-func GetHttpCallResponseHeaders() (types.Headers, error) {
+func GetHttpCallResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseHeaders)
 }
 
@@ -77,7 +76,7 @@ func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeHttpCallResponseBody, start, maxSize)
 }
 
-func GetHttpCallResponseTrailers() (types.Trailers, error) {
+func GetHttpCallResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseTrailers)
 }
 
@@ -143,11 +142,11 @@ func CloseUpstream() error {
 	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeUpstream))
 }
 
-func GetHttpRequestHeaders() (types.Headers, error) {
+func GetHttpRequestHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestHeaders)
 }
 
-func SetHttpRequestHeaders(headers types.Headers) error {
+func SetHttpRequestHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestHeaders, headers)
 }
 
@@ -183,11 +182,11 @@ func ReplaceHttpRequestBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
-func GetHttpRequestTrailers() (types.Trailers, error) {
+func GetHttpRequestTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestTrailers)
 }
 
-func SetHttpRequestTrailers(trailers types.Trailers) error {
+func SetHttpRequestTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestTrailers, trailers)
 }
 
@@ -211,11 +210,11 @@ func ResumeHttpRequest() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeRequest))
 }
 
-func GetHttpResponseHeaders() (types.Headers, error) {
+func GetHttpResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseHeaders)
 }
 
-func SetHttpResponseHeaders(headers types.Headers) error {
+func SetHttpResponseHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseHeaders, headers)
 }
 
@@ -251,11 +250,11 @@ func ReplaceHttpResponseBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
-func GetHttpResponseTrailers() (types.Trailers, error) {
+func GetHttpResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseTrailers)
 }
 
-func SetHttpResponseTrailers(trailers types.Trailers) error {
+func SetHttpResponseTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseTrailers, trailers)
 }
 

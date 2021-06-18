@@ -29,7 +29,7 @@ type HostEmulator interface {
 	StartPlugin() types.OnPluginStartStatus
 	FinishVM() bool
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
-	CallOnHttpCallResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
+	CallOnHttpCallResponse(contextID uint32, headers [][2]string, trailers [][2]string, body []byte)
 	GetCounterMetric(name string) (uint64, error)
 	GetGaugeMetric(name string) (uint64, error)
 	GetHistogramMetric(name string) (uint64, error)
@@ -54,15 +54,15 @@ type HostEmulator interface {
 
 	// http
 	InitializeHttpContext() (contextID uint32)
-	CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
+	CallOnResponseHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
 	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool) types.Action
-	CallOnResponseTrailers(contextID uint32, trailers types.Trailers) types.Action
-	CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
-	CallOnRequestTrailers(contextID uint32, trailers types.Trailers) types.Action
+	CallOnResponseTrailers(contextID uint32, trailers [][2]string) types.Action
+	CallOnRequestHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
+	CallOnRequestTrailers(contextID uint32, trailers [][2]string) types.Action
 	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool) types.Action
 	CompleteHttpContext(contextID uint32)
 	GetCurrentHttpStreamAction(contextID uint32) types.Action
-	GetCurrentRequestHeaders(contextID uint32) types.Headers
+	GetCurrentRequestHeaders(contextID uint32) [][2]string
 	GetCurrentRequestBody(contextID uint32) []byte
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
 }

@@ -20,7 +20,7 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 		id := host.InitializeHttpContext()
 
 		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, types.Headers{
+		action := host.CallOnRequestHeaders(id, [][2]string{
 			{"content-length", "10"},
 			{"buffer-operation", "replace"},
 		}, false)
@@ -31,7 +31,7 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 		// Check the final request headers
 		headers := host.GetCurrentRequestHeaders(id)
 		require.Equal(t,
-			types.Headers{{"buffer-operation", "replace"}},
+			[][2]string{{"buffer-operation", "replace"}},
 			headers,
 			"content-length header must be removed.")
 	})
@@ -76,7 +76,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		id := host.InitializeHttpContext()
 
 		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, types.Headers{
+		action := host.CallOnRequestHeaders(id, [][2]string{
 			{"content-length", "10"},
 			{"buffer-operation", "append"},
 		}, false)
@@ -101,7 +101,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		id := host.InitializeHttpContext()
 
 		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, types.Headers{
+		action := host.CallOnRequestHeaders(id, [][2]string{
 			{"content-length", "10"},
 			{"buffer-operation", "prepend"},
 		}, false)
@@ -126,7 +126,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		id := host.InitializeHttpContext()
 
 		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, types.Headers{
+		action := host.CallOnRequestHeaders(id, [][2]string{
 			{"content-length", "10"},
 			{"buffer-operation", "replace"},
 		}, false)

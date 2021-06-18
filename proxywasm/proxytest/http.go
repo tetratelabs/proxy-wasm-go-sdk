@@ -26,8 +26,8 @@ type (
 		httpStreams map[uint32]*httpStreamState
 	}
 	httpStreamState struct {
-		requestHeaders, responseHeaders   types.Headers
-		requestTrailers, responseTrailers types.Trailers
+		requestHeaders, responseHeaders   [][2]string
+		requestTrailers, responseTrailers [][2]string
 		requestBody, responseBody         []byte
 
 		action            types.Action
@@ -37,7 +37,7 @@ type (
 		StatusCode       uint32
 		StatusCodeDetail string
 		Data             []byte
-		Headers          types.Headers
+		Headers          [][2]string
 		GRPCStatus       int32
 	}
 )
@@ -331,7 +331,7 @@ func (h *httpHostEmulator) InitializeHttpContext() (contextID uint32) {
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action {
+func (h *httpHostEmulator) CallOnRequestHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -344,7 +344,7 @@ func (h *httpHostEmulator) CallOnRequestHeaders(contextID uint32, headers types.
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action {
+func (h *httpHostEmulator) CallOnResponseHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -356,7 +356,7 @@ func (h *httpHostEmulator) CallOnResponseHeaders(contextID uint32, headers types
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) CallOnRequestTrailers(contextID uint32, trailers types.Trailers) types.Action {
+func (h *httpHostEmulator) CallOnRequestTrailers(contextID uint32, trailers [][2]string) types.Action {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -368,7 +368,7 @@ func (h *httpHostEmulator) CallOnRequestTrailers(contextID uint32, trailers type
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) CallOnResponseTrailers(contextID uint32, trailers types.Trailers) types.Action {
+func (h *httpHostEmulator) CallOnResponseTrailers(contextID uint32, trailers [][2]string) types.Action {
 	cs, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)
@@ -421,7 +421,7 @@ func (h *httpHostEmulator) GetCurrentHttpStreamAction(contextID uint32) types.Ac
 }
 
 // impl HostEmulator
-func (h *httpHostEmulator) GetCurrentRequestHeaders(contextID uint32) types.Headers {
+func (h *httpHostEmulator) GetCurrentRequestHeaders(contextID uint32) [][2]string {
 	stream, ok := h.httpStreams[contextID]
 	if !ok {
 		log.Fatalf("invalid context id: %d", contextID)

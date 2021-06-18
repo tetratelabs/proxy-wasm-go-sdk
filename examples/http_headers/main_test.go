@@ -20,7 +20,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	id := host.InitializeHttpContext()
 
 	// Call OnHttpResponseHeaders.
-	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
+	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
 	action := host.CallOnRequestHeaders(id,
 		hs, false)
 	require.Equal(t, types.ActionContinue, action)
@@ -56,7 +56,7 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	id := host.InitializeHttpContext()
 
 	// Call OnHttpResponseHeaders.
-	hs := types.Headers{{"key1", "value1"}, {"key2", "value2"}}
+	hs := [][2]string{{"key1", "value1"}, {"key2", "value2"}}
 	action := host.CallOnResponseHeaders(id, hs, false)
 	require.Equal(t, types.ActionContinue, action)
 
