@@ -335,6 +335,8 @@ func AddHttpRequestTrailer(key, value string) error {
 	return addMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
+// ResumeHttpRequest can be used for resuming Http request processing which is stopped
+// after returning types.Action.Pause. Only available during types.HttpContext.
 func ResumeHttpRequest() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeRequest))
 }
@@ -384,14 +386,24 @@ func AddHttpResponseHeader(key, value string) error {
 	return addMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
+// GetHttpResponseBody is used for retrieving the entire http response body.
+// Only available during types.HttpContext.OnHttpResponseBody.
 func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeHttpResponseBody, start, maxSize)
 }
 
+// AppendHttpResponseBody appends the given bytes to the http response body buffer.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func AppendHttpResponseBody(data []byte) error {
 	return appendToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
+// PrependHttpResponseBody prepends the given bytes to the http response body buffer.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func PrependHttpResponseBody(data []byte) error {
 	return prependToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
@@ -450,6 +462,8 @@ func AddHttpResponseTrailer(key, value string) error {
 	return addMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
+// ResumeHttpResponse can be used for resuming Http response processing which is stopped
+// after returning types.Action.Pause. Only available during types.HttpContext.
 func ResumeHttpResponse() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeResponse))
 }
