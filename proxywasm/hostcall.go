@@ -121,30 +121,25 @@ func DispatchHttpCall(
 	}
 }
 
+// GetHttpCallResponseHeaders is used for retreiving http response headers
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseHeaders)
 }
 
+// GetHttpCallResponseBody is used for retreiving http response body
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeHttpCallResponseBody, start, maxSize)
 }
 
+// GetHttpCallResponseTrailers is used for retreiving http response trailers
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseTrailers)
-}
-
-func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
-	f := internal.StringBytePtr(funcName)
-
-	var returnData *byte
-	var returnSize int
-
-	switch st := internal.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
-	case internal.StatusOK:
-		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
-	default:
-		return nil, internal.StatusToError(st)
-	}
 }
 
 func GetDownstreamData(start, maxSize int) ([]byte, error) {
@@ -388,4 +383,20 @@ func SetProperty(path []string, data []byte) error {
 	return internal.StatusToError(internal.ProxySetProperty(
 		&raw[0], len(path), &data[0], len(data),
 	))
+}
+
+// CallForeignFunction calls a foreign function of given funcName defined by host implementations.
+// Foreign functions are host specific functions so please refer to the doc of your host implementation for detail.
+func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
+	f := internal.StringBytePtr(funcName)
+
+	var returnData *byte
+	var returnSize int
+
+	switch st := internal.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
+	case internal.StatusOK:
+		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
+	default:
+		return nil, internal.StatusToError(st)
+	}
 }
