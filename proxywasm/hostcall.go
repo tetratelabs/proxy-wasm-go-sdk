@@ -192,18 +192,14 @@ func ReplaceUpstreamData(data []byte) error {
 	return replaceBuffer(internal.BufferTypeUpstreamData, data)
 }
 
-// ContinueDownstream continues interating on downstream Tcp connection
-// after types.Action.Pause was returned by types.TcpContext.OnDownstreamData.
+// ContinueTcpStream continues interating on the tcp connection
+// after types.Action.Pause was returned by types.TcpContext.
 // Only available for types.TcpContext.
-func ContinueDownstream() error {
+func ContinueTcpStream() error {
+	// Note that internal.ProxyContinueStream is not implemented in Envoy,
+	// so we intentionally choose to pass StreamTypeDownstream here while
+	// the name itself is not indiciating "continue downstream".
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeDownstream))
-}
-
-// ContinueDownstream continues interating on upstream Tcp connection
-// after types.Action.Pause was returned by types.TcpContext.OnUpstreamData.
-// Only available for types.TcpContext.
-func ContinueUpstream() error {
-	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeUpstream))
 }
 
 // CloseDownstream closes the downstream tcp connection for this Tcp context.
@@ -218,6 +214,9 @@ func CloseUpstream() error {
 	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeUpstream))
 }
 
+// GetHttpRequestHeaders is used for retrieving http request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpRequestHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestHeaders)
 }
@@ -286,6 +285,9 @@ func ResumeHttpRequest() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeRequest))
 }
 
+// GetHttpResponseHeaders is used for retrieving http response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseHeaders)
 }
