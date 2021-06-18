@@ -18,37 +18,78 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 )
 
-func GetPluginConfiguration(size int) ([]byte, error) {
-	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
-}
-
+// GetVMConfiguration is used for retreiving configurations ginve in the "vm_config.configuration" field.
+// This hostcall is only available during types.RootContext.OnVMStart call.
+// "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
 func GetVMConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
-func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
-	shs := internal.SerializeMap(headers)
-	var bp *byte
-	if len(body) > 0 {
-		bp = &body[0]
-	}
-	hp := &shs[0]
-	hl := len(shs)
-	return internal.StatusToError(
-		internal.ProxySendLocalResponse(
-			statusCode, nil, 0,
-			bp, len(body), hp, hl, -1,
-		),
-	)
+// GetPluginConfiguration is used for retreiving configurations ginve in the "config.configuration" field.
+// This hostcall is only available during types.RootContext.OnPluginStart call.
+// "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
+func GetPluginConfiguration(size int) ([]byte, error) {
+	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
 }
 
+// SetTickPeriodMilliSeconds sets the tick interval of types.RootContext.OnTick calls.
+// Only available for types.RootContext.
 func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
-func DispatchHttpCall(upstream string,
-	headers [][2]string, body string, trailers [][2]string,
-	timeoutMillisecond uint32, callBack func(numHeaders, bodySize, numTrailers int)) (calloutID uint32, err error) {
+// RegisterSharedQueue registers the shared queue on this root context.
+// "Register" means that OnQueueReady is called for this root context whenever a new item is enqueued on that queueID.
+// Only available for types.RootContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
+// That means you can use "vm_id" can be used for separating shared queue namespace.
+func RegisterSharedQueue(name string) (ququeID uint32, err error) {
+	var queueID uint32
+	ptr := internal.StringBytePtr(name)
+	st := internal.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
+	return queueID, internal.StatusToError(st)
+}
+
+// ResolveSharedQueue acquires the queueID for the given vm_id and queue name.
+// The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error) {
+	var ret uint32
+	st := internal.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
+		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
+	return ret, internal.StatusToError(st)
+}
+
+// EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func EnqueueSharedQueue(queueID uint32, data []byte) error {
+	return internal.StatusToError(internal.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+}
+
+// DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func DequeueSharedQueue(queueID uint32) ([]byte, error) {
+	var raw *byte
+	var size int
+	st := internal.ProxyDequeueSharedQueue(queueID, &raw, &size)
+	if st != internal.StatusOK {
+		return nil, internal.StatusToError(st)
+	}
+	return internal.RawBytePtrToByteSlice(raw, size), nil
+}
+
+// Done must be callsed when OnPluginDone returnes false indicating that the plugin is in pending state
+// right before deletion by hots. Only available for types.RootContext.
+func Done() {
+	internal.ProxyDone()
+}
+
+func DispatchHttpCall(
+	upstream string,
+	headers [][2]string,
+	body string, trailers [][2]string,
+	timeoutMillisecond uint32,
+	callBack func(numHeaders, bodySize, numTrailers int),
+) (calloutID uint32, err error) {
 	shs := internal.SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
@@ -278,32 +319,25 @@ func ResumeHttpResponse() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeResponse))
 }
 
-func RegisterSharedQueue(name string) (uint32, error) {
-	var queueID uint32
-	ptr := internal.StringBytePtr(name)
-	st := internal.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
-	return queueID, internal.StatusToError(st)
-}
-
-func ResolveSharedQueue(vmID, queueName string) (uint32, error) {
-	var ret uint32
-	st := internal.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
-		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
-	return ret, internal.StatusToError(st)
-}
-
-func DequeueSharedQueue(queueID uint32) ([]byte, error) {
-	var raw *byte
-	var size int
-	st := internal.ProxyDequeueSharedQueue(queueID, &raw, &size)
-	if st != internal.StatusOK {
-		return nil, internal.StatusToError(st)
+// SendHttpResponse sends a http response to the downstream with given information (headers, statuscode, body).
+// This call cannot be used outside types.HttpContext otherwise an error should be returned.
+// Also please note that this cannot be used after types.HttpContext.OnHttpResponseHeaders returns Continue
+// since in that case, the response headers may have already arrived at the downstream and there is no way
+// to override the already sent headers.
+func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
+	shs := internal.SerializeMap(headers)
+	var bp *byte
+	if len(body) > 0 {
+		bp = &body[0]
 	}
-	return internal.RawBytePtrToByteSlice(raw, size), nil
-}
-
-func EnqueueSharedQueue(queueID uint32, data []byte) error {
-	return internal.StatusToError(internal.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+	hp := &shs[0]
+	hl := len(shs)
+	return internal.StatusToError(
+		internal.ProxySendLocalResponse(
+			statusCode, nil, 0,
+			bp, len(body), hp, hl, -1,
+		),
+	)
 }
 
 func GetSharedData(key string) (value []byte, cas uint32, err error) {
@@ -342,8 +376,4 @@ func SetProperty(path []string, data []byte) error {
 	return internal.StatusToError(internal.ProxySetProperty(
 		&raw[0], len(path), &data[0], len(data),
 	))
-}
-
-func Done() {
-	internal.ProxyDone()
 }
