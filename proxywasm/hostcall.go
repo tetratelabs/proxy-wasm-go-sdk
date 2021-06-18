@@ -489,6 +489,8 @@ func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error
 	)
 }
 
+// GetSharedData is used for retrieving the value for given "key".
+// Returned "cas" is be used for SetSharedData on that key.
 func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
@@ -500,12 +502,20 @@ func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	return internal.RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
+// SetSharedData is used for seting key-value pairs in the shared data storage
+// which is defined per "vm_config.vm_id" in the hosts.
+// ErrorStatusNotFound will be returned when a given CAS value is mismatched
+// with the current value. That indicates that other Wasm VMs has already succeeded
+// to set a value on the same key and the current CAS for the key is incremented.
+// Having retry logic in the face of this error is recommended.
 func SetSharedData(key string, data []byte, cas uint32) error {
 	st := internal.ProxySetSharedData(internal.StringBytePtr(key),
 		len(key), &data[0], len(data), cas)
 	return internal.StatusToError(st)
 }
 
+// GetProperty is used for retrieving property/metadata in the host
+// for a given path.
 func GetProperty(path []string) ([]byte, error) {
 	var ret *byte
 	var retSize int
@@ -520,6 +530,8 @@ func GetProperty(path []string) ([]byte, error) {
 
 }
 
+// SetProperty is used for setting property/metadata in the host
+// for a given path.
 func SetProperty(path []string, data []byte) error {
 	raw := internal.SerializePropertyPath(path)
 	return internal.StatusToError(internal.ProxySetProperty(
