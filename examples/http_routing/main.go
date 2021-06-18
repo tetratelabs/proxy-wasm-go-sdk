@@ -65,7 +65,7 @@ func (ctx *httpRouting) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 		}
 		// Append "-canary" suffix to route this request to the canary cluster.
 		value += "-canary"
-		if err := proxywasm.SetHttpRequestHeader(":authority", value); err != nil {
+		if err := proxywasm.ReplaceHttpRequestHeader(":authority", value); err != nil {
 			proxywasm.LogCritical("failed to set request header: test")
 			return types.ActionPause
 		}
