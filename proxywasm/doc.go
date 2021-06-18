@@ -48,7 +48,7 @@ That means the same Wasm VM can be run at multiple "http filter configuration" (
 and for each configuration, an user implemented instance of RootContext inteface is created in side the Wasm VM and used for
 creating corresponding stream contexts.
 
-Please refer to types package's documentation for the detail of interaces.
+Please refer to types package's documentation for the detail of interfaces.
 
 Entrypoint
 
