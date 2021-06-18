@@ -25,7 +25,7 @@ import (
 type (
 	rootHostEmulator struct {
 		activeCalloutID  uint32
-		logs             [types.LogLevelMax][]string
+		logs             [internal.LogLevelMax][]string
 		tickPeriod       uint32
 		foreignFunctions map[string]func([]byte) []byte
 
@@ -41,7 +41,7 @@ type (
 			body     []byte
 		}
 
-		metricIDToType  map[uint32]types.MetricType
+		metricIDToType  map[uint32]internal.MetricType
 		metricNameToID  map[string]uint32
 		metricIDToValue map[uint32]uint64
 
@@ -69,7 +69,7 @@ func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostE
 		queueNameID:                 map[string]uint32{},
 		sharedDataKVS:               map[string]*sharedData{},
 		metricIDToValue:             map[uint32]uint64{},
-		metricIDToType:              map[uint32]types.MetricType{},
+		metricIDToType:              map[uint32]internal.MetricType{},
 		metricNameToID:              map[string]uint32{},
 		httpContextIDToCalloutInfos: map[uint32][]HttpCalloutAttribute{},
 		httpCalloutIDToContextID:    map[uint32]uint32{},
@@ -85,86 +85,86 @@ func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostE
 	return host
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyLog(logLevel internal.LogLevel, messageData *byte, messageSize int) internal.Status {
 	str := internal.RawBytePtrToString(messageData, messageSize)
 
 	log.Printf("proxy_%s_log: %s", logLevel, str)
 	r.logs[logLevel] = append(r.logs[logLevel], str)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxySetTickPeriodMilliseconds(period uint32) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxySetTickPeriodMilliseconds(period uint32) internal.Status {
 	r.tickPeriod = period
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) internal.Status {
 	name := internal.RawBytePtrToString(nameData, nameSize)
 	if id, ok := r.queueNameID[name]; ok {
 		*returnID = id
-		return types.StatusOK
+		return internal.StatusOK
 	}
 
 	id := uint32(len(r.queues))
 	r.queues[id] = [][]byte{}
 	r.queueNameID[name] = id
 	*returnID = id
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) internal.Status {
 	queue, ok := r.queues[queueID]
 	if !ok {
 		log.Printf("queue %d is not found", queueID)
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	} else if len(queue) == 0 {
 		log.Printf("queue %d is empty", queueID)
-		return types.StatusEmpty
+		return internal.StatusEmpty
 	}
 
 	data := queue[0]
 	*returnValueData = &data[0]
 	*returnValueSize = len(data)
 	r.queues[queueID] = queue[1:]
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) internal.Status {
 	queue, ok := r.queues[queueID]
 	if !ok {
 		log.Printf("queue %d is not found", queueID)
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	}
 
 	r.queues[queueID] = append(queue, internal.RawBytePtrToByteSlice(valueData, valueSize))
 	internal.ProxyOnQueueReady(RootContextID, queueID)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func (r *rootHostEmulator) ProxyGetSharedData(keyData *byte, keySize int,
-	returnValueData **byte, returnValueSize *int, returnCas *uint32) types.Status {
+	returnValueData **byte, returnValueSize *int, returnCas *uint32) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)
 
 	value, ok := r.sharedDataKVS[key]
 	if !ok {
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	}
 
 	*returnValueSize = len(value.data)
 	*returnValueData = &value.data[0]
 	*returnCas = value.cas
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func (r *rootHostEmulator) ProxySetSharedData(keyData *byte, keySize int,
-	valueData *byte, valueSize int, cas uint32) types.Status {
+	valueData *byte, valueSize int, cas uint32) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)
 	value := internal.RawBytePtrToByteSlice(valueData, valueSize)
 
@@ -174,21 +174,21 @@ func (r *rootHostEmulator) ProxySetSharedData(keyData *byte, keySize int,
 			data: value,
 			cas:  cas + 1,
 		}
-		return types.StatusOK
+		return internal.StatusOK
 	}
 
 	if prev.cas != cas {
-		return types.StatusCasMismatch
+		return internal.StatusCasMismatch
 	}
 
 	r.sharedDataKVS[key].cas = cas + 1
 	r.sharedDataKVS[key].data = value
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyDefineMetric(metricType types.MetricType,
-	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyDefineMetric(metricType internal.MetricType,
+	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) internal.Status {
 	name := internal.RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := r.metricNameToID[name]
 	if !ok {
@@ -198,43 +198,43 @@ func (r *rootHostEmulator) ProxyDefineMetric(metricType types.MetricType,
 		r.metricIDToType[id] = metricType
 	}
 	*returnMetricIDPtr = id
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyIncrementMetric(metricID uint32, offset int64) internal.Status {
 	val, ok := r.metricIDToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 
 	r.metricIDToValue[metricID] = val + uint64(offset)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyRecordMetric(metricID uint32, value uint64) internal.Status {
 	_, ok := r.metricIDToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 	r.metricIDToValue[metricID] = value
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) internal.Status {
 	value, ok := r.metricIDToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 	*returnMetricValue = value
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte,
-	bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) types.Status {
+	bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) internal.Status {
 	upstream := internal.RawBytePtrToString(upstreamData, upstreamSize)
 	body := internal.RawBytePtrToString(bodyData, bodySize)
 	headers := internal.DeserializeMap(internal.RawBytePtrToByteSlice(headerData, headerSize))
@@ -257,16 +257,16 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	})
 
 	*calloutIDPtr = calloutID
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func (r *rootHostEmulator) RegisterForeignFunction(name string, f func([]byte) []byte) {
 	r.foreignFunctions[name] = f
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) types.Status {
+// impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) internal.Status {
 	funcName := internal.RawBytePtrToString(funcNamePtr, funcNameSize)
 	param := internal.RawBytePtrToByteSlice(paramPtr, paramSize)
 
@@ -281,11 +281,11 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 	*returnData = &ret[0]
 	*returnSize = len(ret)
 
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// // impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte, returnValueSize *int) types.Status {
+// // impl internal.ProxyWasmHost: delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType internal.MapType, returnValueData **byte, returnValueSize *int) internal.Status {
 	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
 		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
@@ -293,9 +293,9 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.
 
 	var raw []byte
 	switch mapType {
-	case types.MapTypeHttpCallResponseHeaders:
+	case internal.MapTypeHttpCallResponseHeaders:
 		raw = internal.SerializeMap(res.headers)
-	case types.MapTypeHttpCallResponseTrailers:
+	case internal.MapTypeHttpCallResponseTrailers:
 		raw = internal.SerializeMap(res.trailers)
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
@@ -303,12 +303,12 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType types.
 
 	*returnValueData = &raw[0]
 	*returnValueSize = len(raw)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// // impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType types.MapType, keyData *byte,
-	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+// // impl internal.ProxyWasmHost: delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType internal.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) internal.Status {
 	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
 		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
@@ -318,9 +318,9 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType types.MapTyp
 
 	var hs [][2]string
 	switch mapType {
-	case types.MapTypeHttpCallResponseHeaders:
+	case internal.MapTypeHttpCallResponseHeaders:
 		hs = res.headers
-	case types.MapTypeHttpCallResponseTrailers:
+	case internal.MapTypeHttpCallResponseTrailers:
 		hs = res.trailers
 	default:
 		panic("unimplemented")
@@ -331,23 +331,23 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType types.MapTyp
 			v := []byte(h[1])
 			*returnValueData = &v[0]
 			*returnValueSize = len(v)
-			return types.StatusOK
+			return internal.StatusOK
 		}
 	}
 
-	return types.StatusNotFound
+	return internal.StatusNotFound
 }
 
-// // impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
+// // impl internal.ProxyWasmHost: delegated from hostEmulator
+func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt internal.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) internal.Status {
 	var buf []byte
 	switch bt {
-	case types.BufferTypePluginConfiguration:
+	case internal.BufferTypePluginConfiguration:
 		buf = r.pluginConfiguration
-	case types.BufferTypeVMConfiguration:
+	case internal.BufferTypeVMConfiguration:
 		buf = r.vmConfiguration
-	case types.BufferTypeHttpCallResponseBody:
+	case internal.BufferTypeHttpCallResponseBody:
 		activeID := internal.VMStateGetActiveContextID()
 		res, ok := r.httpCalloutResponse[r.activeCalloutID]
 		if !ok {
@@ -359,10 +359,10 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 	}
 
 	if len(buf) == 0 {
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	} else if start >= len(buf) {
 		log.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 
 	*returnBufferData = &buf[start]
@@ -371,14 +371,40 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 	} else {
 		*returnBufferSize = maxSize
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 // impl HostEmulator
-func (r *rootHostEmulator) GetLogs(level types.LogLevel) []string {
-	if level >= types.LogLevelMax {
-		log.Fatalf("invalid log level: %d", level)
-	}
+func (r *rootHostEmulator) GetTraceLogs() []string {
+	return r.getLogs(internal.LogLevelTrace)
+}
+
+// impl HostEmulator
+func (r *rootHostEmulator) GetDebugLogs() []string {
+	return r.getLogs(internal.LogLevelDebug)
+}
+
+// impl HostEmulator
+func (r *rootHostEmulator) GetInfoLogs() []string {
+	return r.getLogs(internal.LogLevelInfo)
+}
+
+// impl HostEmulator
+func (r *rootHostEmulator) GetWarnLogs() []string {
+	return r.getLogs(internal.LogLevelWarn)
+}
+
+// impl HostEmulator
+func (r *rootHostEmulator) GetErrorLogs() []string {
+	return r.getLogs(internal.LogLevelError)
+}
+
+// impl HostEmulator
+func (r *rootHostEmulator) GetCriticalLogs() []string {
+	return r.getLogs(internal.LogLevelCritical)
+}
+
+func (r *rootHostEmulator) getLogs(level internal.LogLevel) []string {
 	return r.logs[level]
 }
 
@@ -446,9 +472,9 @@ func (r *rootHostEmulator) GetCounterMetric(name string) (uint64, error) {
 		return 0, fmt.Errorf("%s not found", name)
 	}
 
-	if t != types.MetricTypeCounter {
+	if t != internal.MetricTypeCounter {
 		return 0, fmt.Errorf(
-			"%s is not %v metric type but %v", name, types.MetricTypeCounter, t)
+			"%s is not %v metric type but %v", name, internal.MetricTypeCounter, t)
 	}
 
 	v, ok := r.metricIDToValue[id]
@@ -469,9 +495,9 @@ func (r *rootHostEmulator) GetGaugeMetric(name string) (uint64, error) {
 		return 0, fmt.Errorf("%s not found", name)
 	}
 
-	if t != types.MetricTypeGauge {
+	if t != internal.MetricTypeGauge {
 		return 0, fmt.Errorf(
-			"%s is not %v metric type but %v", name, types.MetricTypeGauge, t)
+			"%s is not %v metric type but %v", name, internal.MetricTypeGauge, t)
 	}
 
 	v, ok := r.metricIDToValue[id]
@@ -492,9 +518,9 @@ func (r *rootHostEmulator) GetHistogramMetric(name string) (uint64, error) {
 		return 0, fmt.Errorf("%s not found", name)
 	}
 
-	if t != types.MetricTypeHistogram {
+	if t != internal.MetricTypeHistogram {
 		return 0, fmt.Errorf(
-			"%s is not %v metric type but %v", name, types.MetricTypeHistogram, t)
+			"%s is not %v metric type but %v", name, internal.MetricTypeHistogram, t)
 	}
 
 	v, ok := r.metricIDToValue[id]

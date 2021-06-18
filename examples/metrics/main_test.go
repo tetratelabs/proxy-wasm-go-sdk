@@ -28,7 +28,7 @@ func TestMetric(t *testing.T) {
 	}
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "incremented")
 
 	// Check metrics.

@@ -33,7 +33,7 @@ func TestHttpAuthRandom_OnHttpRequestHeaders(t *testing.T) {
 		host.GetCurrentHttpStreamAction(contextID))
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "http call dispatched to "+clusterName)
 	require.Contains(t, logs, "request header: key: value")
 }
@@ -67,7 +67,7 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	// Check local response.
 	assert.Nil(t, host.GetSentLocalResponse(contextID))
 	// CHeck Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "access granted")
 
 	// Access denied case -> Local response must be sent.
@@ -90,6 +90,6 @@ func TestHttpAuthRandom_OnHttpCallResponse(t *testing.T) {
 	require.Equal(t, "powered-by", localResponse.Headers[0][0])
 	require.Equal(t, "proxy-wasm-go-sdk!!", localResponse.Headers[0][1])
 	// Check Envoy logs.
-	logs = host.GetLogs(types.LogLevelInfo)
+	logs = host.GetInfoLogs()
 	require.Contains(t, logs, "access forbidden")
 }

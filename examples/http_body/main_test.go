@@ -89,7 +89,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		require.Equal(t, types.ActionContinue, action)
 
 		// Check Envoy logs.
-		logs := host.GetLogs(types.LogLevelInfo)
+		logs := host.GetInfoLogs()
 		require.Contains(t, logs, `original request body: [original body]`)
 
 		// Check the final request body is the replaced one.
@@ -114,7 +114,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		require.Equal(t, types.ActionContinue, action)
 
 		// Check Envoy logs.
-		logs := host.GetLogs(types.LogLevelInfo)
+		logs := host.GetInfoLogs()
 		require.Contains(t, logs, `original request body: [original body]`)
 
 		// Check the final request body is the replaced one.
@@ -139,7 +139,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 		require.Equal(t, types.ActionContinue, action)
 
 		// Check Envoy logs.
-		logs := host.GetLogs(types.LogLevelInfo)
+		logs := host.GetInfoLogs()
 		require.Contains(t, logs, `original request body: [original body]`)
 
 		// Check the final request body is the replaced one.

@@ -23,7 +23,7 @@ func TestHelloWorld_OnTick(t *testing.T) {
 	host.Tick()
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "OnTick called")
 }
 
@@ -37,7 +37,7 @@ func TestHelloWorld_OnVMStart(t *testing.T) {
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "proxy_on_vm_start from Go!")
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

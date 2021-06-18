@@ -36,7 +36,7 @@ func TestContext_OnPluginStart(t *testing.T) {
 	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "plugin config: "+pluginConfigData)
 }
 
@@ -53,6 +53,6 @@ func TestContext_OnVMStart(t *testing.T) {
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "vm config: "+vmConfigData)
 }

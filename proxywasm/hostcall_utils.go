@@ -4,88 +4,100 @@ import (
 	"math"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func setMap(mapType types.MapType, headers [][2]string) types.Status {
+func setMap(mapType internal.MapType, headers [][2]string) error {
 	shs := internal.SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
-	return rawhostcall.ProxySetHeaderMapPairs(mapType, hp, hl)
+	return internal.StatusToError(internal.ProxySetHeaderMapPairs(mapType, hp, hl))
 }
 
-func getMapValue(mapType types.MapType, key string) (string, types.Status) {
+func getMapValue(mapType internal.MapType, key string) (string, error) {
 	var rvs int
 	var raw *byte
-	if st := rawhostcall.ProxyGetHeaderMapValue(mapType, internal.StringBytePtr(key), len(key), &raw, &rvs); st != types.StatusOK {
-		return "", st
+	if st := internal.ProxyGetHeaderMapValue(
+		mapType, internal.StringBytePtr(key), len(key), &raw, &rvs,
+	); st != internal.StatusOK {
+		return "", internal.StatusToError(st)
 	}
 
 	ret := internal.RawBytePtrToString(raw, rvs)
-	return ret, types.StatusOK
+	return ret, nil
 }
 
-func removeMapValue(mapType types.MapType, key string) types.Status {
-	return rawhostcall.ProxyRemoveHeaderMapValue(mapType, internal.StringBytePtr(key), len(key))
+func removeMapValue(mapType internal.MapType, key string) error {
+	return internal.StatusToError(
+		internal.ProxyRemoveHeaderMapValue(mapType, internal.StringBytePtr(key), len(key)),
+	)
 }
 
-func setMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyReplaceHeaderMapValue(mapType, internal.StringBytePtr(key), len(key), internal.StringBytePtr(value), len(value))
+func setMapValue(mapType internal.MapType, key, value string) error {
+	return internal.StatusToError(
+		internal.ProxyReplaceHeaderMapValue(
+			mapType, internal.StringBytePtr(key), len(key), internal.StringBytePtr(value), len(value),
+		),
+	)
 }
 
-func addMapValue(mapType types.MapType, key, value string) types.Status {
-	return rawhostcall.ProxyAddHeaderMapValue(mapType, internal.StringBytePtr(key), len(key), internal.StringBytePtr(value), len(value))
+func addMapValue(mapType internal.MapType, key, value string) error {
+	return internal.StatusToError(
+		internal.ProxyAddHeaderMapValue(
+			mapType, internal.StringBytePtr(key), len(key), internal.StringBytePtr(value), len(value),
+		),
+	)
 }
 
-func getMap(mapType types.MapType) ([][2]string, types.Status) {
+func getMap(mapType internal.MapType) ([][2]string, error) {
 	var rvs int
 	var raw *byte
 
-	st := rawhostcall.ProxyGetHeaderMapPairs(mapType, &raw, &rvs)
-	if st != types.StatusOK {
-		return nil, st
+	st := internal.ProxyGetHeaderMapPairs(mapType, &raw, &rvs)
+	if st != internal.StatusOK {
+		return nil, internal.StatusToError(st)
 	}
 
 	bs := internal.RawBytePtrToByteSlice(raw, rvs)
-	return internal.DeserializeMap(bs), types.StatusOK
+	return internal.DeserializeMap(bs), nil
 }
 
-func getBuffer(bufType types.BufferType, start, maxSize int) ([]byte, types.Status) {
+func getBuffer(bufType internal.BufferType, start, maxSize int) ([]byte, error) {
 	var retData *byte
 	var retSize int
-	switch st := rawhostcall.ProxyGetBufferBytes(bufType, start, maxSize, &retData, &retSize); st {
-	case types.StatusOK:
-		// is this correct handling...?
+	switch st := internal.ProxyGetBufferBytes(bufType, start, maxSize, &retData, &retSize); st {
+	case internal.StatusOK:
 		if retData == nil {
-			return nil, types.StatusNotFound
+			return nil, types.ErrorStatusNotFound
 		}
-		return internal.RawBytePtrToByteSlice(retData, retSize), st
+		return internal.RawBytePtrToByteSlice(retData, retSize), nil
 	default:
-		return nil, st
+		return nil, internal.StatusToError(st)
 	}
 }
 
-func appendToBuffer(bufType types.BufferType, buffer []byte) error {
+func appendToBuffer(bufType internal.BufferType, buffer []byte) error {
 	var bufferData *byte
 	if len(buffer) != 0 {
 		bufferData = &buffer[0]
 	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, math.MaxInt32, 0, bufferData, len(buffer)))
+	return internal.StatusToError(internal.ProxySetBufferBytes(bufType, math.MaxInt32, 0, bufferData, len(buffer)))
 }
 
-func prependToBuffer(bufType types.BufferType, buffer []byte) error {
+func prependToBuffer(bufType internal.BufferType, buffer []byte) error {
 	var bufferData *byte
 	if len(buffer) != 0 {
 		bufferData = &buffer[0]
 	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
+	return internal.StatusToError(internal.ProxySetBufferBytes(bufType, 0, 0, bufferData, len(buffer)))
 }
 
-func replaceBuffer(bufType types.BufferType, buffer []byte) error {
+func replaceBuffer(bufType internal.BufferType, buffer []byte) error {
 	var bufferData *byte
 	if len(buffer) != 0 {
 		bufferData = &buffer[0]
 	}
-	return types.StatusToError(rawhostcall.ProxySetBufferBytes(bufType, 0, math.MaxInt32, bufferData, len(buffer)))
+	return internal.StatusToError(
+		internal.ProxySetBufferBytes(bufType, 0, math.MaxInt32, bufferData, len(buffer)),
+	)
 }

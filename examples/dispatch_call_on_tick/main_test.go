@@ -28,7 +28,7 @@ func TestRootContext_OnTick(t *testing.T) {
 		// Receive callout response.
 		host.CallOnHttpCallResponse(attrs[0].CalloutID, nil, nil, nil)
 		// Check Envoy logs.
-		logs := host.GetLogs(types.LogLevelInfo)
+		logs := host.GetInfoLogs()
 		require.Contains(t, logs, fmt.Sprintf("called! %d", i))
 	}
 

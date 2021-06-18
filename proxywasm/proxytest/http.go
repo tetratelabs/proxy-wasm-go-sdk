@@ -47,26 +47,26 @@ func newHttpHostEmulator() *httpHostEmulator {
 	return host
 }
 
-// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
+// impl internal.ProxyWasmHost: delegated from hostEmulator
+func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt internal.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) internal.Status {
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 	var buf []byte
 	switch bt {
-	case types.BufferTypeHttpRequestBody:
+	case internal.BufferTypeHttpRequestBody:
 		buf = stream.requestBody
-	case types.BufferTypeHttpResponseBody:
+	case internal.BufferTypeHttpResponseBody:
 		buf = stream.requestBody
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
 	if len(buf) == 0 {
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	} else if start >= len(buf) {
 		log.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 
 	*returnBufferData = &buf[start]
@@ -75,18 +75,18 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt types.BufferTy
 	} else {
 		*returnBufferSize = maxSize
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt types.BufferType, start int, maxSize int,
-	bufferData *byte, bufferSize int) types.Status {
+func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt internal.BufferType, start int, maxSize int,
+	bufferData *byte, bufferSize int) internal.Status {
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 	var targetBuf *[]byte
 	switch bt {
-	case types.BufferTypeHttpRequestBody:
+	case internal.BufferTypeHttpRequestBody:
 		targetBuf = &stream.requestBody
-	case types.BufferTypeHttpResponseBody:
+	case internal.BufferTypeHttpResponseBody:
 		targetBuf = &stream.responseBody
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
@@ -97,39 +97,39 @@ func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt types.BufferTy
 		if maxSize == 0 {
 			// Prepend
 			*targetBuf = append(body, *targetBuf...)
-			return types.StatusOK
+			return internal.StatusOK
 		} else if maxSize >= len(*targetBuf) {
 			// Replace
 			*targetBuf = body
-			return types.StatusOK
+			return internal.StatusOK
 		} else {
-			return types.StatusBadArgument
+			return internal.StatusBadArgument
 		}
 	} else if start >= len(*targetBuf) {
 		// Append.
 		*targetBuf = append(*targetBuf, body...)
-		return types.StatusOK
+		return internal.StatusOK
 	} else {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 }
 
-// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
-	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+// impl internal.ProxyWasmHost: delegated from hostEmulator
+func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType internal.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
 	var headers [][2]string
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		headers = stream.requestHeaders
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		headers = stream.responseHeaders
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		headers = stream.requestTrailers
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		headers = stream.responseTrailers
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
@@ -140,16 +140,16 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType types.
 			value := []byte(h[1])
 			*returnValueData = &value[0]
 			*returnValueSize = len(value)
-			return types.StatusOK
+			return internal.StatusOK
 		}
 	}
 
-	return types.StatusNotFound
+	return internal.StatusNotFound
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType types.MapType, keyData *byte,
-	keySize int, valueData *byte, valueSize int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType internal.MapType, keyData *byte,
+	keySize int, valueData *byte, valueSize int) internal.Status {
 
 	key := internal.RawBytePtrToString(keyData, keySize)
 	value := internal.RawBytePtrToString(valueData, valueSize)
@@ -157,19 +157,19 @@ func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType types.MapType, keyData
 	stream := h.httpStreams[active]
 
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		stream.requestHeaders = addMapValue(stream.requestHeaders, key, value)
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		stream.responseHeaders = addMapValue(stream.responseHeaders, key, value)
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		stream.requestTrailers = addMapValue(stream.requestTrailers, key, value)
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		stream.responseTrailers = addMapValue(stream.responseTrailers, key, value)
 	default:
 		panic("unimplemented")
 	}
 
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 func addMapValue(base [][2]string, key, value string) [][2]string {
@@ -183,30 +183,30 @@ func addMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType types.MapType, keyData *byte,
-	keySize int, valueData *byte, valueSize int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType internal.MapType, keyData *byte,
+	keySize int, valueData *byte, valueSize int) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)
 	value := internal.RawBytePtrToString(valueData, valueSize)
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		stream.requestHeaders = replaceMapValue(stream.requestHeaders, key, value)
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		stream.responseHeaders = replaceMapValue(stream.responseHeaders, key, value)
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		stream.requestTrailers = replaceMapValue(stream.requestTrailers, key, value)
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		stream.responseTrailers = replaceMapValue(stream.responseTrailers, key, value)
 	default:
 		panic("unimplemented")
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	for i, h := range base {
 		if h[0] == key {
@@ -218,25 +218,25 @@ func replaceMapValue(base [][2]string, key, value string) [][2]string {
 	return append(base, [2]string{key, value})
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *httpHostEmulator) ProxyRemoveHeaderMapValue(mapType types.MapType, keyData *byte, keySize int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *httpHostEmulator) ProxyRemoveHeaderMapValue(mapType internal.MapType, keyData *byte, keySize int) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		stream.requestHeaders = removeHeaderMapValue(stream.requestHeaders, key)
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		stream.responseHeaders = removeHeaderMapValue(stream.responseHeaders, key)
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		stream.requestTrailers = removeHeaderMapValue(stream.requestTrailers, key)
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		stream.responseTrailers = removeHeaderMapValue(stream.responseTrailers, key)
 	default:
 		panic("unimplemented")
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 func removeHeaderMapValue(base [][2]string, key string) [][2]string {
@@ -252,21 +252,21 @@ func removeHeaderMapValue(base [][2]string, key string) [][2]string {
 	return base
 }
 
-// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
-	returnValueSize *int) types.Status {
+// impl internal.ProxyWasmHost: delegated from hostEmulator
+func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType internal.MapType, returnValueData **byte,
+	returnValueSize *int) internal.Status {
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
 	var m []byte
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		m = internal.SerializeMap(stream.requestHeaders)
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		m = internal.SerializeMap(stream.responseHeaders)
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		m = internal.SerializeMap(stream.requestTrailers)
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		m = internal.SerializeMap(stream.responseTrailers)
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
@@ -274,42 +274,42 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType types.
 
 	*returnValueData = &m[0]
 	*returnValueSize = len(m)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType types.MapType, mapData *byte, mapSize int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType internal.MapType, mapData *byte, mapSize int) internal.Status {
 	m := internal.DeserializeMap(internal.RawBytePtrToByteSlice(mapData, mapSize))
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders:
+	case internal.MapTypeHttpRequestHeaders:
 		stream.requestHeaders = m
-	case types.MapTypeHttpResponseHeaders:
+	case internal.MapTypeHttpResponseHeaders:
 		stream.responseHeaders = m
-	case types.MapTypeHttpRequestTrailers:
+	case internal.MapTypeHttpRequestTrailers:
 		stream.requestTrailers = m
-	case types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpResponseTrailers:
 		stream.responseTrailers = m
 	default:
 		panic("unimplemented")
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *httpHostEmulator) ProxyContinueStream(types.StreamType) types.Status {
+// impl internal.ProxyWasmHost
+func (h *httpHostEmulator) ProxyContinueStream(internal.StreamType) internal.Status {
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 	stream.action = types.ActionContinue
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
+// impl internal.ProxyWasmHost
 func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 	statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int,
-	headersData *byte, headersSize int, grpcStatus int32) types.Status {
+	headersData *byte, headersSize int, grpcStatus int32) internal.Status {
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 	stream.sentLocalResponse = &LocalHttpResponse{
@@ -319,7 +319,7 @@ func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 		Headers:          internal.DeserializeMap(internal.RawBytePtrToByteSlice(headersData, headersSize)),
 		GRPCStatus:       grpcStatus,
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 // impl HostEmulator

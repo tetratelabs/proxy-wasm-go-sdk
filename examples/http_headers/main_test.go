@@ -40,7 +40,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	host.CompleteHttpContext(id)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 	require.Contains(t, logs, "request header --> key2: value2")
 	require.Contains(t, logs, "request header --> key1: value1")
@@ -64,7 +64,7 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	host.CompleteHttpContext(id)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 	require.Contains(t, logs, "response header <-- key2: value2")
 	require.Contains(t, logs, "response header <-- key1: value1")

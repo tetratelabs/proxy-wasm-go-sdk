@@ -16,18 +16,15 @@ package proxywasm
 
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 func GetPluginConfiguration(size int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, size)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
 }
 
 func GetVMConfiguration(size int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeVMConfiguration, 0, size)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
 func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
@@ -38,8 +35,8 @@ func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) err
 	}
 	hp := &shs[0]
 	hl := len(shs)
-	return types.StatusToError(
-		rawhostcall.ProxySendLocalResponse(
+	return internal.StatusToError(
+		internal.ProxySendLocalResponse(
 			statusCode, nil, 0,
 			bp, len(body), hp, hl, -1,
 		),
@@ -47,7 +44,7 @@ func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) err
 }
 
 func SetTickPeriodMilliSeconds(millSec uint32) error {
-	return types.StatusToError(rawhostcall.ProxySetTickPeriodMilliseconds(millSec))
+	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
 func DispatchHttpCall(upstream string,
@@ -62,29 +59,26 @@ func DispatchHttpCall(upstream string,
 	tl := len(sts)
 
 	u := internal.StringBytePtr(upstream)
-	switch st := rawhostcall.ProxyHttpCall(u, len(upstream),
+	switch st := internal.ProxyHttpCall(u, len(upstream),
 		hp, hl, internal.StringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
-	case types.StatusOK:
+	case internal.StatusOK:
 		internal.RegisterHttpCallout(calloutID, callBack)
 		return calloutID, nil
 	default:
-		return 0, types.StatusToError(st)
+		return 0, internal.StatusToError(st)
 	}
 }
 
 func GetHttpCallResponseHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpCallResponseHeaders)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpCallResponseHeaders)
 }
 
 func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpCallResponseBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpCallResponseBody, start, maxSize)
 }
 
 func GetHttpCallResponseTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpCallResponseTrailers)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpCallResponseTrailers)
 }
 
 func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
@@ -93,253 +87,241 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	var returnData *byte
 	var returnSize int
 
-	switch st := rawhostcall.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
-	case types.StatusOK:
+	switch st := internal.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
+	case internal.StatusOK:
 		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
 	default:
-		return nil, types.StatusToError(st)
+		return nil, internal.StatusToError(st)
 	}
 }
 
 func GetDownstreamData(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeDownstreamData, start, maxSize)
 }
 
 func AppendDownstreamData(data []byte) error {
-	return appendToBuffer(types.BufferTypeDownstreamData, data)
+	return appendToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
 func PrependDownstreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeDownstreamData, data)
+	return prependToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
 func ReplaceDownstreamData(data []byte) error {
-	return replaceBuffer(types.BufferTypeDownstreamData, data)
+	return replaceBuffer(internal.BufferTypeDownstreamData, data)
 }
 
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeUpstreamData, start, maxSize)
 }
 
 func AppendUpstreamData(data []byte) error {
-	return appendToBuffer(types.BufferTypeUpstreamData, data)
+	return appendToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
 func PrependUpstreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeUpstreamData, data)
+	return prependToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
 func ReplaceUpstreamData(data []byte) error {
-	return replaceBuffer(types.BufferTypeUpstreamData, data)
+	return replaceBuffer(internal.BufferTypeUpstreamData, data)
 }
 
 func ContinueDownstream() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeDownstream))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeDownstream))
 }
 
 func ContinueUpstream() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeUpstream))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeUpstream))
 }
 
 func CloseDownstream() error {
-	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeDownstream))
+	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeDownstream))
 }
 
 func CloseUpstream() error {
-	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeUpstream))
+	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeUpstream))
 }
 
 func GetHttpRequestHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpRequestHeaders)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpRequestHeaders)
 }
 
 func SetHttpRequestHeaders(headers types.Headers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestHeaders, headers))
+	return setMap(internal.MapTypeHttpRequestHeaders, headers)
 }
 
 func GetHttpRequestHeader(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpRequestHeaders, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
 func RemoveHttpRequestHeader(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestHeaders, key))
+	return removeMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
 func SetHttpRequestHeader(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpRequestHeaders, key, value))
+	return setMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
 func AddHttpRequestHeader(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpRequestHeaders, key, value))
+	return addMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
 func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpRequestBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpRequestBody, start, maxSize)
 }
 
 func AppendHttpRequestBody(data []byte) error {
-	return appendToBuffer(types.BufferTypeHttpRequestBody, data)
+	return appendToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
 func PrependHttpRequestBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpRequestBody, data)
+	return prependToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
 func ReplaceHttpRequestBody(data []byte) error {
-	return replaceBuffer(types.BufferTypeHttpRequestBody, data)
+	return replaceBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
 func GetHttpRequestTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpRequestTrailers)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpRequestTrailers)
 }
 
 func SetHttpRequestTrailers(trailers types.Trailers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, trailers))
+	return setMap(internal.MapTypeHttpRequestTrailers, trailers)
 }
 
 func GetHttpRequestTrailer(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpRequestTrailers, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
 func RemoveHttpRequestTrailer(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestTrailers, key))
+	return removeMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
 func SetHttpRequestTrailer(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpRequestTrailers, key, value))
+	return setMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
 func AddHttpRequestTrailer(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpRequestTrailers, key, value))
+	return addMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
 func ResumeHttpRequest() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeRequest))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeRequest))
 }
 
 func GetHttpResponseHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpResponseHeaders)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpResponseHeaders)
 }
 
 func SetHttpResponseHeaders(headers types.Headers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpResponseHeaders, headers))
+	return setMap(internal.MapTypeHttpResponseHeaders, headers)
 }
 
 func GetHttpResponseHeader(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpResponseHeaders, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
 func RemoveHttpResponseHeader(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseHeaders, key))
+	return removeMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
 func SetHttpResponseHeader(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpResponseHeaders, key, value))
+	return setMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
 func AddHttpResponseHeader(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpResponseHeaders, key, value))
+	return addMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
 func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpResponseBody, start, maxSize)
 }
 
 func AppendHttpResponseBody(data []byte) error {
-	return appendToBuffer(types.BufferTypeHttpResponseBody, data)
+	return appendToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
 func PrependHttpResponseBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpResponseBody, data)
+	return prependToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
 func ReplaceHttpResponseBody(data []byte) error {
-	return replaceBuffer(types.BufferTypeHttpResponseBody, data)
+	return replaceBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
 func GetHttpResponseTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpResponseTrailers)
-	return ret, types.StatusToError(st)
+	return getMap(internal.MapTypeHttpResponseTrailers)
 }
 
 func SetHttpResponseTrailers(trailers types.Trailers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, trailers))
+	return setMap(internal.MapTypeHttpResponseTrailers, trailers)
 }
 
 func GetHttpResponseTrailer(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpResponseTrailers, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
 func RemoveHttpResponseTrailer(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseTrailers, key))
+	return removeMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
 func SetHttpResponseTrailer(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpResponseTrailers, key, value))
+	return setMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
 func AddHttpResponseTrailer(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpResponseTrailers, key, value))
+	return addMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
 func ResumeHttpResponse() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeResponse))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeResponse))
 }
 
 func RegisterSharedQueue(name string) (uint32, error) {
 	var queueID uint32
 	ptr := internal.StringBytePtr(name)
-	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
-	return queueID, types.StatusToError(st)
+	st := internal.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
+	return queueID, internal.StatusToError(st)
 }
 
 func ResolveSharedQueue(vmID, queueName string) (uint32, error) {
 	var ret uint32
-	st := rawhostcall.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
+	st := internal.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
 		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
-	return ret, types.StatusToError(st)
+	return ret, internal.StatusToError(st)
 }
 
 func DequeueSharedQueue(queueID uint32) ([]byte, error) {
 	var raw *byte
 	var size int
-	st := rawhostcall.ProxyDequeueSharedQueue(queueID, &raw, &size)
-	if st != types.StatusOK {
-		return nil, types.StatusToError(st)
+	st := internal.ProxyDequeueSharedQueue(queueID, &raw, &size)
+	if st != internal.StatusOK {
+		return nil, internal.StatusToError(st)
 	}
 	return internal.RawBytePtrToByteSlice(raw, size), nil
 }
 
 func EnqueueSharedQueue(queueID uint32, data []byte) error {
-	return types.StatusToError(rawhostcall.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+	return internal.StatusToError(internal.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
 }
 
 func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
 
-	st := rawhostcall.ProxyGetSharedData(internal.StringBytePtr(key), len(key), &raw, &size, &cas)
-	if st != types.StatusOK {
-		return nil, 0, types.StatusToError(st)
+	st := internal.ProxyGetSharedData(internal.StringBytePtr(key), len(key), &raw, &size, &cas)
+	if st != internal.StatusOK {
+		return nil, 0, internal.StatusToError(st)
 	}
 	return internal.RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
 func SetSharedData(key string, data []byte, cas uint32) error {
-	st := rawhostcall.ProxySetSharedData(internal.StringBytePtr(key),
+	st := internal.ProxySetSharedData(internal.StringBytePtr(key),
 		len(key), &data[0], len(data), cas)
-	return types.StatusToError(st)
+	return internal.StatusToError(st)
 }
 
 func GetProperty(path []string) ([]byte, error) {
@@ -347,7 +329,7 @@ func GetProperty(path []string) ([]byte, error) {
 	var retSize int
 	raw := internal.SerializePropertyPath(path)
 
-	err := types.StatusToError(rawhostcall.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
+	err := internal.StatusToError(internal.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
 	if err != nil {
 		return nil, err
 	}
@@ -358,11 +340,11 @@ func GetProperty(path []string) ([]byte, error) {
 
 func SetProperty(path []string, data []byte) error {
 	raw := internal.SerializePropertyPath(path)
-	return types.StatusToError(rawhostcall.ProxySetProperty(
+	return internal.StatusToError(internal.ProxySetProperty(
 		&raw[0], len(path), &data[0], len(data),
 	))
 }
 
 func Done() {
-	rawhostcall.ProxyDone()
+	internal.ProxyDone()
 }

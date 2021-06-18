@@ -19,7 +19,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -92,7 +91,7 @@ func Test_l7(t *testing.T) {
 }
 
 func Test_proxyOnHttpCallResponse(t *testing.T) {
-	release := rawhostcall.RegisterMockWasmHost(rawhostcall.DefaultProxyWAMSHost{})
+	release := RegisterMockWasmHost(DefaultProxyWAMSHost{})
 	defer release()
 
 	var (
