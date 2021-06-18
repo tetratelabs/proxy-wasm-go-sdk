@@ -33,7 +33,7 @@ func removeMapValue(mapType internal.MapType, key string) error {
 	)
 }
 
-func setMapValue(mapType internal.MapType, key, value string) error {
+func replaceMapValue(mapType internal.MapType, key, value string) error {
 	return internal.StatusToError(
 		internal.ProxyReplaceHeaderMapValue(
 			mapType, internal.StringBytePtr(key), len(key), internal.StringBytePtr(value), len(value),

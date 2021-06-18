@@ -221,20 +221,29 @@ func GetHttpRequestHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestHeaders)
 }
 
+// ReplaceHttpRequestHeaders is used for replacing http request headers
+// with given headers. Only available during
+// types.HttpContext.OnHttpRequestHeaders.
 func ReplaceHttpRequestHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestHeaders, headers)
 }
 
+// GetHttpRequestHeader is used for retrieving a http request header value
+// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpRequestHeader(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
+// GetHttpRequestHeader is used for retrieving a http request header value
+// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders and
+// types.HttpContext.OnHttpStreamDone.
 func RemoveHttpRequestHeader(key string) error {
 	return removeMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
-func SetHttpRequestHeader(key, value string) error {
-	return setMapValue(internal.MapTypeHttpRequestHeaders, key, value)
+func ReplaceHttpRequestHeader(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
 func AddHttpRequestHeader(key, value string) error {
@@ -257,14 +266,23 @@ func ReplaceHttpRequestBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
+// GetHttpRequestTrailers is used for retrieving http request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpRequestTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestTrailers)
 }
 
+// ReplaceHttpRequestTrailers is used for replacing http request trailers
+// with given headers. Only available during
+// types.HttpContext.OnHttpRequestTrailers.
 func ReplaceHttpRequestTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestTrailers, trailers)
 }
 
+// GetHttpRequestTrailer is used for retrieving a http request trailer value
+// for given "key". Only available during types.HttpContext.OnHttpRequestTrailers and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpRequestTrailer(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
@@ -273,8 +291,8 @@ func RemoveHttpRequestTrailer(key string) error {
 	return removeMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
-func SetHttpRequestTrailer(key, value string) error {
-	return setMapValue(internal.MapTypeHttpRequestTrailers, key, value)
+func ReplaceHttpRequestTrailer(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
 func AddHttpRequestTrailer(key, value string) error {
@@ -292,10 +310,16 @@ func GetHttpResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseHeaders)
 }
 
+// ReplaceHttpResponseHeaders is used for replacing http response headers
+// with given headers. Only available during
+// types.HttpContext.OnHttpResponseHeaders.
 func ReplaceHttpResponseHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseHeaders, headers)
 }
 
+// GetHttpResponseHeader is used for retrieving a http response header value
+// for given "key". Only available during types.HttpContext.OnHttpResponseHeaders and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpResponseHeader(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
@@ -304,8 +328,8 @@ func RemoveHttpResponseHeader(key string) error {
 	return removeMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
-func SetHttpResponseHeader(key, value string) error {
-	return setMapValue(internal.MapTypeHttpResponseHeaders, key, value)
+func ReplaceHttpResponseHeader(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
 func AddHttpResponseHeader(key, value string) error {
@@ -328,14 +352,23 @@ func ReplaceHttpResponseBody(data []byte) error {
 	return replaceBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
+// GetHttpResponseTrailers is used for retrieving http response trailers.
+// Only available during types.HttpContext.OnHttpResponseTrailers and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseTrailers)
 }
 
+// ReplaceHttpResponseTrailers is used for replacing http response trailers
+// with given headers. Only available during
+// types.HttpContext.OnHttpResponseTrailers.
 func ReplaceHttpResponseTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseTrailers, trailers)
 }
 
+// GetHttpResponseTrailer is used for retrieving a http response trailer value
+// for given "key". Only available during types.HttpContext.OnHttpResponseTrailers and
+// types.HttpContext.OnHttpStreamDone.
 func GetHttpResponseTrailer(key string) (string, error) {
 	return getMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
@@ -344,8 +377,8 @@ func RemoveHttpResponseTrailer(key string) error {
 	return removeMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
-func SetHttpResponseTrailer(key, value string) error {
-	return setMapValue(internal.MapTypeHttpResponseTrailers, key, value)
+func ReplaceHttpResponseTrailer(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
 func AddHttpResponseTrailer(key, value string) error {
