@@ -18,14 +18,14 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 )
 
-// GetVMConfiguration is used for retreiving configurations ginve in the "vm_config.configuration" field.
+// GetVMConfiguration is used for retrieving configurations ginve in the "vm_config.configuration" field.
 // This hostcall is only available during types.RootContext.OnVMStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
 func GetVMConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
-// GetPluginConfiguration is used for retreiving configurations ginve in the "config.configuration" field.
+// GetPluginConfiguration is used for retrieving configurations ginve in the "config.configuration" field.
 // This hostcall is only available during types.RootContext.OnPluginStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
 func GetPluginConfiguration(size int) ([]byte, error) {
@@ -121,71 +121,99 @@ func DispatchHttpCall(
 	}
 }
 
-// GetHttpCallResponseHeaders is used for retreiving http response headers
+// GetHttpCallResponseHeaders is used for retrieving http response headers
 // returned by a remote cluster in reponse to the DispatchHttpCall.
 // Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseHeaders)
 }
 
-// GetHttpCallResponseBody is used for retreiving http response body
+// GetHttpCallResponseBody is used for retrieving http response body
 // returned by a remote cluster in reponse to the DispatchHttpCall.
 // Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeHttpCallResponseBody, start, maxSize)
 }
 
-// GetHttpCallResponseTrailers is used for retreiving http response trailers
+// GetHttpCallResponseTrailers is used for retrieving http response trailers
 // returned by a remote cluster in reponse to the DispatchHttpCall.
 // Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpCallResponseTrailers)
 }
 
+// GetDownstreamData can be used for retrieving tcp downstream data in buffered in the host.
+// Returned bytes begining from "start" to "start" +"maxSize" in the buffer.
+// Only available during types.TcpContext.OnDownstreamData.
 func GetDownstreamData(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeDownstreamData, start, maxSize)
 }
 
+// AppendDownstreamData appends the given bytes to the downstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnDownstreamData.
 func AppendDownstreamData(data []byte) error {
 	return appendToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// PrependDownstreamData prepends the given bytes to the downstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnDownstreamData.
 func PrependDownstreamData(data []byte) error {
 	return prependToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// ReplaceDownstreamData replaces the downstream tcp data in buffered in the host
+// with the given bytes. Only available during types.TcpContext.OnDownstreamData.
 func ReplaceDownstreamData(data []byte) error {
 	return replaceBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// GetDownstreamData can be used for retrieving upstream tcp data in buffered in the host.
+// Returned bytes begining from "start" to "start" +"maxSize" in the buffer.
+// Only available during types.TcpContext.OnUpstreamData.
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeUpstreamData, start, maxSize)
 }
 
+// AppendUpstreamData appends the given bytes to the upstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnUpstreamData.
 func AppendUpstreamData(data []byte) error {
 	return appendToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
+// PrependUpstreamData prepends the given bytes to the upstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnUpstreamData.
 func PrependUpstreamData(data []byte) error {
 	return prependToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
+// ReplaceUpstreamData replaces the upstream tcp data in buffered in the host
+// with the given bytes. Only available during types.TcpContext.OnUpstreamData.
 func ReplaceUpstreamData(data []byte) error {
 	return replaceBuffer(internal.BufferTypeUpstreamData, data)
 }
 
+// ContinueDownstream continues interating on downstream Tcp connection
+// after types.Action.Pause was returned by types.TcpContext.OnDownstreamData.
+// Only available for types.TcpContext.
 func ContinueDownstream() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeDownstream))
 }
 
+// ContinueDownstream continues interating on upstream Tcp connection
+// after types.Action.Pause was returned by types.TcpContext.OnUpstreamData.
+// Only available for types.TcpContext.
 func ContinueUpstream() error {
 	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeUpstream))
 }
 
+// CloseDownstream closes the downstream tcp connection for this Tcp context.
+// Only available for types.TcpContext.
 func CloseDownstream() error {
 	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeDownstream))
 }
 
+// CloseUpstream closes the upstream tcp connection for this Tcp context.
+// Only available for types.TcpContext.
 func CloseUpstream() error {
 	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeUpstream))
 }
@@ -194,7 +222,7 @@ func GetHttpRequestHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestHeaders)
 }
 
-func SetHttpRequestHeaders(headers [][2]string) error {
+func ReplaceHttpRequestHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestHeaders, headers)
 }
 
@@ -234,7 +262,7 @@ func GetHttpRequestTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpRequestTrailers)
 }
 
-func SetHttpRequestTrailers(trailers [][2]string) error {
+func ReplaceHttpRequestTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpRequestTrailers, trailers)
 }
 
@@ -262,7 +290,7 @@ func GetHttpResponseHeaders() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseHeaders)
 }
 
-func SetHttpResponseHeaders(headers [][2]string) error {
+func ReplaceHttpResponseHeaders(headers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseHeaders, headers)
 }
 
@@ -302,7 +330,7 @@ func GetHttpResponseTrailers() ([][2]string, error) {
 	return getMap(internal.MapTypeHttpResponseTrailers)
 }
 
-func SetHttpResponseTrailers(trailers [][2]string) error {
+func ReplaceHttpResponseTrailers(trailers [][2]string) error {
 	return setMap(internal.MapTypeHttpResponseTrailers, trailers)
 }
 

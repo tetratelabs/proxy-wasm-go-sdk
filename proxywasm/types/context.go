@@ -25,7 +25,7 @@ package types
 //             ╲
 //              ╲ Http = handling each Http stream
 //
-// In other words, RootContex is parent of others, and responsible for creating Tcp and Http contexts
+// In other words, RootContex is the parent of others, and responsible for creating Tcp and Http contexts
 // corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
 // Given that, RootContext is the primary interface everyone has to implement.
 //
