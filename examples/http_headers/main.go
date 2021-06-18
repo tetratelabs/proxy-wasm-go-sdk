@@ -24,8 +24,8 @@ func main() {
 }
 
 type rootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 
@@ -37,15 +37,15 @@ func (*rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 type httpHeaders struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default http context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
 	contextID uint32
 }
 
 // Override DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	err := proxywasm.SetHttpRequestHeader("test", "best")
+	err := proxywasm.ReplaceHttpRequestHeader("test", "best")
 	if err != nil {
 		proxywasm.LogCritical("failed to set request header: test")
 	}

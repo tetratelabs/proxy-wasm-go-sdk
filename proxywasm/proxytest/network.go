@@ -37,27 +37,27 @@ func newNetworkHostEmulator() *networkHostEmulator {
 	return host
 }
 
-// impl rawhostcall.ProxyWasmHost: delegated from hostEmulator
-func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
+// impl internal.ProxyWasmHost: delegated from hostEmulator
+func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt internal.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) internal.Status {
 
 	active := internal.VMStateGetActiveContextID()
 	stream := n.streamStates[active]
 	var buf []byte
 	switch bt {
-	case types.BufferTypeUpstreamData:
+	case internal.BufferTypeUpstreamData:
 		buf = stream.upstream
-	case types.BufferTypeDownstreamData:
+	case internal.BufferTypeDownstreamData:
 		buf = stream.downstream
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
 	if len(buf) == 0 {
-		return types.StatusNotFound
+		return internal.StatusNotFound
 	} else if start >= len(buf) {
 		log.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 
 	*returnBufferData = &buf[start]
@@ -66,7 +66,7 @@ func (n *networkHostEmulator) networkHostEmulatorProxyGetBufferBytes(bt types.Bu
 	} else {
 		*returnBufferSize = maxSize
 	}
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 // impl HostEmulator
@@ -133,8 +133,6 @@ func (n *networkHostEmulator) CloseDownstreamConnection(contextID uint32) {
 
 // impl HostEmulator
 func (n *networkHostEmulator) CompleteConnection(contextID uint32) {
-	// https://github.com/envoyproxy/envoy/blob/867b9e23d2e48350bd1b0d1fbc392a8355f20e35/source/extensions/common/wasm/context.cc#L169-L171
-	internal.ProxyOnDone(contextID)
 	internal.ProxyOnLog(contextID)
 	internal.ProxyOnDelete(contextID)
 	delete(n.streamStates, contextID)

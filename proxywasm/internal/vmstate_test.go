@@ -65,10 +65,10 @@ func TestState_createRootContext(t *testing.T) {
 }
 
 type (
-	testStateRootContext   struct{ types.DefaultRootContext }
-	testStateStreamContext struct {
+	testStateRootContext struct{ types.DefaultRootContext }
+	testStateTcpContext  struct {
 		contextID uint32
-		types.DefaultStreamContext
+		types.DefaultTcpContext
 	}
 	testStateHttpContext struct {
 		contextID uint32
@@ -76,22 +76,22 @@ type (
 	}
 )
 
-func (ctx *testStateRootContext) NewStreamContext(contextID uint32) types.StreamContext {
-	return &testStateStreamContext{contextID: contextID}
+func (ctx *testStateRootContext) NewTcpContext(contextID uint32) types.TcpContext {
+	return &testStateTcpContext{contextID: contextID}
 }
 
 func (ctx *testStateRootContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &testStateHttpContext{contextID: contextID}
 }
 
-func TestState_createStreamContext(t *testing.T) {
+func TestState_createTcpContext(t *testing.T) {
 	var (
 		cid uint32 = 100
 		rid uint32 = 10
 	)
 	s := &state{
 		rootContexts: map[uint32]*rootContextState{rid: nil},
-		streams:      map[uint32]types.StreamContext{},
+		streams:      map[uint32]types.TcpContext{},
 		newRootContext: func(contextID uint32) types.RootContext {
 			return &testStateRootContext{}
 		},
@@ -99,10 +99,10 @@ func TestState_createStreamContext(t *testing.T) {
 	}
 
 	s.createRootContext(rid)
-	s.createStreamContext(cid, rid)
+	s.createTcpContext(cid, rid)
 	c, ok := s.streams[cid]
 	require.True(t, ok)
-	ctx, ok := c.(*testStateStreamContext)
+	ctx, ok := c.(*testStateTcpContext)
 	require.True(t, ok)
 	require.Equal(t, cid, ctx.contextID)
 }

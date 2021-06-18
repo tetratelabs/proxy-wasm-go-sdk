@@ -23,7 +23,7 @@ func VMStateReset() {
 	currentState = &state{
 		rootContexts:      make(map[uint32]*rootContextState),
 		httpStreams:       make(map[uint32]types.HttpContext),
-		streams:           make(map[uint32]types.StreamContext),
+		streams:           make(map[uint32]types.TcpContext),
 		contextIDToRootID: make(map[uint32]uint32),
 	}
 }

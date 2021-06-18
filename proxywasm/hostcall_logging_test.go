@@ -20,152 +20,150 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type logHost struct {
-	rawhostcall.DefaultProxyWAMSHost
+	internal.DefaultProxyWAMSHost
 	t           *testing.T
 	expMessage  string
-	expLogLevel types.LogLevel
+	expLogLevel internal.LogLevel
 }
 
-func (l logHost) ProxyLog(logLevel types.LogLevel, messageData *byte, messageSize int) types.Status {
+func (l logHost) ProxyLog(logLevel internal.LogLevel, messageData *byte, messageSize int) internal.Status {
 	actual := internal.RawBytePtrToString(messageData, messageSize)
 	require.Equal(l.t, l.expMessage, actual)
 	require.Equal(l.t, l.expLogLevel, logLevel)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 func TestHostCall_Logging(t *testing.T) {
 	t.Run("trace", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "trace",
-			expLogLevel:          types.LogLevelTrace,
+			expLogLevel:          internal.LogLevelTrace,
 		})
 		defer release()
 		LogTrace("trace")
 	})
 
 	t.Run("tracef", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "trace: log",
-			expLogLevel:          types.LogLevelTrace,
+			expLogLevel:          internal.LogLevelTrace,
 		})
 		defer release()
 		LogTracef("trace: %s", "log")
 	})
 
 	t.Run("debug", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "abc",
-			expLogLevel:          types.LogLevelDebug,
+			expLogLevel:          internal.LogLevelDebug,
 		})
 		defer release()
 		LogDebug("abc")
 	})
 
 	t.Run("debugf", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "debug: log",
-			expLogLevel:          types.LogLevelDebug,
+			expLogLevel:          internal.LogLevelDebug,
 		})
 		defer release()
 		LogDebugf("debug: %s", "log")
 	})
 
 	t.Run("info", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "info",
-			expLogLevel:          types.LogLevelInfo,
+			expLogLevel:          internal.LogLevelInfo,
 		})
 		defer release()
 		LogInfo("info")
 	})
 
 	t.Run("infof", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "info: log: 10",
-			expLogLevel:          types.LogLevelInfo,
+			expLogLevel:          internal.LogLevelInfo,
 		})
 		defer release()
 		LogInfof("info: %s: %d", "log", 10)
 	})
 
 	t.Run("warn", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "warn",
-			expLogLevel:          types.LogLevelWarn,
+			expLogLevel:          internal.LogLevelWarn,
 		})
 		defer release()
 		LogWarn("warn")
 	})
 
 	t.Run("warnf", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "warn: log: 10",
-			expLogLevel:          types.LogLevelWarn,
+			expLogLevel:          internal.LogLevelWarn,
 		})
 		defer release()
 		LogWarnf("warn: %s: %d", "log", 10)
 	})
 
 	t.Run("error", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "error",
-			expLogLevel:          types.LogLevelError,
+			expLogLevel:          internal.LogLevelError,
 		})
 		defer release()
 		LogError("error")
 	})
 
 	t.Run("warnf", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "warn: log: 10",
-			expLogLevel:          types.LogLevelWarn,
+			expLogLevel:          internal.LogLevelWarn,
 		})
 		defer release()
 		LogWarnf("warn: %s: %d", "log", 10)
 	})
 
 	t.Run("critical", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "critical error",
-			expLogLevel:          types.LogLevelCritical,
+			expLogLevel:          internal.LogLevelCritical,
 		})
 		defer release()
 		LogCritical("critical error")
 	})
 
 	t.Run("criticalf", func(t *testing.T) {
-		release := rawhostcall.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: rawhostcall.DefaultProxyWAMSHost{},
+		release := internal.RegisterMockWasmHost(logHost{
+			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
 			t:                    t,
 			expMessage:           "critical: log: 10",
-			expLogLevel:          types.LogLevelCritical,
+			expLogLevel:          internal.LogLevelCritical,
 		})
 		defer release()
 		LogCriticalf("critical: %s: %d", "log", 10)

@@ -20,19 +20,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type metricProxyWasmHost struct {
-	rawhostcall.DefaultProxyWAMSHost
+	internal.DefaultProxyWAMSHost
 	idToValue map[uint32]uint64
-	idToType  map[uint32]types.MetricType
+	idToType  map[uint32]internal.MetricType
 	nameToID  map[string]uint32
 }
 
-func (m metricProxyWasmHost) ProxyDefineMetric(metricType types.MetricType,
-	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) types.Status {
+func (m metricProxyWasmHost) ProxyDefineMetric(metricType internal.MetricType,
+	metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) internal.Status {
 	name := internal.RawBytePtrToString(metricNameData, metricNameSize)
 	id, ok := m.nameToID[name]
 	if !ok {
@@ -42,45 +40,45 @@ func (m metricProxyWasmHost) ProxyDefineMetric(metricType types.MetricType,
 		m.idToType[id] = metricType
 	}
 	*returnMetricIDPtr = id
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-func (m metricProxyWasmHost) ProxyIncrementMetric(metricID uint32, offset int64) types.Status {
+func (m metricProxyWasmHost) ProxyIncrementMetric(metricID uint32, offset int64) internal.Status {
 	val, ok := m.idToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 
 	m.idToValue[metricID] = val + uint64(offset)
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-func (m metricProxyWasmHost) ProxyRecordMetric(metricID uint32, value uint64) types.Status {
+func (m metricProxyWasmHost) ProxyRecordMetric(metricID uint32, value uint64) internal.Status {
 	_, ok := m.idToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 	m.idToValue[metricID] = value
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-func (m metricProxyWasmHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) types.Status {
+func (m metricProxyWasmHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) internal.Status {
 	value, ok := m.idToValue[metricID]
 	if !ok {
-		return types.StatusBadArgument
+		return internal.StatusBadArgument
 	}
 	*returnMetricValue = value
-	return types.StatusOK
+	return internal.StatusOK
 }
 
 func TestHostCall_Metric(t *testing.T) {
 	host := metricProxyWasmHost{
-		rawhostcall.DefaultProxyWAMSHost{},
+		internal.DefaultProxyWAMSHost{},
 		map[uint32]uint64{},
-		map[uint32]types.MetricType{},
+		map[uint32]internal.MetricType{},
 		map[string]uint32{},
 	}
-	release := rawhostcall.RegisterMockWasmHost(host)
+	release := internal.RegisterMockWasmHost(host)
 	defer release()
 
 	t.Run("counter", func(t *testing.T) {

@@ -19,7 +19,7 @@ func TestHttpRouting_OnHttpRequestHeaders(t *testing.T) {
 		now = func() int { return 0 }
 		// Initialize http context.
 		id := host.InitializeHttpContext()
-		hs := types.Headers{{":authority", "my-host.com"}}
+		hs := [][2]string{{":authority", "my-host.com"}}
 		// Call OnHttpResponseHeaders.
 		action := host.CallOnRequestHeaders(id,
 			hs, false)
@@ -34,7 +34,7 @@ func TestHttpRouting_OnHttpRequestHeaders(t *testing.T) {
 		now = func() int { return 1 }
 		// Initialize http context.
 		id := host.InitializeHttpContext()
-		hs := types.Headers{{":authority", "my-host.com"}}
+		hs := [][2]string{{":authority", "my-host.com"}}
 		// Call OnHttpResponseHeaders.
 		action := host.CallOnRequestHeaders(id,
 			hs, false)

@@ -26,8 +26,8 @@ func main() {
 }
 
 type rootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 	contextID uint32
 }
@@ -48,10 +48,10 @@ func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus
 
 // Override DefaultRootContext.
 func (ctx *rootContext) OnTick() {
-	hs := types.Headers{
+	hs := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
 	}
-	if _, err := proxywasm.DispatchHttpCall("web_service", hs, "", nil,
+	if _, err := proxywasm.DispatchHttpCall("web_service", hs, nil, nil,
 		5000, callback); err != nil {
 		proxywasm.LogCriticalf("dispatch httpcall failed: %v", err)
 	}

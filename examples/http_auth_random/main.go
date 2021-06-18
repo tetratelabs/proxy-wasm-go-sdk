@@ -28,8 +28,8 @@ func main() {
 }
 
 type rootContext struct {
-	// You'd better embed the default context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 
@@ -41,8 +41,8 @@ func (*rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 type httpAuthRandom struct {
-	// You'd better embed the default context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default http context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
 	contextID uint32
 }
@@ -58,7 +58,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 		proxywasm.LogInfof("request header: %s: %s", h[0], h[1])
 	}
 
-	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, "", nil,
+	if _, err := proxywasm.DispatchHttpCall(clusterName, hs, nil, nil,
 		50000, httpCallResponseCallback); err != nil {
 		proxywasm.LogCriticalf("dipatch httpcall failed: %v", err)
 		return types.ActionContinue
@@ -101,7 +101,7 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 
 	body := "access forbidden"
 	proxywasm.LogInfo(body)
-	if err := proxywasm.SendHttpResponse(403, types.Headers{
+	if err := proxywasm.SendHttpResponse(403, [][2]string{
 		{"powered-by", "proxy-wasm-go-sdk!!"},
 	}, []byte(body)); err != nil {
 		proxywasm.LogErrorf("failed to send local response: %v", err)

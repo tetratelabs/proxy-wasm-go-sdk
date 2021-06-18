@@ -26,7 +26,7 @@ func TestRootContext_OnTick(t *testing.T) {
 	for i := 1; i < 10; i++ {
 		host.Tick()
 		// Check Envoy logs.
-		logs := host.GetLogs(types.LogLevelInfo)
+		logs := host.GetInfoLogs()
 		require.Contains(t, logs, fmt.Sprintf("foreign function (compress) called: %d, result: %s", i, "68656c6c6f20776f726c6421"))
 	}
 }

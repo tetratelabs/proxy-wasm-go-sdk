@@ -27,10 +27,10 @@ type testOnContextCreateRootContext struct {
 	cnt int
 }
 
-func (ctx *testOnContextCreateRootContext) NewStreamContext(contextID uint32) types.StreamContext {
+func (ctx *testOnContextCreateRootContext) NewTcpContext(contextID uint32) types.TcpContext {
 	if contextID == 100 {
 		ctx.cnt += 100
-		return &types.DefaultStreamContext{}
+		return &types.DefaultTcpContext{}
 	}
 	return nil
 }
@@ -51,7 +51,7 @@ func Test_proxyOnContextCreateHttpContext(t *testing.T) {
 	currentState = &state{
 		rootContexts: map[uint32]*rootContextState{},
 		httpStreams:  map[uint32]types.HttpContext{},
-		streams:      map[uint32]types.StreamContext{},
+		streams:      map[uint32]types.TcpContext{},
 		newRootContext: func(contextID uint32) types.RootContext {
 			return &testOnContextCreateRootContext{}
 		},
@@ -76,8 +76,8 @@ func Test_proxyOnContextCreateHttpContext(t *testing.T) {
 type lifecycleContext struct {
 	types.DefaultRootContext
 	types.DefaultHttpContext
-	types.DefaultStreamContext
-	onDoneCalled, onLogCalled bool
+	types.DefaultTcpContext
+	onDoneCalled bool
 }
 
 func (ctx *lifecycleContext) OnPluginDone() bool {
@@ -93,70 +93,36 @@ func (ctx *lifecycleContext) OnHttpStreamDone() {
 	ctx.onDoneCalled = true
 }
 
-func (ctx *lifecycleContext) OnLog() {
-	ctx.onLogCalled = true
-}
-
-func Test_onDone(t *testing.T) {
+func Test_onDone_or_onLog(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
 	currentState = &state{
 		rootContexts: map[uint32]*rootContextState{},
 		httpStreams:  map[uint32]types.HttpContext{},
-		streams:      map[uint32]types.StreamContext{},
+		streams:      map[uint32]types.TcpContext{},
 	}
 
+	// Stream Contexts are only called on on_log, not on on_done.
 	var id uint32 = 1
 	ctx := &lifecycleContext{}
 	currentState.httpStreams[id] = ctx
-	proxyOnDone(id)
+	proxyOnLog(id)
 	require.True(t, ctx.onDoneCalled)
 	require.Equal(t, id, currentState.activeContextID)
 
 	id = 2
 	ctx = &lifecycleContext{}
 	currentState.streams[id] = ctx
-	proxyOnDone(id)
+	proxyOnLog(id)
 	require.True(t, ctx.onDoneCalled)
 	require.Equal(t, id, currentState.activeContextID)
 
+	// Root Contexts are only called on on_done, not on on_log.
 	id = 3
 	ctx = &lifecycleContext{}
 	currentState.rootContexts[id] = &rootContextState{context: ctx}
 	proxyOnDone(id)
 	require.True(t, ctx.onDoneCalled)
-	require.Equal(t, id, currentState.activeContextID)
-}
-
-func Test_onLog(t *testing.T) {
-	currentStateMux.Lock()
-	defer currentStateMux.Unlock()
-
-	currentState = &state{
-		rootContexts: map[uint32]*rootContextState{},
-		httpStreams:  map[uint32]types.HttpContext{},
-		streams:      map[uint32]types.StreamContext{},
-	}
-
-	var id uint32 = 1
-	ctx := &lifecycleContext{}
-	currentState.httpStreams[id] = ctx
-	proxyOnLog(id)
-	require.True(t, ctx.onLogCalled)
-	require.Equal(t, id, currentState.activeContextID)
-
-	id = 2
-	ctx = &lifecycleContext{}
-	currentState.streams[id] = ctx
-	proxyOnLog(id)
-	require.True(t, ctx.onLogCalled)
-	require.Equal(t, id, currentState.activeContextID)
-
-	id = 3
-	ctx = &lifecycleContext{}
-	currentState.rootContexts[id] = &rootContextState{context: ctx}
-	proxyOnLog(id)
-	require.True(t, ctx.onLogCalled)
 	require.Equal(t, id, currentState.activeContextID)
 }

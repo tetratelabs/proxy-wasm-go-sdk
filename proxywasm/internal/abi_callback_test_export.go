@@ -85,16 +85,16 @@ func ProxyOnDone(contextID uint32) bool {
 	return proxyOnDone(contextID)
 }
 
+func ProxyOnLog(rootContextID uint32) {
+	proxyOnLog(rootContextID)
+}
+
 func ProxyOnQueueReady(contextID, queueID uint32) {
 	proxyOnQueueReady(contextID, queueID)
 }
 
 func ProxyOnTick(rootContextID uint32) {
 	proxyOnTick(rootContextID)
-}
-
-func ProxyOnLog(contextID uint32) {
-	proxyOnLog(contextID)
 }
 
 func ProxyOnDelete(contextID uint32) {

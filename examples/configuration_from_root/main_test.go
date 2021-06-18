@@ -40,9 +40,9 @@ func TestContext_OnPluginStart(t *testing.T) {
 	host.InitializeHttpContext()
 
 	// Check Envoy logs.
-	errLogs := host.GetLogs(types.LogLevelError)
+	errLogs := host.GetErrorLogs()
 	require.Len(t, errLogs, 0)
 
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "read plugin config from root context: "+pluginConfigData)
 }

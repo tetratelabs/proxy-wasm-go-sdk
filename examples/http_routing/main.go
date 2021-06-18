@@ -27,8 +27,8 @@ func main() {
 }
 
 type rootContext struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultRootContext
 }
 
@@ -40,8 +40,8 @@ func (*rootContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 type httpRouting struct {
-	// You'd better embed the default root context
-	// so that you don't need to reimplement all the methods by yourself.
+	// Embed the default http context here,
+	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
 }
 
@@ -65,7 +65,7 @@ func (ctx *httpRouting) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 		}
 		// Append "-canary" suffix to route this request to the canary cluster.
 		value += "-canary"
-		if err := proxywasm.SetHttpRequestHeader(":authority", value); err != nil {
+		if err := proxywasm.ReplaceHttpRequestHeader(":authority", value); err != nil {
 			proxywasm.LogCritical("failed to set request header: test")
 			return types.ActionPause
 		}

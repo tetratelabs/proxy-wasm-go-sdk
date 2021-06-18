@@ -91,7 +91,7 @@ func proxyOnHttpCallResponse(rootContextID, calloutID uint32, numHeaders, bodySi
 		panic("invalid callout id")
 	}
 
-	setEffectiveContext(cb.callerContextID)
+	ProxySetEffectiveContext(cb.callerContextID)
 	currentState.setActiveContextID(cb.callerContextID)
 	delete(root.httpCallbacks, calloutID)
 	cb.callback(numHeaders, bodySize, numTrailers)

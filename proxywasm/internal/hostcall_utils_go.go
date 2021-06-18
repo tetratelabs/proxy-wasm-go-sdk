@@ -14,7 +14,7 @@
 
 // +build proxytest
 
-// since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
+// Since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
 // we have to have separated functions for converting bytes
 // https://github.com/tinygo-org/tinygo/issues/1284
 

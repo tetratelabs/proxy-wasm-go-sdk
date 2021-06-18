@@ -180,6 +180,7 @@ func Test_http_routing(t *testing.T) {
 		return primary && canary
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
+
 func Test_metrics(t *testing.T) {
 	_, kill := startEnvoy(t, 8001)
 	defer kill()

@@ -37,7 +37,7 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 	require.Equal(t, types.ActionContinue, action)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "new connection!")
 }
 
@@ -55,7 +55,7 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 	host.CloseDownstreamConnection(contextID)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "downstream connection close!")
 }
 
@@ -75,7 +75,7 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 	host.CallOnDownstreamData(contextID, data)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, ">>>>>> downstream data received >>>>>>\n"+msg)
 }
 
@@ -95,7 +95,7 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 	host.CallOnUpstreamData(contextID, data)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "<<<<<< upstream data received <<<<<<\n"+msg)
 }
 
@@ -116,7 +116,7 @@ func TestNetwork_counter(t *testing.T) {
 	host.CompleteConnection(contextID)
 
 	// Check Envoy logs.
-	logs := host.GetLogs(types.LogLevelInfo)
+	logs := host.GetInfoLogs()
 	require.Contains(t, logs, "connection complete!")
 
 	// Check counter metric.

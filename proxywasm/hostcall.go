@@ -16,43 +16,87 @@ package proxywasm
 
 import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func GetPluginConfiguration(size int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypePluginConfiguration, 0, size)
-	return ret, types.StatusToError(st)
-}
-
+// GetVMConfiguration is used for retrieving configurations ginve in the "vm_config.configuration" field.
+// This hostcall is only available during types.RootContext.OnVMStart call.
+// "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
 func GetVMConfiguration(size int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeVMConfiguration, 0, size)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
-func SendHttpResponse(statusCode uint32, headers types.Headers, body []byte) error {
-	shs := internal.SerializeMap(headers)
-	var bp *byte
-	if len(body) > 0 {
-		bp = &body[0]
-	}
-	hp := &shs[0]
-	hl := len(shs)
-	return types.StatusToError(
-		rawhostcall.ProxySendLocalResponse(
-			statusCode, nil, 0,
-			bp, len(body), hp, hl, -1,
-		),
-	)
+// GetPluginConfiguration is used for retrieving configurations ginve in the "config.configuration" field.
+// This hostcall is only available during types.RootContext.OnPluginStart call.
+// "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
+func GetPluginConfiguration(size int) ([]byte, error) {
+	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
 }
 
+// SetTickPeriodMilliSeconds sets the tick interval of types.RootContext.OnTick calls.
+// Only available for types.RootContext.
 func SetTickPeriodMilliSeconds(millSec uint32) error {
-	return types.StatusToError(rawhostcall.ProxySetTickPeriodMilliseconds(millSec))
+	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
-func DispatchHttpCall(upstream string,
-	headers types.Headers, body string, trailers types.Trailers,
-	timeoutMillisecond uint32, callBack func(numHeaders, bodySize, numTrailers int)) (calloutID uint32, err error) {
+// RegisterSharedQueue registers the shared queue on this root context.
+// "Register" means that OnQueueReady is called for this root context whenever a new item is enqueued on that queueID.
+// Only available for types.RootContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
+// That means you can use "vm_id" can be used for separating shared queue namespace.
+func RegisterSharedQueue(name string) (ququeID uint32, err error) {
+	var queueID uint32
+	ptr := internal.StringBytePtr(name)
+	st := internal.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
+	return queueID, internal.StatusToError(st)
+}
+
+// ResolveSharedQueue acquires the queueID for the given vm_id and queue name.
+// The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error) {
+	var ret uint32
+	st := internal.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
+		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
+	return ret, internal.StatusToError(st)
+}
+
+// EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func EnqueueSharedQueue(queueID uint32, data []byte) error {
+	return internal.StatusToError(internal.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
+}
+
+// DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func DequeueSharedQueue(queueID uint32) ([]byte, error) {
+	var raw *byte
+	var size int
+	st := internal.ProxyDequeueSharedQueue(queueID, &raw, &size)
+	if st != internal.StatusOK {
+		return nil, internal.StatusToError(st)
+	}
+	return internal.RawBytePtrToByteSlice(raw, size), nil
+}
+
+// PluginDone must be callsed when OnPluginDone returns false indicating that the plugin is in pending state
+// right before deletion by hosts. Only available for types.RootContext.
+func PluginDone() {
+	internal.ProxyDone()
+}
+
+// DispatchHttpCall is for dipatching http calls to a remote cluster. This can be used by all contexts
+// including Tcp and Root contexts. "cluster" arg specifies the remote cluster the host will send
+// the request against with "headers", "body", "trailers" arguments. If the host successfully made the request
+// and recevived the response from the remote cluster, then "callBack" function is called.
+// During callBack is called, "GetHttpCallResponseHeaders", "GetHttpCallResponseBody", "GetHttpCallResponseTrailers"
+// calls are available for accessing the response information.
+func DispatchHttpCall(
+	cluster string,
+	headers [][2]string,
+	body []byte,
+	trailers [][2]string,
+	timeoutMillisecond uint32,
+	callBack func(numHeaders, bodySize, numTrailers int),
+) (calloutID uint32, err error) {
 	shs := internal.SerializeMap(headers)
 	hp := &shs[0]
 	hl := len(shs)
@@ -61,293 +105,423 @@ func DispatchHttpCall(upstream string,
 	tp := &sts[0]
 	tl := len(sts)
 
-	u := internal.StringBytePtr(upstream)
-	switch st := rawhostcall.ProxyHttpCall(u, len(upstream),
-		hp, hl, internal.StringBytePtr(body), len(body), tp, tl, timeoutMillisecond, &calloutID); st {
-	case types.StatusOK:
+	var bodyPtr *byte
+	if len(body) > 0 {
+		bodyPtr = &body[0]
+	}
+
+	u := internal.StringBytePtr(cluster)
+	switch st := internal.ProxyHttpCall(u, len(cluster),
+		hp, hl, bodyPtr, len(body), tp, tl, timeoutMillisecond, &calloutID); st {
+	case internal.StatusOK:
 		internal.RegisterHttpCallout(calloutID, callBack)
 		return calloutID, nil
 	default:
-		return 0, types.StatusToError(st)
+		return 0, internal.StatusToError(st)
 	}
 }
 
-func GetHttpCallResponseHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpCallResponseHeaders)
-	return ret, types.StatusToError(st)
+// GetHttpCallResponseHeaders is used for retrieving http response headers
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
+func GetHttpCallResponseHeaders() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpCallResponseHeaders)
 }
 
+// GetHttpCallResponseBody is used for retrieving http response body
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
 func GetHttpCallResponseBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpCallResponseBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpCallResponseBody, start, maxSize)
 }
 
-func GetHttpCallResponseTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpCallResponseTrailers)
-	return ret, types.StatusToError(st)
+// GetHttpCallResponseTrailers is used for retrieving http response trailers
+// returned by a remote cluster in reponse to the DispatchHttpCall.
+// Only available during "callback" function passed to DispatchHttpCall.
+func GetHttpCallResponseTrailers() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpCallResponseTrailers)
 }
 
-func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
-	f := internal.StringBytePtr(funcName)
-
-	var returnData *byte
-	var returnSize int
-
-	switch st := rawhostcall.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
-	case types.StatusOK:
-		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
-	default:
-		return nil, types.StatusToError(st)
-	}
-}
-
+// GetDownstreamData can be used for retrieving tcp downstream data in buffered in the host.
+// Returned bytes begining from "start" to "start" +"maxSize" in the buffer.
+// Only available during types.TcpContext.OnDownstreamData.
 func GetDownstreamData(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeDownstreamData, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeDownstreamData, start, maxSize)
 }
 
+// AppendDownstreamData appends the given bytes to the downstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnDownstreamData.
 func AppendDownstreamData(data []byte) error {
-	return appendToBuffer(types.BufferTypeDownstreamData, data)
+	return appendToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// PrependDownstreamData prepends the given bytes to the downstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnDownstreamData.
 func PrependDownstreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeDownstreamData, data)
+	return prependToBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// ReplaceDownstreamData replaces the downstream tcp data in buffered in the host
+// with the given bytes. Only available during types.TcpContext.OnDownstreamData.
 func ReplaceDownstreamData(data []byte) error {
-	return replaceBuffer(types.BufferTypeDownstreamData, data)
+	return replaceBuffer(internal.BufferTypeDownstreamData, data)
 }
 
+// GetDownstreamData can be used for retrieving upstream tcp data in buffered in the host.
+// Returned bytes begining from "start" to "start" +"maxSize" in the buffer.
+// Only available during types.TcpContext.OnUpstreamData.
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeUpstreamData, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeUpstreamData, start, maxSize)
 }
 
+// AppendUpstreamData appends the given bytes to the upstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnUpstreamData.
 func AppendUpstreamData(data []byte) error {
-	return appendToBuffer(types.BufferTypeUpstreamData, data)
+	return appendToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
+// PrependUpstreamData prepends the given bytes to the upstream tcp data in buffered in the host.
+// Only available during types.TcpContext.OnUpstreamData.
 func PrependUpstreamData(data []byte) error {
-	return prependToBuffer(types.BufferTypeUpstreamData, data)
+	return prependToBuffer(internal.BufferTypeUpstreamData, data)
 }
 
+// ReplaceUpstreamData replaces the upstream tcp data in buffered in the host
+// with the given bytes. Only available during types.TcpContext.OnUpstreamData.
 func ReplaceUpstreamData(data []byte) error {
-	return replaceBuffer(types.BufferTypeUpstreamData, data)
+	return replaceBuffer(internal.BufferTypeUpstreamData, data)
 }
 
-func ContinueDownstream() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeDownstream))
+// ContinueTcpStream continues interating on the tcp connection
+// after types.Action.Pause was returned by types.TcpContext.
+// Only available for types.TcpContext.
+func ContinueTcpStream() error {
+	// Note that internal.ProxyContinueStream is not implemented in Envoy,
+	// so we intentionally choose to pass StreamTypeDownstream here while
+	// the name itself is not indiciating "continue downstream".
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeDownstream))
 }
 
-func ContinueUpstream() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeUpstream))
-}
-
+// CloseDownstream closes the downstream tcp connection for this Tcp context.
+// Only available for types.TcpContext.
 func CloseDownstream() error {
-	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeDownstream))
+	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeDownstream))
 }
 
+// CloseUpstream closes the upstream tcp connection for this Tcp context.
+// Only available for types.TcpContext.
 func CloseUpstream() error {
-	return types.StatusToError(rawhostcall.ProxyCloseStream(types.StreamTypeUpstream))
+	return internal.StatusToError(internal.ProxyCloseStream(internal.StreamTypeUpstream))
 }
 
-func GetHttpRequestHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpRequestHeaders)
-	return ret, types.StatusToError(st)
+// GetHttpRequestHeaders is used for retrieving http request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders and
+// types.HttpContext.OnHttpStreamDone.
+func GetHttpRequestHeaders() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpRequestHeaders)
 }
 
-func SetHttpRequestHeaders(headers types.Headers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestHeaders, headers))
+// ReplaceHttpRequestHeaders is used for replacing http request headers
+// with given headers. Only available during
+// types.HttpContext.OnHttpRequestHeaders.
+func ReplaceHttpRequestHeaders(headers [][2]string) error {
+	return setMap(internal.MapTypeHttpRequestHeaders, headers)
 }
 
+// GetHttpRequestHeader is used for retrieving a http request header value
+// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders and
+// types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpRequestHeader(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpRequestHeaders, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
+// GetHttpRequestHeader is used for retrieving a http request header value
+// for given "key". Only available during types.HttpContext.OnHttpRequestHeaders.
 func RemoveHttpRequestHeader(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestHeaders, key))
+	return removeMapValue(internal.MapTypeHttpRequestHeaders, key)
 }
 
-func SetHttpRequestHeader(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpRequestHeaders, key, value))
+// ReplaceHttpRequestHeader replaces a value for given "key" from request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
+func ReplaceHttpRequestHeader(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
+// AddHttpRequestHeader adds a value for given "key" of request headers.
+// Only available during types.HttpContext.OnHttpRequestHeaders.
 func AddHttpRequestHeader(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpRequestHeaders, key, value))
+	return addMapValue(internal.MapTypeHttpRequestHeaders, key, value)
 }
 
+// GetHttpRequestBody is used for retrieving the entire http request body.
+// Only available during types.HttpContext.OnHttpRequestBody.
 func GetHttpRequestBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpRequestBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpRequestBody, start, maxSize)
 }
 
+// AppendHttpRequestBody appends the given bytes to the http request body buffer.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func AppendHttpRequestBody(data []byte) error {
-	return appendToBuffer(types.BufferTypeHttpRequestBody, data)
+	return appendToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
+// PrependHttpRequestBody prepends the given bytes to the http request body buffer.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func PrependHttpRequestBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpRequestBody, data)
+	return prependToBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
+// ReplaceHttpRequestBody replaces the http request body buffer with the given bytes.
+// Only available during types.HttpContext.OnHttpRequestBody.
+// Please note that you must remove "content-length" header during OnHttpRequestHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash,
+// if the size of the data differs from the original one.
 func ReplaceHttpRequestBody(data []byte) error {
-	return replaceBuffer(types.BufferTypeHttpRequestBody, data)
+	return replaceBuffer(internal.BufferTypeHttpRequestBody, data)
 }
 
-func GetHttpRequestTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpRequestTrailers)
-	return ret, types.StatusToError(st)
+// GetHttpRequestTrailers is used for retrieving http request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers and
+// types.HttpContext.OnHttpStreamDone.
+func GetHttpRequestTrailers() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpRequestTrailers)
 }
 
-func SetHttpRequestTrailers(trailers types.Trailers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpRequestTrailers, trailers))
+// ReplaceHttpRequestTrailers is used for replacing http request trailers
+// with given headers. Only available during
+// types.HttpContext.OnHttpRequestTrailers.
+func ReplaceHttpRequestTrailers(trailers [][2]string) error {
+	return setMap(internal.MapTypeHttpRequestTrailers, trailers)
 }
 
+// GetHttpRequestTrailer is used for retrieving a http request trailer value
+// for given "key". Only available during types.HttpContext.OnHttpRequestTrailers and
+// types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpRequestTrailer(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpRequestTrailers, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
+// RemoveHttpRequestTrailer removes all the values for given "key" from request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
 func RemoveHttpRequestTrailer(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpRequestTrailers, key))
+	return removeMapValue(internal.MapTypeHttpRequestTrailers, key)
 }
 
-func SetHttpRequestTrailer(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpRequestTrailers, key, value))
+// ReplaceHttpRequestTrailer replaces a value for given "key" from request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
+func ReplaceHttpRequestTrailer(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
+// AddHttpRequestTrailer adds a value for given "key" of request trailers.
+// Only available during types.HttpContext.OnHttpRequestTrailers.
 func AddHttpRequestTrailer(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpRequestTrailers, key, value))
+	return addMapValue(internal.MapTypeHttpRequestTrailers, key, value)
 }
 
+// ResumeHttpRequest can be used for resuming Http request processing which is stopped
+// after returning types.Action.Pause. Only available during types.HttpContext.
 func ResumeHttpRequest() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeRequest))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeRequest))
 }
 
-func GetHttpResponseHeaders() (types.Headers, error) {
-	ret, st := getMap(types.MapTypeHttpResponseHeaders)
-	return ret, types.StatusToError(st)
+// GetHttpResponseHeaders is used for retrieving http response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders and
+// types.HttpContext.OnHttpStreamDone.
+func GetHttpResponseHeaders() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpResponseHeaders)
 }
 
-func SetHttpResponseHeaders(headers types.Headers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpResponseHeaders, headers))
+// ReplaceHttpResponseHeaders is used for replacing http response headers
+// with given headers. Only available during
+// types.HttpContext.OnHttpResponseHeaders.
+func ReplaceHttpResponseHeaders(headers [][2]string) error {
+	return setMap(internal.MapTypeHttpResponseHeaders, headers)
 }
 
+// GetHttpResponseHeader is used for retrieving a http response header value
+// for given "key". Only available during types.HttpContext.OnHttpResponseHeaders and
+// types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpResponseHeader(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpResponseHeaders, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
+// RemoveHttpResponseHeader removes all the values for given "key" from response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func RemoveHttpResponseHeader(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseHeaders, key))
+	return removeMapValue(internal.MapTypeHttpResponseHeaders, key)
 }
 
-func SetHttpResponseHeader(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpResponseHeaders, key, value))
+// ReplaceHttpResponseHeader replaces a value for given "key" from response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
+func ReplaceHttpResponseHeader(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
+// AddHttpResponseHeader adds a value for given "key" of response headers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func AddHttpResponseHeader(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpResponseHeaders, key, value))
+	return addMapValue(internal.MapTypeHttpResponseHeaders, key, value)
 }
 
+// GetHttpResponseBody is used for retrieving the entire http response body.
+// Only available during types.HttpContext.OnHttpResponseBody.
 func GetHttpResponseBody(start, maxSize int) ([]byte, error) {
-	ret, st := getBuffer(types.BufferTypeHttpResponseBody, start, maxSize)
-	return ret, types.StatusToError(st)
+	return getBuffer(internal.BufferTypeHttpResponseBody, start, maxSize)
 }
 
+// AppendHttpResponseBody appends the given bytes to the http response body buffer.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func AppendHttpResponseBody(data []byte) error {
-	return appendToBuffer(types.BufferTypeHttpResponseBody, data)
+	return appendToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
+// PrependHttpResponseBody prepends the given bytes to the http response body buffer.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash.
 func PrependHttpResponseBody(data []byte) error {
-	return prependToBuffer(types.BufferTypeHttpResponseBody, data)
+	return prependToBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
+// ReplaceHttpResponseBody replaces the http response body buffer with the given bytes.
+// Only available during types.HttpContext.OnHttpResponseBody.
+// Please note that you must remove "content-length" header during OnHttpResponseHeaders.
+// Otherwise, the wrong content-length would be sent to the upstream, and might result in client crash
+// if the size of the data differs from the original one.
 func ReplaceHttpResponseBody(data []byte) error {
-	return replaceBuffer(types.BufferTypeHttpResponseBody, data)
+	return replaceBuffer(internal.BufferTypeHttpResponseBody, data)
 }
 
-func GetHttpResponseTrailers() (types.Trailers, error) {
-	ret, st := getMap(types.MapTypeHttpResponseTrailers)
-	return ret, types.StatusToError(st)
+// GetHttpResponseTrailers is used for retrieving http response trailers.
+// Only available during types.HttpContext.OnHttpResponseTrailers and
+// types.HttpContext.OnHttpStreamDone.
+func GetHttpResponseTrailers() ([][2]string, error) {
+	return getMap(internal.MapTypeHttpResponseTrailers)
 }
 
-func SetHttpResponseTrailers(trailers types.Trailers) error {
-	return types.StatusToError(setMap(types.MapTypeHttpResponseTrailers, trailers))
+// ReplaceHttpResponseTrailers is used for replacing http response trailers
+// with given headers. Only available during
+// types.HttpContext.OnHttpResponseTrailers.
+func ReplaceHttpResponseTrailers(trailers [][2]string) error {
+	return setMap(internal.MapTypeHttpResponseTrailers, trailers)
 }
 
+// GetHttpResponseTrailer is used for retrieving a http response trailer value
+// for given "key". Only available during types.HttpContext.OnHttpResponseTrailers and
+// types.HttpContext.OnHttpStreamDone.
+// If multiple values are present for the key, the "first" value found in the host is returned.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/source/extensions/common/wasm/context.cc#L762-L763
+// for detail.
 func GetHttpResponseTrailer(key string) (string, error) {
-	ret, st := getMapValue(types.MapTypeHttpResponseTrailers, key)
-	return ret, types.StatusToError(st)
+	return getMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
+// RemoveHttpResponseTrailer removes all the values for given "key" from response trailers.
+// Only available during types.HttpContext.OnHttpResponseTrailers.
 func RemoveHttpResponseTrailer(key string) error {
-	return types.StatusToError(removeMapValue(types.MapTypeHttpResponseTrailers, key))
+	return removeMapValue(internal.MapTypeHttpResponseTrailers, key)
 }
 
-func SetHttpResponseTrailer(key, value string) error {
-	return types.StatusToError(setMapValue(types.MapTypeHttpResponseTrailers, key, value))
+// ReplaceHttpResponseHeader replaces a value for given "key" from response trailers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
+// If multiple values are present for the key, only the "first" value in the host is replaced.
+// See https://github.com/envoyproxy/envoy/blob/72bf41fb0ecc039f196be02f534bfc2c9c69f348/envoy/http/header_map.h#L547-L549
+// for detail.
+func ReplaceHttpResponseTrailer(key, value string) error {
+	return replaceMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
+// AddHttpResponseTrailer adds a value for given "key" of response trailers.
+// Only available during types.HttpContext.OnHttpResponseHeaders.
 func AddHttpResponseTrailer(key, value string) error {
-	return types.StatusToError(addMapValue(types.MapTypeHttpResponseTrailers, key, value))
+	return addMapValue(internal.MapTypeHttpResponseTrailers, key, value)
 }
 
+// ResumeHttpResponse can be used for resuming Http response processing which is stopped
+// after returning types.Action.Pause. Only available during types.HttpContext.
 func ResumeHttpResponse() error {
-	return types.StatusToError(rawhostcall.ProxyContinueStream(types.StreamTypeResponse))
+	return internal.StatusToError(internal.ProxyContinueStream(internal.StreamTypeResponse))
 }
 
-func RegisterSharedQueue(name string) (uint32, error) {
-	var queueID uint32
-	ptr := internal.StringBytePtr(name)
-	st := rawhostcall.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
-	return queueID, types.StatusToError(st)
-}
-
-func ResolveSharedQueue(vmID, queueName string) (uint32, error) {
-	var ret uint32
-	st := rawhostcall.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
-		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
-	return ret, types.StatusToError(st)
-}
-
-func DequeueSharedQueue(queueID uint32) ([]byte, error) {
-	var raw *byte
-	var size int
-	st := rawhostcall.ProxyDequeueSharedQueue(queueID, &raw, &size)
-	if st != types.StatusOK {
-		return nil, types.StatusToError(st)
+// SendHttpResponse sends a http response to the downstream with given information (headers, statuscode, body).
+// This call cannot be used outside types.HttpContext otherwise an error should be returned.
+// Also please note that this cannot be used after types.HttpContext.OnHttpResponseHeaders returns Continue
+// since in that case, the response headers may have already arrived at the downstream and there is no way
+// to override the already sent headers.
+func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
+	shs := internal.SerializeMap(headers)
+	var bp *byte
+	if len(body) > 0 {
+		bp = &body[0]
 	}
-	return internal.RawBytePtrToByteSlice(raw, size), nil
+	hp := &shs[0]
+	hl := len(shs)
+	return internal.StatusToError(
+		internal.ProxySendLocalResponse(
+			statusCode, nil, 0,
+			bp, len(body), hp, hl, -1,
+		),
+	)
 }
 
-func EnqueueSharedQueue(queueID uint32, data []byte) error {
-	return types.StatusToError(rawhostcall.ProxyEnqueueSharedQueue(queueID, &data[0], len(data)))
-}
-
+// GetSharedData is used for retrieving the value for given "key".
+// Returned "cas" is be used for SetSharedData on that key.
 func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
 
-	st := rawhostcall.ProxyGetSharedData(internal.StringBytePtr(key), len(key), &raw, &size, &cas)
-	if st != types.StatusOK {
-		return nil, 0, types.StatusToError(st)
+	st := internal.ProxyGetSharedData(internal.StringBytePtr(key), len(key), &raw, &size, &cas)
+	if st != internal.StatusOK {
+		return nil, 0, internal.StatusToError(st)
 	}
 	return internal.RawBytePtrToByteSlice(raw, size), cas, nil
 }
 
+// SetSharedData is used for seting key-value pairs in the shared data storage
+// which is defined per "vm_config.vm_id" in the hosts.
+// ErrorStatusNotFound will be returned when a given CAS value is mismatched
+// with the current value. That indicates that other Wasm VMs has already succeeded
+// to set a value on the same key and the current CAS for the key is incremented.
+// Having retry logic in the face of this error is recommended.
 func SetSharedData(key string, data []byte, cas uint32) error {
-	st := rawhostcall.ProxySetSharedData(internal.StringBytePtr(key),
+	st := internal.ProxySetSharedData(internal.StringBytePtr(key),
 		len(key), &data[0], len(data), cas)
-	return types.StatusToError(st)
+	return internal.StatusToError(st)
 }
 
+// GetProperty is used for retrieving property/metadata in the host
+// for a given path.
 func GetProperty(path []string) ([]byte, error) {
 	var ret *byte
 	var retSize int
 	raw := internal.SerializePropertyPath(path)
 
-	err := types.StatusToError(rawhostcall.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
+	err := internal.StatusToError(internal.ProxyGetProperty(&raw[0], len(raw), &ret, &retSize))
 	if err != nil {
 		return nil, err
 	}
@@ -356,8 +530,27 @@ func GetProperty(path []string) ([]byte, error) {
 
 }
 
-func SetProperty(path string, data []byte) error {
-	return types.StatusToError(rawhostcall.ProxySetProperty(
-		internal.StringBytePtr(path), len(path), &data[0], len(data),
+// SetProperty is used for setting property/metadata in the host
+// for a given path.
+func SetProperty(path []string, data []byte) error {
+	raw := internal.SerializePropertyPath(path)
+	return internal.StatusToError(internal.ProxySetProperty(
+		&raw[0], len(path), &data[0], len(data),
 	))
+}
+
+// CallForeignFunction calls a foreign function of given funcName defined by host implementations.
+// Foreign functions are host specific functions so please refer to the doc of your host implementation for detail.
+func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) {
+	f := internal.StringBytePtr(funcName)
+
+	var returnData *byte
+	var returnSize int
+
+	switch st := internal.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
+	case internal.StatusOK:
+		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
+	default:
+		return nil, internal.StatusToError(st)
+	}
 }

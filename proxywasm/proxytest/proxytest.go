@@ -20,7 +20,6 @@ import (
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
-	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal/rawhostcall"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -30,11 +29,16 @@ type HostEmulator interface {
 	StartPlugin() types.OnPluginStartStatus
 	FinishVM() bool
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
-	CallOnHttpCallResponse(contextID uint32, headers types.Headers, trailers types.Trailers, body []byte)
+	CallOnHttpCallResponse(contextID uint32, headers [][2]string, trailers [][2]string, body []byte)
 	GetCounterMetric(name string) (uint64, error)
 	GetGaugeMetric(name string) (uint64, error)
 	GetHistogramMetric(name string) (uint64, error)
-	GetLogs(level types.LogLevel) []string
+	GetTraceLogs() []string
+	GetDebugLogs() []string
+	GetInfoLogs() []string
+	GetWarnLogs() []string
+	GetErrorLogs() []string
+	GetCriticalLogs() []string
 	GetTickPeriod() uint32
 	Tick()
 	GetQueueSize(queueID uint32) int
@@ -50,18 +54,17 @@ type HostEmulator interface {
 
 	// http
 	InitializeHttpContext() (contextID uint32)
-	CallOnResponseHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
+	CallOnResponseHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
 	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool) types.Action
-	CallOnResponseTrailers(contextID uint32, trailers types.Trailers) types.Action
-	CallOnRequestHeaders(contextID uint32, headers types.Headers, endOfStream bool) types.Action
-	CallOnRequestTrailers(contextID uint32, trailers types.Trailers) types.Action
+	CallOnResponseTrailers(contextID uint32, trailers [][2]string) types.Action
+	CallOnRequestHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
+	CallOnRequestTrailers(contextID uint32, trailers [][2]string) types.Action
 	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool) types.Action
 	CompleteHttpContext(contextID uint32)
 	GetCurrentHttpStreamAction(contextID uint32) types.Action
-	GetCurrentRequestHeaders(contextID uint32) types.Headers
+	GetCurrentRequestHeaders(contextID uint32) [][2]string
 	GetCurrentRequestBody(contextID uint32) []byte
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
-	CallOnLogForAccessLogger(requestHeaders, responseHeaders types.Headers)
 }
 
 const (
@@ -89,7 +92,7 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		0,
 	}
 
-	release := rawhostcall.RegisterMockWasmHost(emulator)
+	release := internal.RegisterMockWasmHost(emulator)
 
 	// set up state
 	proxywasm.SetNewRootContextFn(opt.newRootContext)
@@ -109,39 +112,39 @@ func getNextContextID() (ret uint32) {
 	return
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyGetBufferBytes(bt types.BufferType, start int, maxSize int,
-	returnBufferData **byte, returnBufferSize *int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyGetBufferBytes(bt internal.BufferType, start int, maxSize int,
+	returnBufferData **byte, returnBufferSize *int) internal.Status {
 	switch bt {
-	case types.BufferTypePluginConfiguration, types.BufferTypeVMConfiguration, types.BufferTypeHttpCallResponseBody:
+	case internal.BufferTypePluginConfiguration, internal.BufferTypeVMConfiguration, internal.BufferTypeHttpCallResponseBody:
 		return h.rootHostEmulatorProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
-	case types.BufferTypeDownstreamData, types.BufferTypeUpstreamData:
+	case internal.BufferTypeDownstreamData, internal.BufferTypeUpstreamData:
 		return h.networkHostEmulatorProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
-	case types.BufferTypeHttpRequestBody, types.BufferTypeHttpResponseBody:
+	case internal.BufferTypeHttpRequestBody, internal.BufferTypeHttpResponseBody:
 		return h.httpHostEmulatorProxyGetBufferBytes(bt, start, maxSize, returnBufferData, returnBufferSize)
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 }
 
-func (h *hostEmulator) ProxySetBufferBytes(bt types.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) types.Status {
+func (h *hostEmulator) ProxySetBufferBytes(bt internal.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) internal.Status {
 	switch bt {
-	case types.BufferTypeHttpRequestBody, types.BufferTypeHttpResponseBody:
+	case internal.BufferTypeHttpRequestBody, internal.BufferTypeHttpResponseBody:
 		return h.httpHostEmulatorProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
 	default:
 		panic(fmt.Sprintf("buffer type %d is not supported by proxytest frame work yet", bt))
 	}
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *byte,
-	keySize int, returnValueData **byte, returnValueSize *int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyGetHeaderMapValue(mapType internal.MapType, keyData *byte,
+	keySize int, returnValueData **byte, returnValueSize *int) internal.Status {
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders, types.MapTypeHttpResponseHeaders,
-		types.MapTypeHttpRequestTrailers, types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpRequestHeaders, internal.MapTypeHttpResponseHeaders,
+		internal.MapTypeHttpRequestTrailers, internal.MapTypeHttpResponseTrailers:
 		return h.httpHostEmulatorProxyGetHeaderMapValue(mapType, keyData,
 			keySize, returnValueData, returnValueSize)
-	case types.MapTypeHttpCallResponseHeaders, types.MapTypeHttpCallResponseTrailers:
+	case internal.MapTypeHttpCallResponseHeaders, internal.MapTypeHttpCallResponseTrailers:
 		return h.rootHostEmulatorProxyGetMapValue(mapType, keyData,
 			keySize, returnValueData, returnValueSize)
 	default:
@@ -149,51 +152,51 @@ func (h *hostEmulator) ProxyGetHeaderMapValue(mapType types.MapType, keyData *by
 	}
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType types.MapType, returnValueData **byte,
-	returnValueSize *int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType internal.MapType, returnValueData **byte,
+	returnValueSize *int) internal.Status {
 	switch mapType {
-	case types.MapTypeHttpRequestHeaders, types.MapTypeHttpResponseHeaders,
-		types.MapTypeHttpRequestTrailers, types.MapTypeHttpResponseTrailers:
+	case internal.MapTypeHttpRequestHeaders, internal.MapTypeHttpResponseHeaders,
+		internal.MapTypeHttpRequestTrailers, internal.MapTypeHttpResponseTrailers:
 		return h.httpHostEmulatorProxyGetHeaderMapPairs(mapType, returnValueData, returnValueSize)
-	case types.MapTypeHttpCallResponseHeaders, types.MapTypeHttpCallResponseTrailers:
+	case internal.MapTypeHttpCallResponseHeaders, internal.MapTypeHttpCallResponseTrailers:
 		return h.rootHostEmulatorProxyGetHeaderMapPairs(mapType, returnValueData, returnValueSize)
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Status {
 	h.effectiveContextID = contextID
-	return types.StatusOK
+	return internal.StatusOK
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) internal.Status {
 	panic("unimplemented")
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) internal.Status {
 	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) internal.Status {
 	log.Printf("ProxyResolveSharedQueue not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyCloseStream(streamType types.StreamType) types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyCloseStream(streamType internal.StreamType) internal.Status {
 	log.Printf("ProxyCloseStream not implemented in the host emulator yet")
 	return 0
 }
 
-// impl rawhostcall.ProxyWasmHost
-func (h *hostEmulator) ProxyDone() types.Status {
+// impl internal.ProxyWasmHost
+func (h *hostEmulator) ProxyDone() internal.Status {
 	log.Printf("ProxyDone not implemented in the host emulator yet")
 	return 0
 }
