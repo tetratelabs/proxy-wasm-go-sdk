@@ -17,11 +17,13 @@ package types
 // There are three types of "contexts" you are supposed to implement for writing Proxy-Wasm plugins with this SDK.
 // They are called RootContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 //
-//              TcpContext = handling each Tcp stream
-//            ╱
+//              ╱ TcpContext = handling each Tcp stream
+//             ╱
+//            ╱ 1: N
 //  RootContext
-//            ╲
-//              Http = handling each Http stream
+//            ╲ 1: N
+//             ╲
+//              ╲ Http = handling each Http stream
 //
 // In other words, RootContex is parent of others, and responsible for creating Tcp and Http contexts
 // corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
