@@ -121,16 +121,13 @@ type HttpContext interface {
 	OnHttpStreamDone()
 }
 
+// Default*Contexts are no-op implementation of contexts.
+// Users can embed them into their custom contexts, so that
+// they only have to implement methods they want.
 type (
 	DefaultRootContext struct{}
 	DefaultTcpContext  struct{}
 	DefaultHttpContext struct{}
-)
-
-var (
-	_ RootContext = &DefaultRootContext{}
-	_ TcpContext  = &DefaultTcpContext{}
-	_ HttpContext = &DefaultHttpContext{}
 )
 
 // impl RootContext
@@ -160,3 +157,9 @@ func (*DefaultHttpContext) OnHttpResponseHeaders(int, bool) Action { return Acti
 func (*DefaultHttpContext) OnHttpResponseBody(int, bool) Action    { return ActionContinue }
 func (*DefaultHttpContext) OnHttpResponseTrailers(int) Action      { return ActionContinue }
 func (*DefaultHttpContext) OnHttpStreamDone()                      {}
+
+var (
+	_ RootContext = &DefaultRootContext{}
+	_ TcpContext  = &DefaultTcpContext{}
+	_ HttpContext = &DefaultHttpContext{}
+)
