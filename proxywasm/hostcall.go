@@ -473,6 +473,8 @@ func ResumeHttpResponse() error {
 // Also please note that this cannot be used after types.HttpContext.OnHttpResponseHeaders returns Continue
 // since in that case, the response headers may have already arrived at the downstream and there is no way
 // to override the already sent headers.
+// types.Action.Pause *must* be returned after invoking this function, in order to stop further processing
+// of original http request/response.
 func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
 	shs := internal.SerializeMap(headers)
 	var bp *byte
