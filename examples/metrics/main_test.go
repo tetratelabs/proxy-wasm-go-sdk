@@ -10,8 +10,7 @@ import (
 )
 
 func TestMetric(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newPluginContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -32,7 +31,7 @@ func TestMetric(t *testing.T) {
 	require.Contains(t, logs, "incremented")
 
 	// Check metrics.
-	value, err := host.GetCounterMetric(metricsName)
+	value, err := host.GetCounterMetric("proxy_wasm_go.request_counter")
 	require.NoError(t, err)
 	require.Equal(t, uint64(3), value)
 }

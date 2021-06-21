@@ -10,8 +10,7 @@ import (
 )
 
 func TestHttpRouting_OnHttpRequestHeaders(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newPluginContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

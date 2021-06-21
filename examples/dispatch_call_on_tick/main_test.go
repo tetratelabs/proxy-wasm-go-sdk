@@ -11,13 +11,12 @@ import (
 )
 
 func TestPluginContext_OnTick(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newPluginContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	for i := 1; i < 10; i++ {
@@ -35,12 +34,11 @@ func TestPluginContext_OnTick(t *testing.T) {
 }
 
 func TestPluginContext_OnVMStart(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newPluginContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

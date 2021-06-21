@@ -28,7 +28,7 @@ func TestContext_OnPluginStart(t *testing.T) {
 	pluginConfigData := `tinygo plugin configuration`
 	opt := proxytest.NewEmulatorOption().
 		WithPluginConfiguration([]byte(pluginConfigData)).
-		WithNewPluginContext(newPluginContext)
+		WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -45,7 +45,7 @@ func TestContext_OnVMStart(t *testing.T) {
 	vmConfigData := `tinygo vm configuration`
 	opt := proxytest.NewEmulatorOption().
 		WithVMConfiguration([]byte(vmConfigData)).
-		WithNewPluginContext(newPluginContext)
+		WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

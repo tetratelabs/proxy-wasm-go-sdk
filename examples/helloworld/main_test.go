@@ -10,13 +10,12 @@ import (
 )
 
 func TestHelloWorld_OnTick(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newHelloWorld)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
-	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	// Call OnPluginStart.
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	// Call OnTick.
@@ -27,14 +26,13 @@ func TestHelloWorld_OnTick(t *testing.T) {
 	require.Contains(t, logs, "OnTick called")
 }
 
-func TestHelloWorld_OnVMStart(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewPluginContext(newHelloWorld)
+func TestHelloWorld_OnPluginStart(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
-	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	// Call OnPluginStart.
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
 	// Check Envoy logs.
 	logs := host.GetInfoLogs()
