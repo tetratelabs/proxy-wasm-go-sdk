@@ -115,7 +115,7 @@ func (n *networkHostEmulator) CallOnDownstreamData(contextID uint32, data []byte
 // impl HostEmulator
 func (n *networkHostEmulator) InitializeConnection() (contextID uint32, action types.Action) {
 	contextID = getNextContextID()
-	internal.ProxyOnContextCreate(contextID, RootContextID)
+	internal.ProxyOnContextCreate(contextID, PluginContextID)
 	action = internal.ProxyOnNewConnection(contextID)
 	n.streamStates[contextID] = &streamState{}
 	return

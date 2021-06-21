@@ -25,48 +25,45 @@ import (
 
 var currentStateMux sync.Mutex
 
-func TestSetNewRootContextFn(t *testing.T) {
+type testSetVMContext struct {
+	cnt int
+}
+
+func (*testSetVMContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+func (ctx *testSetVMContext) NewPluginContext(contextID uint32) types.PluginContext {
+	ctx.cnt++
+	return &types.DefaultPluginContext{}
+}
+
+func TestSetVMContext(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	var cnt int
-	f := func(uint32) types.RootContext {
-		cnt++
-		return nil
-	}
-	SetNewRootContextFn(f)
-	currentState.newRootContext(0)
-	require.Equal(t, 1, cnt)
+	vmContext := &testSetVMContext{}
+	SetVMContext(vmContext)
+	_ = currentState.vmContext.NewPluginContext(0)
+	require.Equal(t, 1, vmContext.cnt)
 }
 
-func TestState_createRootContext(t *testing.T) {
-	t.Run("newRootContext exists", func(t *testing.T) {
-		type rc struct{ types.DefaultRootContext }
-		s := &state{
-			rootContexts:      map[uint32]*rootContextState{},
-			newRootContext:    func(contextID uint32) types.RootContext { return &rc{} },
-			contextIDToRootID: map[uint32]uint32{},
-		}
+func TestState_createPluginContext(t *testing.T) {
+	s := &state{
+		pluginContexts:    map[uint32]*pluginContextState{},
+		contextIDToRootID: map[uint32]uint32{},
+		vmContext:         &testSetVMContext{},
+	}
 
-		var cid uint32 = 100
-		s.createRootContext(cid)
-		require.NotNil(t, s.rootContexts[cid])
-	})
-
-	t.Run("non exists", func(t *testing.T) {
-		s := &state{rootContexts: map[uint32]*rootContextState{}, contextIDToRootID: map[uint32]uint32{}}
-		var cid uint32 = 100
-		s.createRootContext(cid)
-		c, ok := s.rootContexts[cid]
-		require.True(t, ok)
-		_, ok = c.context.(*types.DefaultRootContext)
-		require.True(t, ok)
-	})
+	var cid uint32 = 100
+	s.createPluginContext(cid)
+	require.NotNil(t, s.pluginContexts[cid])
 }
 
 type (
-	testStateRootContext struct{ types.DefaultRootContext }
-	testStateTcpContext  struct {
+	testStateVMContext     struct{}
+	testStatePluginContext struct{ types.DefaultPluginContext }
+	testStateTcpContext    struct {
 		contextID uint32
 		types.DefaultTcpContext
 	}
@@ -76,31 +73,37 @@ type (
 	}
 )
 
-func (ctx *testStateRootContext) NewTcpContext(contextID uint32) types.TcpContext {
+func (*testStateVMContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+func (ctx *testStateVMContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &testStatePluginContext{}
+}
+
+func (ctx *testStatePluginContext) NewTcpContext(contextID uint32) types.TcpContext {
 	return &testStateTcpContext{contextID: contextID}
 }
 
-func (ctx *testStateRootContext) NewHttpContext(contextID uint32) types.HttpContext {
+func (ctx *testStatePluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &testStateHttpContext{contextID: contextID}
 }
 
 func TestState_createTcpContext(t *testing.T) {
+	s := &state{
+		pluginContexts:    map[uint32]*pluginContextState{},
+		tcpContexts:       map[uint32]types.TcpContext{},
+		vmContext:         &testStateVMContext{},
+		contextIDToRootID: map[uint32]uint32{},
+	}
+
 	var (
 		cid uint32 = 100
 		rid uint32 = 10
 	)
-	s := &state{
-		rootContexts: map[uint32]*rootContextState{rid: nil},
-		streams:      map[uint32]types.TcpContext{},
-		newRootContext: func(contextID uint32) types.RootContext {
-			return &testStateRootContext{}
-		},
-		contextIDToRootID: map[uint32]uint32{},
-	}
-
-	s.createRootContext(rid)
+	s.createPluginContext(rid)
 	s.createTcpContext(cid, rid)
-	c, ok := s.streams[cid]
+	c, ok := s.tcpContexts[cid]
 	require.True(t, ok)
 	ctx, ok := c.(*testStateTcpContext)
 	require.True(t, ok)
@@ -108,22 +111,20 @@ func TestState_createTcpContext(t *testing.T) {
 }
 
 func TestState_createHttpContext(t *testing.T) {
+	s := &state{
+		pluginContexts:    map[uint32]*pluginContextState{},
+		httpContexts:      map[uint32]types.HttpContext{},
+		vmContext:         &testStateVMContext{},
+		contextIDToRootID: map[uint32]uint32{},
+	}
+
 	var (
 		cid uint32 = 100
 		rid uint32 = 10
 	)
-	s := &state{
-		rootContexts: map[uint32]*rootContextState{rid: nil},
-		httpStreams:  map[uint32]types.HttpContext{},
-		newRootContext: func(contextID uint32) types.RootContext {
-			return &testStateRootContext{}
-		},
-		contextIDToRootID: map[uint32]uint32{},
-	}
-
-	s.createRootContext(rid)
+	s.createPluginContext(rid)
 	s.createHttpContext(cid, rid)
-	c, ok := s.httpStreams[cid]
+	c, ok := s.httpContexts[cid]
 	require.True(t, ok)
 	ctx, ok := c.(*testStateHttpContext)
 	require.True(t, ok)

@@ -19,8 +19,8 @@ import (
 )
 
 type (
-	rootContextState struct {
-		context       types.RootContext
+	pluginContextState struct {
+		context       types.PluginContext
 		httpCallbacks map[uint32]*httpCallbackAttribute
 	}
 
@@ -31,57 +31,51 @@ type (
 )
 
 type state struct {
-	newRootContext func(contextID uint32) types.RootContext
-	rootContexts   map[uint32]*rootContextState
-	streams        map[uint32]types.TcpContext
-	httpStreams    map[uint32]types.HttpContext
+	vmContext      types.VMContext
+	pluginContexts map[uint32]*pluginContextState
+	httpContexts   map[uint32]types.HttpContext
+	tcpContexts    map[uint32]types.TcpContext
 
 	contextIDToRootID map[uint32]uint32
 	activeContextID   uint32
 }
 
 var currentState = &state{
-	rootContexts:      make(map[uint32]*rootContextState),
-	httpStreams:       make(map[uint32]types.HttpContext),
-	streams:           make(map[uint32]types.TcpContext),
+	pluginContexts:    make(map[uint32]*pluginContextState),
+	httpContexts:      make(map[uint32]types.HttpContext),
+	tcpContexts:       make(map[uint32]types.TcpContext),
 	contextIDToRootID: make(map[uint32]uint32),
 }
 
-func SetNewRootContextFn(f func(contextID uint32) types.RootContext) {
-	currentState.newRootContext = f
+func SetVMContext(vmContext types.VMContext) {
+	currentState.vmContext = vmContext
 }
 
 func RegisterHttpCallout(calloutID uint32, callback func(numHeaders, bodySize, numTrailers int)) {
 	currentState.registerHttpCallOut(calloutID, callback)
 }
 
-func (s *state) createRootContext(contextID uint32) {
-	var ctx types.RootContext
-	if s.newRootContext == nil {
-		ctx = &types.DefaultRootContext{}
-	} else {
-		ctx = s.newRootContext(contextID)
-	}
-
-	s.rootContexts[contextID] = &rootContextState{
+func (s *state) createPluginContext(contextID uint32) {
+	ctx := s.vmContext.NewPluginContext(contextID)
+	s.pluginContexts[contextID] = &pluginContextState{
 		context:       ctx,
 		httpCallbacks: map[uint32]*httpCallbackAttribute{},
 	}
 
 	// NOTE: this is a temporary work around for avoiding nil pointer panic
-	// when users make http dispatch(es) on RootContext.
+	// when users make http dispatch(es) on PluginContext.
 	// See https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/110
 	// TODO: refactor
 	s.contextIDToRootID[contextID] = contextID
 }
 
-func (s *state) createTcpContext(contextID uint32, rootContextID uint32) bool {
-	root, ok := s.rootContexts[rootContextID]
+func (s *state) createTcpContext(contextID uint32, pluginContextID uint32) bool {
+	root, ok := s.pluginContexts[pluginContextID]
 	if !ok {
 		panic("invalid root context id")
 	}
 
-	if _, ok := s.streams[contextID]; ok {
+	if _, ok := s.tcpContexts[contextID]; ok {
 		panic("context id duplicated")
 	}
 
@@ -90,18 +84,18 @@ func (s *state) createTcpContext(contextID uint32, rootContextID uint32) bool {
 		// NewTcpContext is not defined by the user
 		return false
 	}
-	s.contextIDToRootID[contextID] = rootContextID
-	s.streams[contextID] = ctx
+	s.contextIDToRootID[contextID] = pluginContextID
+	s.tcpContexts[contextID] = ctx
 	return true
 }
 
-func (s *state) createHttpContext(contextID uint32, rootContextID uint32) bool {
-	root, ok := s.rootContexts[rootContextID]
+func (s *state) createHttpContext(contextID uint32, pluginContextID uint32) bool {
+	root, ok := s.pluginContexts[pluginContextID]
 	if !ok {
 		panic("invalid root context id")
 	}
 
-	if _, ok := s.httpStreams[contextID]; ok {
+	if _, ok := s.httpContexts[contextID]; ok {
 		panic("context id duplicated")
 	}
 
@@ -110,13 +104,13 @@ func (s *state) createHttpContext(contextID uint32, rootContextID uint32) bool {
 		// NewHttpContext is not defined by the user
 		return false
 	}
-	s.contextIDToRootID[contextID] = rootContextID
-	s.httpStreams[contextID] = ctx
+	s.contextIDToRootID[contextID] = pluginContextID
+	s.httpContexts[contextID] = ctx
 	return true
 }
 
 func (s *state) registerHttpCallOut(calloutID uint32, callback func(numHeaders, bodySize, numTrailers int)) {
-	r := s.rootContexts[s.contextIDToRootID[s.activeContextID]]
+	r := s.pluginContexts[s.contextIDToRootID[s.activeContextID]]
 	r.httpCallbacks[calloutID] = &httpCallbackAttribute{callback: callback, callerContextID: s.activeContextID}
 }
 

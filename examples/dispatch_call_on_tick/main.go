@@ -22,32 +22,40 @@ import (
 const tickMilliseconds uint32 = 1
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type rootContext struct {
-	// Embed the default root context here,
-	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
-	contextID uint32
-}
+type vmContext struct{}
 
-func newRootContext(contextID uint32) types.RootContext {
-	return &rootContext{contextID: contextID}
-}
-
-// Override DefaultRootContext.
-func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
-		proxywasm.LogCriticalf("failed to set tick period: %v", err)
-		return types.OnVMStartStatusFailed
-	}
-	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (ctx *rootContext) OnTick() {
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &pluginContext{contextID: contextID}
+}
+
+type pluginContext struct {
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultPluginContext
+	contextID uint32
+}
+
+// Override DefaultPluginContext.
+func (ctx *pluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
+	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
+		proxywasm.LogCriticalf("failed to set tick period: %v", err)
+		return types.OnPluginStartStatusFailed
+	}
+	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
+	return types.OnPluginStartStatusOK
+}
+
+// Override DefaultPluginContext.
+func (ctx *pluginContext) OnTick() {
 	hs := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
 	}

@@ -10,19 +10,18 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-func TestRootContext_OnTick(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+func TestPluginContext_OnTick(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	for i := 1; i < 10; i++ {
 		host.Tick() // call OnTick
-		attrs := host.GetCalloutAttributesFromContext(proxytest.RootContextID)
+		attrs := host.GetCalloutAttributesFromContext(proxytest.PluginContextID)
 		// Verify DispatchHttpCall is called
 		require.Equal(t, len(attrs), i)
 		// Receive callout response.
@@ -34,13 +33,12 @@ func TestRootContext_OnTick(t *testing.T) {
 
 }
 
-func TestRootContext_OnVMStart(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+func TestPluginContext_OnVMStart(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	// Call OnVMStart.
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }

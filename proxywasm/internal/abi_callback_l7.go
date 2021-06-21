@@ -20,7 +20,7 @@ import (
 
 //export proxy_on_request_headers
 func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_headers")
 	}
@@ -31,7 +31,7 @@ func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) t
 
 //export proxy_on_request_body
 func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_body")
 	}
@@ -41,7 +41,7 @@ func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.
 
 //export proxy_on_request_trailers
 func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_trailers")
 	}
@@ -51,7 +51,7 @@ func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 
 //export proxy_on_response_headers
 func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
 	}
@@ -61,7 +61,7 @@ func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) 
 
 //export proxy_on_response_body
 func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
 	}
@@ -71,7 +71,7 @@ func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types
 
 //export proxy_on_response_trailers
 func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
-	ctx, ok := currentState.httpStreams[contextID]
+	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
 	}
@@ -80,8 +80,8 @@ func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 }
 
 //export proxy_on_http_call_response
-func proxyOnHttpCallResponse(rootContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
-	root, ok := currentState.rootContexts[rootContextID]
+func proxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
+	root, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
 		panic("http_call_response on invalid root context")
 	}

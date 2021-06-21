@@ -72,8 +72,8 @@ func Test_l7(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{httpStreams: map[uint32]types.HttpContext{cID: &l7Context{}}}
-	ctx, ok := currentState.httpStreams[cID].(*l7Context)
+	currentState = &state{httpContexts: map[uint32]types.HttpContext{cID: &l7Context{}}}
+	ctx, ok := currentState.httpContexts[cID].(*l7Context)
 	require.True(t, ok)
 
 	proxyOnRequestHeaders(cID, 0, false)
@@ -95,8 +95,8 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 	defer release()
 
 	var (
-		rootContextID uint32 = 1
-		callOutID     uint32 = 10
+		pluginContextID uint32 = 1
+		callOutID       uint32 = 10
 	)
 
 	currentStateMux.Lock()
@@ -104,25 +104,25 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 
 	ctx := &l7Context{}
 	currentState = &state{
-		rootContexts: map[uint32]*rootContextState{rootContextID: {
+		pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
 			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
 		}},
 	}
 
-	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
-	_, ok := currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
+	proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
+	_, ok := currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
 	require.True(t, ctx.onHttpCallResponse)
 
 	ctx = &l7Context{}
 	currentState = &state{
-		rootContexts: map[uint32]*rootContextState{rootContextID: {
+		pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
 			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
 		}},
 	}
 
-	proxyOnHttpCallResponse(rootContextID, callOutID, 0, 0, 0)
-	_, ok = currentState.rootContexts[rootContextID].httpCallbacks[callOutID]
+	proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
+	_, ok = currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
 	require.False(t, ok)
 	require.True(t, ctx.onHttpCallResponse)
 }

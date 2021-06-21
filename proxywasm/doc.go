@@ -22,50 +22,63 @@ This SDK leverages TinyGo(https://tinygo.org) and cannnot be used with the offic
 Please visit Proxy-Wasm Spec(https://github.com/proxy-wasm), C++ SDK(https://github.com/proxy-wasm/proxy-wasm-cpp-sdk),
 Rust SDK(https://github.com/proxy-wasm/proxy-wasm-rust-sdk) for further references.
 
-Overview
+Contexts and Wasm VM
 
 There are two main packages in this SDK. The one is this "proxywasm" package and "types" package under /types subdirectory.
 proxywasm package depends on types package, and the types package contains the intefaces you are supposed to implement
 in order to extend your network proxies.
 
-In types package, there are three types of these intefaces which we call "contexts".
-They are called RootContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
+In types package, there are four types of these intefaces which we call "contexts".
+They are VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 
-                                              ╱ TcpContext = handling each Tcp stream
-                                             ╱
-                                            ╱ 1: N
-   each plugin configuration = RootContext
-                                            ╲ 1: N
-                                             ╲
-                                              ╲ Http = handling each Http stream
+                         Wasm Virtual Machine(VM)
+                    (corresponds to VM configuration)
+ ┌────────────────────────────────────────────────────────────────────────────┐
+ │                                                      TcpContext            │
+ │                                                  ╱ (Each Tcp stream)       │
+ │                                                 ╱                          │
+ │                      1: N                      ╱ 1: N                      │
+ │       VMContext  ──────────  PluginContext                                 │
+ │  (VM configuration)     (Plugin configuration) ╲ 1: N                      │
+ │                                                 ╲                          │
+ │                                                  ╲   HttpContext           │
+ │                                                   (Each Http stream)       │
+ └────────────────────────────────────────────────────────────────────────────┘
 
-In other words, RootContex is the parent of others, and responsible for creating Tcp and Http contexts
-corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
-Given that, RootContext is the primary interface everyone has to implement.
+To summarize,
 
-Here we "plugin configuration" means, for example, "http filter configuration" in Envoy proxy's terminology.
-That means the same Wasm VM can be run at multiple "http filter configuration" (e.g. multiple http listeners),
-and for each configuration, an user implemented instance of RootContext inteface is created in side the Wasm VM and used for
-creating corresponding stream contexts.
+1) VMContext corresponds to each Wasm Virtual Machine, and only one VMContext exists in each VM.
+Note that in Envoy, Wasm VMs are created per "vm_config" field in envoy.yaml. For example having different "vm_config.configuration" fields
+results in multiple VMs being created and each of them corresponds to each "vm_config.configuration".
+
+2) VMContext is parent of PluginContext, and is responsible for creating arbitrary number of PluginContexts.
+
+3) PluginContext corresponds to each plugin configurations in the host. In Envoy, each plugin configuration is given at HttpFilter or NetworkFilter
+on listeners. That said, a plugin context corresponds to a Http or Network filter on a litener and is in charge of creating "filter instances" for
+each Http or Tcp streams. And these "filter instances" are HttpContexts or TcpContexts.
+
+4) PluginContext is parent of TcpContext and HttpContexts, and is responsible for creating arbitrary number of these contexts.
+
+5) TcpContext is responsible for handling each Tcp stream events.
+
+6) HttpContext is responsible for handling each Http stream events.
 
 Please refer to types package's documentation for the detail of interfaces.
 
 Entrypoint
 
-You must call "proxywasm.SetNewRootContextFn" in "main()" function so that the hosts (e.g. Envoy)
-can initialize your instances of RootContexts for each plugin configurations. E.g.
+You must call "proxywasm.SetVMContext" in "main()" function so that hosts can call OnVMStart and
+the program becomes ready for creating PluginContexts. E.g.
 
  func main() {
- 	proxywasm.SetNewRootContextFn(newRootContext)
+ 	proxywasm.SetVMContext(&myVMContext{})
  }
 
- func newRootContext(uint32) types.RootContext { return &myRootContext{ ... } }
-
- type myRootContext struct {
+ type myVMContext struct {
 	 ...
  }
 
- // My implementations of types.RootContext interface..
+ // My implementations of types.VMContext interface..
 
 Test Framework
 

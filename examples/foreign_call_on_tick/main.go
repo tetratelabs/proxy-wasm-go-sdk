@@ -24,33 +24,41 @@ import (
 const tickMilliseconds uint32 = 1
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type rootContext struct {
+type vmContext struct{}
+
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &pluginContext{}
+}
+
+type pluginContext struct {
 	// Embed the default root context here,
 	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
+	types.DefaultPluginContext
 	contextID uint32
 	callNum   uint32
 }
 
-func newRootContext(contextID uint32) types.RootContext {
-	return &rootContext{contextID: contextID}
-}
-
-// Override DefaultRootContext.
-func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+// Override DefaultPluginContext.
+func (ctx *pluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
-		return types.OnVMStartStatusFailed
+		return types.OnPluginStartStatusFailed
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
-	return types.OnVMStartStatusOK
+	return types.OnPluginStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (ctx *rootContext) OnTick() {
+// Override DefaultPluginContext.
+func (ctx *pluginContext) OnTick() {
 	ctx.callNum++
 	ret, err := proxywasm.CallForeignFunction("compress", []byte("hello world!"))
 	if err != nil {

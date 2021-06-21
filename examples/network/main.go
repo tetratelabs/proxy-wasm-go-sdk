@@ -19,40 +19,39 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-var (
-	connectionCounterName = "proxy_wasm_go.connection_counter"
-	counter               proxywasm.MetricCounter
-)
-
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-func newRootContext(contextID uint32) types.RootContext {
-	return &rootContext{}
-}
+type vmContext struct{}
 
-type rootContext struct {
-	// Embed the default root context here,
-	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
-}
-
-// Override DefaultRootContext.
-func (ctx *rootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	counter = proxywasm.DefineCounterMetric(connectionCounterName)
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (ctx *rootContext) NewTcpContext(contextID uint32) types.TcpContext {
-	return &networkContext{}
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &pluginContext{counter: proxywasm.DefineCounterMetric("proxy_wasm_go.connection_counter")}
+}
+
+type pluginContext struct {
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultPluginContext
+	counter proxywasm.MetricCounter
+}
+
+// Override DefaultPluginContext.
+func (ctx *pluginContext) NewTcpContext(contextID uint32) types.TcpContext {
+	return &networkContext{counter: ctx.counter}
 }
 
 type networkContext struct {
 	// Embed the default tcp context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultTcpContext
+	counter proxywasm.MetricCounter
 }
 
 // Override DefaultTcpContext.
@@ -108,6 +107,6 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 
 // Override DefaultTcpContext.
 func (ctx *networkContext) OnStreamDone() {
-	counter.Increment(1)
+	ctx.counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")
 }

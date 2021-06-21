@@ -38,26 +38,27 @@ const (
 	PeerTypeRemote PeerType = 2
 )
 
-// OnPluginStartStatus is the tyep of status returned by OnPluginStart
-type OnPluginStartStatus bool
-
-const (
-	// OnPluginStartStatusOK indicates that RootContext.OnPluginStart succeeded.
-	OnPluginStartStatusOK OnPluginStartStatus = true
-	// OnPluginStartStatusFailed indicates that RootContext.OnPluginStart failed.
-	// The further processing for that root context never happens.
-	OnPluginStartStatusFailed OnPluginStartStatus = false
-)
-
 // OnVMStartStatus is the tyep of status returned by OnVMStart
 type OnVMStartStatus bool
 
 const (
-	// OnVMStartStatusOK indicates that RootContext.OnVMStartStatus succeeded.
+	// OnVMStartStatusOK indicates that VMContext.OnVMStartStatus succeeded.
 	OnVMStartStatusOK OnVMStartStatus = true
-	// OnVMStartStatusFailed indicates that RootContext.OnVMStartStatus failed.
-	// The further processing for that root context never happens, including OnPluginStart.
+	// OnVMStartStatusFailed indicates that VMContext.OnVMStartStatus failed.
+	// The further processing for this VM never happens, and hosts would
+	// delete this VM.
 	OnVMStartStatusFailed OnVMStartStatus = false
+)
+
+// OnPluginStartStatus is the tyep of status returned by OnPluginStart
+type OnPluginStartStatus bool
+
+const (
+	// OnPluginStartStatusOK indicates that PluginContext.OnPluginStart succeeded.
+	OnPluginStartStatusOK OnPluginStartStatus = true
+	// OnPluginStartStatusFailed indicates that PluginContext.OnPluginStart failed.
+	// The further processing for that plugin context never happens.
+	OnPluginStartStatusFailed OnPluginStartStatus = false
 )
 
 var (

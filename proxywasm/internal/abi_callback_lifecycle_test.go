@@ -22,12 +22,22 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type testOnContextCreateRootContext struct {
-	types.DefaultRootContext
+type testOnContextCreatePluginVMContext struct{}
+
+func (*testOnContextCreatePluginVMContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+func (*testOnContextCreatePluginVMContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &testOnContextCreatePluginContext{cnt: 1}
+}
+
+type testOnContextCreatePluginContext struct {
+	types.DefaultPluginContext
 	cnt int
 }
 
-func (ctx *testOnContextCreateRootContext) NewTcpContext(contextID uint32) types.TcpContext {
+func (ctx *testOnContextCreatePluginContext) NewTcpContext(contextID uint32) types.TcpContext {
 	if contextID == 100 {
 		ctx.cnt += 100
 		return &types.DefaultTcpContext{}
@@ -35,7 +45,7 @@ func (ctx *testOnContextCreateRootContext) NewTcpContext(contextID uint32) types
 	return nil
 }
 
-func (ctx *testOnContextCreateRootContext) NewHttpContext(contextID uint32) types.HttpContext {
+func (ctx *testOnContextCreatePluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	if contextID == 1000 {
 		ctx.cnt += 1000
 		return &types.DefaultHttpContext{}
@@ -43,38 +53,36 @@ func (ctx *testOnContextCreateRootContext) NewHttpContext(contextID uint32) type
 	return nil
 }
 
-func Test_proxyOnContextCreateHttpContext(t *testing.T) {
+func Test_proxyOnContextCreate(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	var rootPtr *testOnContextCreateRootContext
+	vmContext := &testOnContextCreatePluginVMContext{}
 	currentState = &state{
-		rootContexts: map[uint32]*rootContextState{},
-		httpStreams:  map[uint32]types.HttpContext{},
-		streams:      map[uint32]types.TcpContext{},
-		newRootContext: func(contextID uint32) types.RootContext {
-			return &testOnContextCreateRootContext{}
-		},
+		pluginContexts:    map[uint32]*pluginContextState{},
+		httpContexts:      map[uint32]types.HttpContext{},
+		tcpContexts:       map[uint32]types.TcpContext{},
 		contextIDToRootID: map[uint32]uint32{},
 	}
 
-	SetNewRootContextFn(func(contextID uint32) types.RootContext {
-		rootPtr = &testOnContextCreateRootContext{cnt: 1}
-		return rootPtr
-	})
+	// Set the VM context.
+	SetVMContext(vmContext)
 
+	// Create Plugin context.
 	proxyOnContextCreate(1, 0)
-	require.Equal(t, 1, rootPtr.cnt)
+	require.Contains(t, currentState.pluginContexts, uint32(1))
+	pluginContext := currentState.pluginContexts[1].context.(*testOnContextCreatePluginContext)
+	require.Equal(t, 1, pluginContext.cnt)
 
+	// Create Http contexts.
 	proxyOnContextCreate(100, 1)
-	require.Equal(t, 101, rootPtr.cnt)
-
+	require.Equal(t, 101, pluginContext.cnt)
 	proxyOnContextCreate(1000, 1)
-	require.Equal(t, 1101, rootPtr.cnt)
+	require.Equal(t, 1101, pluginContext.cnt)
 }
 
 type lifecycleContext struct {
-	types.DefaultRootContext
+	types.DefaultPluginContext
 	types.DefaultHttpContext
 	types.DefaultTcpContext
 	onDoneCalled bool
@@ -98,22 +106,22 @@ func Test_onDone_or_onLog(t *testing.T) {
 	defer currentStateMux.Unlock()
 
 	currentState = &state{
-		rootContexts: map[uint32]*rootContextState{},
-		httpStreams:  map[uint32]types.HttpContext{},
-		streams:      map[uint32]types.TcpContext{},
+		pluginContexts: map[uint32]*pluginContextState{},
+		httpContexts:   map[uint32]types.HttpContext{},
+		tcpContexts:    map[uint32]types.TcpContext{},
 	}
 
 	// Stream Contexts are only called on on_log, not on on_done.
 	var id uint32 = 1
 	ctx := &lifecycleContext{}
-	currentState.httpStreams[id] = ctx
+	currentState.httpContexts[id] = ctx
 	proxyOnLog(id)
 	require.True(t, ctx.onDoneCalled)
 	require.Equal(t, id, currentState.activeContextID)
 
 	id = 2
 	ctx = &lifecycleContext{}
-	currentState.streams[id] = ctx
+	currentState.tcpContexts[id] = ctx
 	proxyOnLog(id)
 	require.True(t, ctx.onDoneCalled)
 	require.Equal(t, id, currentState.activeContextID)
@@ -121,7 +129,7 @@ func Test_onDone_or_onLog(t *testing.T) {
 	// Root Contexts are only called on on_done, not on on_log.
 	id = 3
 	ctx = &lifecycleContext{}
-	currentState.rootContexts[id] = &rootContextState{context: ctx}
+	currentState.pluginContexts[id] = &pluginContextState{context: ctx}
 	proxyOnDone(id)
 	require.True(t, ctx.onDoneCalled)
 	require.Equal(t, id, currentState.activeContextID)

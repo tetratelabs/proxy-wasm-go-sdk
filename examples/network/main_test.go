@@ -24,13 +24,12 @@ import (
 )
 
 func TestNetwork_OnNewConnection(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
-	// Call OnVMStart -> initialize metric
-	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
+	// Initialize plugin
+	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
 	// OnNewConnection is called.
 	_, action := host.InitializeConnection()
@@ -42,8 +41,7 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 }
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -60,8 +58,7 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 }
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -80,8 +77,7 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 }
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -100,8 +96,7 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 }
 
 func TestNetwork_counter(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

@@ -13,25 +13,32 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-var counter proxywasm.MetricCounter
+type vmContext struct{}
 
-type metricRootContext struct { types.DefaultRootContext }
-
-func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
-	// Initialize the metric.
-	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
-	return types.OnVMStartStatusOK
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &pluginContext{}
 }
 
-func (*metricRootContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &metricHttpContext{}
+type pluginContext struct {
+	types.DefaultPluginContext
+	counter proxywasm.MetricCounter
 }
 
-type metricHttpContext struct { types.DefaultHttpContext }
+// Implement types.PluginContext.
+func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	return &httpContext{counter: proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")}
+}
 
-func (ctx *metricHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+type httpContext struct {
+	types.DefaultHttpContext
+	counter proxywasm.MetricCounter
+}
+
+// Implement types.HttpContext.
+func (ctx *httpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	// Increment the request counter when we receive request headers.
-	counter.Increment(1)
+	ctx.counter.Increment(1)
 	return types.ActionContinue
 }
 ```
@@ -47,11 +54,9 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
 | main | 0.2.0| 1.9, 1.10 | 1.18 |
-| v0.2.0 | 0.2.0| 1.8, 1.9 | 1.17 |
+| v0.3.0 | 0.2.0| 1.8, 1.9 | 1.17 |
 
-## Run examples
-
-build:
+## Development
 
 ```bash
 # Build all examples.
@@ -59,18 +64,11 @@ make build.examples
 
 # Build a specific example.
 make build.example name=helloworld
-```
 
-run:
-
-```bash
+# Run a specific example.
 # This requires you to have Envoy binary locally.
 make run name=helloworld
-``` 
 
-## SDK development
-
-```bash
 # Run local tests without running envoy processes.
 make test
 

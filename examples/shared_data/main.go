@@ -21,15 +21,18 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
+const sharedDataKey = "shared_data_key"
+
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
 type (
-	sharedDataRootContext struct {
+	vmContext               struct{}
+	sharedDataPluginContext struct {
 		// Embed the default root context here,
 		// so that we don't need to reimplement all the methods.
-		types.DefaultRootContext
+		types.DefaultPluginContext
 	}
 
 	sharedDataHttpContext struct {
@@ -39,22 +42,21 @@ type (
 	}
 )
 
-func newRootContext(contextID uint32) types.RootContext {
-	return &sharedDataRootContext{}
-}
-
-const sharedDataKey = "shared_data_key"
-
-// Override DefaultRootContext.
-func (ctx *sharedDataRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
 	return types.OnVMStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (*sharedDataRootContext) NewHttpContext(contextID uint32) types.HttpContext {
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &sharedDataPluginContext{}
+}
+
+// Override DefaultPluginContext.
+func (*sharedDataPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &sharedDataHttpContext{}
 }
 

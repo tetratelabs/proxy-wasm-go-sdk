@@ -19,28 +19,28 @@ import (
 )
 
 // GetVMConfiguration is used for retrieving configurations ginve in the "vm_config.configuration" field.
-// This hostcall is only available during types.RootContext.OnVMStart call.
+// This hostcall is only available during types.PluginContext.OnVMStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
 func GetVMConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
 // GetPluginConfiguration is used for retrieving configurations ginve in the "config.configuration" field.
-// This hostcall is only available during types.RootContext.OnPluginStart call.
+// This hostcall is only available during types.PluginContext.OnPluginStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
 func GetPluginConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
 }
 
-// SetTickPeriodMilliSeconds sets the tick interval of types.RootContext.OnTick calls.
-// Only available for types.RootContext.
+// SetTickPeriodMilliSeconds sets the tick interval of types.PluginContext.OnTick calls.
+// Only available for types.PluginContext.
 func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
 // RegisterSharedQueue registers the shared queue on this root context.
 // "Register" means that OnQueueReady is called for this root context whenever a new item is enqueued on that queueID.
-// Only available for types.RootContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
 // Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
 // That means you can use "vm_id" can be used for separating shared queue namespace.
 func RegisterSharedQueue(name string) (ququeID uint32, err error) {
@@ -78,7 +78,7 @@ func DequeueSharedQueue(queueID uint32) ([]byte, error) {
 }
 
 // PluginDone must be callsed when OnPluginDone returns false indicating that the plugin is in pending state
-// right before deletion by hosts. Only available for types.RootContext.
+// right before deletion by hosts. Only available for types.PluginContext.
 func PluginDone() {
 	internal.ProxyDone()
 }

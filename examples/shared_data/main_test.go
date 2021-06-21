@@ -24,8 +24,7 @@ import (
 )
 
 func TestData(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

@@ -25,22 +25,30 @@ import (
 const tickMilliseconds uint32 = 1000
 
 func main() {
-	proxywasm.SetNewRootContextFn(newHelloWorld)
+	proxywasm.SetVMContext(&vmContext{})
+}
+
+type vmContext struct{}
+
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &helloWorld{}
 }
 
 type helloWorld struct {
 	// Embed the default root context here,
 	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
+	types.DefaultPluginContext
 	contextID uint32
 }
 
-func newHelloWorld(contextID uint32) types.RootContext {
-	return &helloWorld{contextID: contextID}
-}
-
-// Override DefaultRootContext.
-func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+// Override DefaultPluginContext.
+func (ctx *helloWorld) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")
@@ -48,10 +56,10 @@ func (ctx *helloWorld) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus 
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
 
-	return types.OnVMStartStatusOK
+	return types.OnPluginStartStatusOK
 }
 
-// Override DefaultRootContext.
+// Override DefaultPluginContext.
 func (ctx *helloWorld) OnTick() {
 	t := time.Now().UnixNano()
 	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
