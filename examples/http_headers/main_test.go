@@ -12,7 +12,7 @@ import (
 
 func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -48,7 +48,7 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

@@ -15,11 +15,11 @@
 package internal
 
 //export proxy_on_context_create
-func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
-	if rootContextID == 0 {
-		currentState.createRootContext(contextID)
-	} else if currentState.createHttpContext(contextID, rootContextID) {
-	} else if currentState.createTcpContext(contextID, rootContextID) {
+func proxyOnContextCreate(contextID uint32, pluginContextID uint32) {
+	if pluginContextID == 0 {
+		currentState.createPluginContext(contextID)
+	} else if currentState.createHttpContext(contextID, pluginContextID) {
+	} else if currentState.createTcpContext(contextID, pluginContextID) {
 	} else {
 		panic("invalid context id on proxy_on_context_create")
 	}
@@ -27,10 +27,10 @@ func proxyOnContextCreate(contextID uint32, rootContextID uint32) {
 
 //export proxy_on_log
 func proxyOnLog(contextID uint32) {
-	if ctx, ok := currentState.streams[contextID]; ok {
+	if ctx, ok := currentState.tcpContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		ctx.OnStreamDone()
-	} else if ctx, ok := currentState.httpStreams[contextID]; ok {
+	} else if ctx, ok := currentState.httpContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		ctx.OnHttpStreamDone()
 	}
@@ -38,7 +38,7 @@ func proxyOnLog(contextID uint32) {
 
 //export proxy_on_done
 func proxyOnDone(contextID uint32) bool {
-	if ctx, ok := currentState.rootContexts[contextID]; ok {
+	if ctx, ok := currentState.pluginContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
 		return ctx.context.OnPluginDone()
 	}
@@ -48,12 +48,12 @@ func proxyOnDone(contextID uint32) bool {
 //export proxy_on_delete
 func proxyOnDelete(contextID uint32) {
 	delete(currentState.contextIDToRootID, contextID)
-	if _, ok := currentState.streams[contextID]; ok {
-		delete(currentState.streams, contextID)
-	} else if _, ok = currentState.httpStreams[contextID]; ok {
-		delete(currentState.httpStreams, contextID)
-	} else if _, ok = currentState.rootContexts[contextID]; ok {
-		delete(currentState.rootContexts, contextID)
+	if _, ok := currentState.tcpContexts[contextID]; ok {
+		delete(currentState.tcpContexts, contextID)
+	} else if _, ok = currentState.httpContexts[contextID]; ok {
+		delete(currentState.httpContexts, contextID)
+	} else if _, ok = currentState.pluginContexts[contextID]; ok {
+		delete(currentState.pluginContexts, contextID)
 	} else {
 		panic("invalid context on proxy_on_done")
 	}

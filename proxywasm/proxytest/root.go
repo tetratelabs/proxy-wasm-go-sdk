@@ -142,7 +142,7 @@ func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *by
 	}
 
 	r.queues[queueID] = append(queue, internal.RawBytePtrToByteSlice(valueData, valueSize))
-	internal.ProxyOnQueueReady(RootContextID, queueID)
+	internal.ProxyOnQueueReady(PluginContextID, queueID)
 	return internal.StatusOK
 }
 
@@ -415,7 +415,7 @@ func (r *rootHostEmulator) GetTickPeriod() uint32 {
 
 // impl HostEmulator
 func (r *rootHostEmulator) Tick() {
-	internal.ProxyOnTick(RootContextID)
+	internal.ProxyOnTick(PluginContextID)
 }
 
 // impl HostEmulator
@@ -431,12 +431,12 @@ func (r *rootHostEmulator) GetCalloutAttributesFromContext(contextID uint32) []H
 
 // impl HostEmulator
 func (r *rootHostEmulator) StartVM() types.OnVMStartStatus {
-	return internal.ProxyOnVMStart(RootContextID, len(r.vmConfiguration))
+	return internal.ProxyOnVMStart(PluginContextID, len(r.vmConfiguration))
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) StartPlugin() types.OnPluginStartStatus {
-	return internal.ProxyOnConfigure(RootContextID, len(r.pluginConfiguration))
+	return internal.ProxyOnConfigure(PluginContextID, len(r.pluginConfiguration))
 }
 
 // impl HostEmulator
@@ -446,19 +446,19 @@ func (r *rootHostEmulator) CallOnHttpCallResponse(calloutID uint32, headers, tra
 		body              []byte
 	}{headers: headers, trailers: trailers, body: body}
 
-	// RootContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
+	// PluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
 	r.activeCalloutID = calloutID
 	defer func() {
 		r.activeCalloutID = 0
 		delete(r.httpCalloutResponse, calloutID)
 		delete(r.httpCalloutIDToContextID, calloutID)
 	}()
-	internal.ProxyOnHttpCallResponse(RootContextID, calloutID, len(headers), len(body), len(trailers))
+	internal.ProxyOnHttpCallResponse(PluginContextID, calloutID, len(headers), len(body), len(trailers))
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) FinishVM() bool {
-	return internal.ProxyOnDone(RootContextID)
+	return internal.ProxyOnDone(PluginContextID)
 }
 
 func (r *rootHostEmulator) GetCounterMetric(name string) (uint64, error) {

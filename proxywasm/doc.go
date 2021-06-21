@@ -29,43 +29,43 @@ proxywasm package depends on types package, and the types package contains the i
 in order to extend your network proxies.
 
 In types package, there are three types of these intefaces which we call "contexts".
-They are called RootContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
+They are called PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 
                                               ╱ TcpContext = handling each Tcp stream
                                              ╱
                                             ╱ 1: N
-   each plugin configuration = RootContext
+   each plugin configuration = PluginContext
                                             ╲ 1: N
                                              ╲
-                                              ╲ Http = handling each Http stream
+                                              ╲ HttpContext = handling each Http stream
 
 In other words, RootContex is the parent of others, and responsible for creating Tcp and Http contexts
 corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
-Given that, RootContext is the primary interface everyone has to implement.
+Given that, PluginContext is the primary interface everyone has to implement.
 
 Here we "plugin configuration" means, for example, "http filter configuration" in Envoy proxy's terminology.
 That means the same Wasm VM can be run at multiple "http filter configuration" (e.g. multiple http listeners),
-and for each configuration, an user implemented instance of RootContext inteface is created in side the Wasm VM and used for
+and for each configuration, an user implemented instance of PluginContext inteface is created in side the Wasm VM and used for
 creating corresponding stream contexts.
 
 Please refer to types package's documentation for the detail of interfaces.
 
 Entrypoint
 
-You must call "proxywasm.SetNewRootContextFn" in "main()" function so that the hosts (e.g. Envoy)
-can initialize your instances of RootContexts for each plugin configurations. E.g.
+You must call "proxywasm.SetNewPluginContextFn" in "main()" function so that the hosts (e.g. Envoy)
+can initialize your instances of PluginContexts for each plugin configurations. E.g.
 
  func main() {
- 	proxywasm.SetNewRootContextFn(newRootContext)
+ 	proxywasm.SetNewPluginContextFn(newPluginContext)
  }
 
- func newRootContext(uint32) types.RootContext { return &myRootContext{ ... } }
+ func newPluginContext(uint32) types.PluginContext { return &myPluginContext{ ... } }
 
- type myRootContext struct {
+ type myPluginContext struct {
 	 ...
  }
 
- // My implementations of types.RootContext interface..
+ // My implementations of types.PluginContext interface..
 
 Test Framework
 

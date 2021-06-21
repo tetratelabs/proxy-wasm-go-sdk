@@ -14,24 +14,21 @@
 
 package internal
 
-import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+import (
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+)
 
 //export proxy_on_vm_start
-func proxyOnVMStart(rootContextID uint32, vmConfigurationSize int) types.OnVMStartStatus {
-	ctx, ok := currentState.rootContexts[rootContextID]
-	if !ok {
-		panic("invalid context on proxy_on_vm_start")
-	}
-	currentState.setActiveContextID(rootContextID)
-	return ctx.context.OnVMStart(vmConfigurationSize)
+func proxyOnVMStart(_ uint32, vmConfigurationSize int) types.OnVMStartStatus {
+	return currentState.vmContext.OnVMStart(vmConfigurationSize)
 }
 
 //export proxy_on_configure
-func proxyOnConfigure(rootContextID uint32, pluginConfigurationSize int) types.OnPluginStartStatus {
-	ctx, ok := currentState.rootContexts[rootContextID]
+func proxyOnConfigure(pluginContextID uint32, pluginConfigurationSize int) types.OnPluginStartStatus {
+	ctx, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
 		panic("invalid context on proxy_on_configure")
 	}
-	currentState.setActiveContextID(rootContextID)
+	currentState.setActiveContextID(pluginContextID)
 	return ctx.context.OnPluginStart(pluginConfigurationSize)
 }

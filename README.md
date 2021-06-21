@@ -15,15 +15,15 @@ import (
 
 var counter proxywasm.MetricCounter
 
-type metricRootContext struct { types.DefaultRootContext }
+type metricPluginContext struct { types.DefaultPluginContext }
 
-func (ctx *metricRootContext) OnVMStart(int) types.OnVMStartStatus {
+func (ctx *metricPluginContext) OnVMStart(int) types.OnVMStartStatus {
 	// Initialize the metric.
 	counter = proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")
 	return types.OnVMStartStatusOK
 }
 
-func (*metricRootContext) NewHttpContext(contextID uint32) types.HttpContext {
+func (*metricPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &metricHttpContext{}
 }
 

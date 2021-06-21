@@ -325,7 +325,7 @@ func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 // impl HostEmulator
 func (h *httpHostEmulator) InitializeHttpContext() (contextID uint32) {
 	contextID = getNextContextID()
-	internal.ProxyOnContextCreate(contextID, RootContextID)
+	internal.ProxyOnContextCreate(contextID, PluginContextID)
 	h.httpStreams[contextID] = &httpStreamState{action: types.ActionContinue}
 	return
 }

@@ -20,21 +20,13 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type context struct {
-	// Embed the default root context here,
-	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
-}
+type vmContext struct{}
 
-func newRootContext(contextID uint32) types.RootContext {
-	return &context{}
-}
-
-// Override DefaultRootContext.
-func (ctx context) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
@@ -44,8 +36,19 @@ func (ctx context) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (ctx context) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(uint32) types.PluginContext {
+	return &pluginContext{}
+}
+
+type pluginContext struct {
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultPluginContext
+}
+
+// Override DefaultPluginContext.
+func (ctx pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)

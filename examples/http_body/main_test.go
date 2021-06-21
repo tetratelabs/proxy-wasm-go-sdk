@@ -11,7 +11,7 @@ import (
 
 func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newContext)
+		WithNewPluginContext(newContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -56,7 +56,7 @@ func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
 
 func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newContext)
+		WithNewPluginContext(newContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -149,7 +149,7 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 
 func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newContext).
+		WithNewPluginContext(newContext).
 		WithPluginConfiguration([]byte("echo"))
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()

@@ -17,16 +17,17 @@ package proxytest
 import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 
 type EmulatorOption struct {
-	pluginConfiguration, vmConfiguration []byte
-	newRootContext                       func(uint32) types.RootContext
+	pluginConfiguration []byte
+	vmConfiguration     []byte
+	vmContext           types.VMContext
 }
 
 func NewEmulatorOption() *EmulatorOption {
 	return &EmulatorOption{}
 }
 
-func (o *EmulatorOption) WithNewRootContext(f func(uint32) types.RootContext) *EmulatorOption {
-	o.newRootContext = f
+func (o *EmulatorOption) WithVMContext(context types.VMContext) *EmulatorOption {
+	o.vmContext = context
 	return o
 }
 

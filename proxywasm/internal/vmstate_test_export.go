@@ -21,9 +21,9 @@ import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 func VMStateReset() {
 	// (@mathetake) I assume that the currentState be protected by lock on hostMux
 	currentState = &state{
-		rootContexts:      make(map[uint32]*rootContextState),
-		httpStreams:       make(map[uint32]types.HttpContext),
-		streams:           make(map[uint32]types.TcpContext),
+		pluginContexts:    make(map[uint32]*pluginContextState),
+		httpContexts:      make(map[uint32]types.HttpContext),
+		tcpContexts:       make(map[uint32]types.TcpContext),
 		contextIDToRootID: make(map[uint32]uint32),
 	}
 }

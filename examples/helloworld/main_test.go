@@ -11,7 +11,7 @@ import (
 
 func TestHelloWorld_OnTick(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newHelloWorld)
+		WithNewPluginContext(newHelloWorld)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -29,7 +29,7 @@ func TestHelloWorld_OnTick(t *testing.T) {
 
 func TestHelloWorld_OnVMStart(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newHelloWorld)
+		WithNewPluginContext(newHelloWorld)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

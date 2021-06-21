@@ -57,8 +57,8 @@ func Test_l4(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{streams: map[uint32]types.TcpContext{cID: &l4Context{}}}
-	ctx, ok := currentState.streams[cID].(*l4Context)
+	currentState = &state{tcpContexts: map[uint32]types.TcpContext{cID: &l4Context{}}}
+	ctx, ok := currentState.tcpContexts[cID].(*l4Context)
 	require.True(t, ok)
 
 	proxyOnNewConnection(cID)

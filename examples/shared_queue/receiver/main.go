@@ -22,31 +22,39 @@ import (
 const queueName = "http_headers"
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type receiverRootContext struct {
+type vmContext struct{}
+
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(uint32) types.PluginContext {
+	return &receiverPluginContext{}
+}
+
+type receiverPluginContext struct {
 	// Embed the default root context here,
 	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
+	types.DefaultPluginContext
 }
 
-func newRootContext(uint32) types.RootContext {
-	return &receiverRootContext{}
-}
-
-// Override DefaultRootContext.
-func (ctx *receiverRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+// Override DefaultPluginContext.
+func (ctx *receiverPluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
 	queueID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
 		panic("failed register queue")
 	}
 	proxywasm.LogInfof("queue \"%s\" registered as id=%d", queueName, queueID)
-	return types.OnVMStartStatusOK
+	return types.OnPluginStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (ctx *receiverRootContext) OnQueueReady(queueID uint32) {
+// Override DefaultPluginContext.
+func (ctx *receiverPluginContext) OnQueueReady(queueID uint32) {
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
 	case types.ErrorStatusEmpty:

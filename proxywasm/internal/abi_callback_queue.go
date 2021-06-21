@@ -16,7 +16,7 @@ package internal
 
 //export proxy_on_queue_ready
 func proxyOnQueueReady(contextID, queueID uint32) {
-	ctx, ok := currentState.rootContexts[contextID]
+	ctx, ok := currentState.pluginContexts[contextID]
 	if !ok {
 		panic("invalid context")
 	}

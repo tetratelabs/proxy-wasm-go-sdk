@@ -68,10 +68,10 @@ type HostEmulator interface {
 }
 
 const (
-	RootContextID uint32 = 1 // TODO: support multiple rootContext
+	PluginContextID uint32 = 1 // TODO: support multiple pluginContext
 )
 
-var nextContextID = RootContextID + 1
+var nextContextID = PluginContextID + 1
 
 type hostEmulator struct {
 	*rootHostEmulator
@@ -95,10 +95,10 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 	release := internal.RegisterMockWasmHost(emulator)
 
 	// set up state
-	proxywasm.SetNewRootContextFn(opt.newRootContext)
+	proxywasm.SetVMContext(opt.vmContext)
 
 	// create root context: TODO: support multiple root contexts
-	internal.ProxyOnContextCreate(RootContextID, 0)
+	internal.ProxyOnContextCreate(PluginContextID, 0)
 
 	return emulator, func() {
 		defer release()

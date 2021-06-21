@@ -22,35 +22,54 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type configurationContext struct {
-	types.DefaultRootContext
-	onVMStartCalled, onPluginStartCalled bool
+type testConfigurationVMContext struct {
+	types.DefaultPluginContext
+	onVMStartCalled bool
 }
 
-func (c *configurationContext) OnVMStart(int) types.OnVMStartStatus {
+func (c *testConfigurationVMContext) OnVMStart(int) types.OnVMStartStatus {
 	c.onVMStartCalled = true
 	return true
 }
 
-func (c *configurationContext) OnPluginStart(int) types.OnPluginStartStatus {
+func (c *testConfigurationVMContext) NewPluginContext(uint32) types.PluginContext {
+	return &testConfigurationPluginContext{}
+}
+
+type testConfigurationPluginContext struct {
+	types.DefaultPluginContext
+	onPluginStartCalled bool
+}
+
+func (c *testConfigurationPluginContext) OnPluginStart(int) types.OnPluginStartStatus {
 	c.onPluginStartCalled = true
 	return true
 }
 
 func Test_proxyOnVMStart(t *testing.T) {
-	var rID uint32 = 100
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{rootContexts: map[uint32]*rootContextState{rID: {context: &configurationContext{}}}}
+	vmContext := &testConfigurationVMContext{}
+	currentState = &state{
+		vmContext:         vmContext,
+		pluginContexts:    map[uint32]*pluginContextState{},
+		contextIDToRootID: map[uint32]uint32{},
+	}
 
-	proxyOnVMStart(rID, 0)
-	ctx, ok := currentState.rootContexts[rID].context.(*configurationContext)
-	require.True(t, ok)
-	require.True(t, ctx.onVMStartCalled)
-	require.Equal(t, rID, currentState.activeContextID)
+	// Call OnVMStart.
+	proxyOnVMStart(0, 0)
+	require.True(t, vmContext.onVMStartCalled)
+	require.Equal(t, uint32(0), currentState.activeContextID)
 
-	proxyOnConfigure(rID, 0)
-	require.True(t, ctx.onPluginStartCalled)
-	require.Equal(t, rID, currentState.activeContextID)
+	// Create plugin context.
+	pluginContextID := uint32(100)
+	proxyOnContextCreate(pluginContextID, 0)
+	require.Contains(t, currentState.pluginContexts, pluginContextID)
+	pluginContext := currentState.pluginContexts[pluginContextID].context.(*testConfigurationPluginContext)
+
+	// Call OnPluginStart.
+	proxyOnConfigure(pluginContextID, 0)
+	require.True(t, pluginContext.onPluginStartCalled)
+	require.Equal(t, pluginContextID, currentState.activeContextID)
 }

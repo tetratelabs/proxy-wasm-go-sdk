@@ -20,19 +20,29 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type rootContext struct {
+type vmContext struct{}
+
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &pluginContext{}
+}
+
+type pluginContext struct {
 	// Embed the default root context here,
 	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
+	types.DefaultPluginContext
 }
 
-func newRootContext(uint32) types.RootContext { return &rootContext{} }
-
-// Override DefaultRootContext.
-func (*rootContext) NewHttpContext(contextID uint32) types.HttpContext {
+// Override DefaultPluginContext.
+func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpHeaders{contextID: contextID}
 }
 

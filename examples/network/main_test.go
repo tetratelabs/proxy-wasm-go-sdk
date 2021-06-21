@@ -25,7 +25,7 @@ import (
 
 func TestNetwork_OnNewConnection(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -43,7 +43,7 @@ func TestNetwork_OnNewConnection(t *testing.T) {
 
 func TestNetwork_OnDownstreamClose(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -61,7 +61,7 @@ func TestNetwork_OnDownstreamClose(t *testing.T) {
 
 func TestNetwork_OnDownstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -81,7 +81,7 @@ func TestNetwork_OnDownstreamData(t *testing.T) {
 
 func TestNetwork_OnUpstreamData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
@@ -101,7 +101,7 @@ func TestNetwork_OnUpstreamData(t *testing.T) {
 
 func TestNetwork_counter(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

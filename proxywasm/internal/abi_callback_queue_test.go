@@ -23,7 +23,7 @@ import (
 )
 
 type queueContext struct {
-	types.DefaultRootContext
+	types.DefaultPluginContext
 	onQueueReady bool
 }
 
@@ -36,8 +36,8 @@ func Test_queueReady(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{rootContexts: map[uint32]*rootContextState{id: {context: &queueContext{}}}}
-	ctx, ok := currentState.rootContexts[id].context.(*queueContext)
+	currentState = &state{pluginContexts: map[uint32]*pluginContextState{id: {context: &queueContext{}}}}
+	ctx, ok := currentState.pluginContexts[id].context.(*queueContext)
 	require.True(t, ok)
 	proxyOnQueueReady(id, 10)
 	require.True(t, ctx.onQueueReady)

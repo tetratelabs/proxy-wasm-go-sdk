@@ -26,25 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_configuration_from_root(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
-	defer kill()
-	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:18000")
-		if err != nil {
-			return false
-		}
-		defer res.Body.Close()
-		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
-	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{
-			"plugin config from root context",
-			"name\": \"plugin configuration",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
-}
-
 func Test_dispatch_call_on_tick(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()

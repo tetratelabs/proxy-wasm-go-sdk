@@ -21,12 +21,12 @@ import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 // this file exists only for proxytest package which is used with the `proxytest` build tag.
 //	Therefore, these functions are not included in a resulting Wasm binary
 
-func ProxyOnVMStart(rootContextID uint32, vmConfigurationSize int) types.OnVMStartStatus {
-	return proxyOnVMStart(rootContextID, vmConfigurationSize)
+func ProxyOnVMStart(pluginContextID uint32, vmConfigurationSize int) types.OnVMStartStatus {
+	return proxyOnVMStart(pluginContextID, vmConfigurationSize)
 }
 
-func ProxyOnConfigure(rootContextID uint32, vmConfigurationSize int) types.OnPluginStartStatus {
-	return proxyOnConfigure(rootContextID, vmConfigurationSize)
+func ProxyOnConfigure(pluginContextID uint32, vmConfigurationSize int) types.OnPluginStartStatus {
+	return proxyOnConfigure(pluginContextID, vmConfigurationSize)
 }
 
 func ProxyOnNewConnection(contextID uint32) types.Action {
@@ -73,28 +73,28 @@ func ProxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 	return proxyOnResponseTrailers(contextID, numTrailers)
 }
 
-func ProxyOnHttpCallResponse(rootContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
-	proxyOnHttpCallResponse(rootContextID, calloutID, numHeaders, bodySize, numTrailers)
+func ProxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
+	proxyOnHttpCallResponse(pluginContextID, calloutID, numHeaders, bodySize, numTrailers)
 }
 
-func ProxyOnContextCreate(contextID uint32, rootContextID uint32) {
-	proxyOnContextCreate(contextID, rootContextID)
+func ProxyOnContextCreate(contextID uint32, pluginContextID uint32) {
+	proxyOnContextCreate(contextID, pluginContextID)
 }
 
 func ProxyOnDone(contextID uint32) bool {
 	return proxyOnDone(contextID)
 }
 
-func ProxyOnLog(rootContextID uint32) {
-	proxyOnLog(rootContextID)
+func ProxyOnLog(pluginContextID uint32) {
+	proxyOnLog(pluginContextID)
 }
 
 func ProxyOnQueueReady(contextID, queueID uint32) {
 	proxyOnQueueReady(contextID, queueID)
 }
 
-func ProxyOnTick(rootContextID uint32) {
-	proxyOnTick(rootContextID)
+func ProxyOnTick(pluginContextID uint32) {
+	proxyOnTick(pluginContextID)
 }
 
 func ProxyOnDelete(contextID uint32) {

@@ -23,7 +23,7 @@ import (
 )
 
 type timerContext struct {
-	types.DefaultRootContext
+	types.DefaultPluginContext
 	onTick bool
 }
 
@@ -36,8 +36,8 @@ func Test_onTick(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	currentState = &state{rootContexts: map[uint32]*rootContextState{id: {context: &timerContext{}}}}
-	ctx, ok := currentState.rootContexts[id].context.(*timerContext)
+	currentState = &state{pluginContexts: map[uint32]*pluginContextState{id: {context: &timerContext{}}}}
+	ctx, ok := currentState.pluginContexts[id].context.(*timerContext)
 	require.True(t, ok)
 	proxyOnTick(id)
 	require.True(t, ctx.onTick)

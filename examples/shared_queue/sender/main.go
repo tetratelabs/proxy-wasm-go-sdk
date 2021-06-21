@@ -27,21 +27,33 @@ const (
 )
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-type senderRootContext struct {
+type vmContext struct{}
+
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(int) types.OnVMStartStatus {
+	return types.OnVMStartStatusOK
+}
+
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(uint32) types.PluginContext {
+	return &senderPluginContext{}
+}
+
+type senderPluginContext struct {
 	// Embed the default root context here,
 	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
+	types.DefaultPluginContext
 }
 
-func newRootContext(uint32) types.RootContext {
-	return &senderRootContext{}
+func newPluginContext(uint32) types.PluginContext {
+	return &senderPluginContext{}
 }
 
-// Override DefaultRootContext.
-func (ctx *senderRootContext) NewHttpContext(contextID uint32) types.HttpContext {
+// Override DefaultPluginContext.
+func (ctx *senderPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	queueID, err := proxywasm.ResolveSharedQueue(receiverVMID, queueName)
 	if err != nil {
 		proxywasm.LogCriticalf("error resolving queue id: %v", err)

@@ -25,7 +25,7 @@ import (
 
 func TestData(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().
-		WithNewRootContext(newRootContext)
+		WithNewPluginContext(newPluginContext)
 	host, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 

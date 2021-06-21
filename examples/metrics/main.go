@@ -20,46 +20,48 @@ import (
 )
 
 func main() {
-	proxywasm.SetNewRootContextFn(newRootContext)
+	proxywasm.SetVMContext(&vmContext{})
 }
 
-var counter proxywasm.MetricCounter
+type vmContext struct{}
 
-const metricsName = "proxy_wasm_go.request_counter"
-
-type metricRootContext struct {
-	// Embed the default root context here,
-	// so that we don't need to reimplement all the methods.
-	types.DefaultRootContext
-}
-
-func newRootContext(uint32) types.RootContext {
-	return &metricRootContext{}
-}
-
-// Override DefaultRootContext.
-func (ctx *metricRootContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	counter = proxywasm.DefineCounterMetric(metricsName)
+// Implement types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-// Override DefaultRootContext.
-func (*metricRootContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &metricHttpContext{}
+// Implement types.VMContext.
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &metricPluginContext{
+		counter: proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter"),
+	}
+}
+
+type metricPluginContext struct {
+	// Embed the default root context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultPluginContext
+	counter proxywasm.MetricCounter
+}
+
+// Override DefaultPluginContext.
+func (ctx *metricPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	return &metricHttpContext{counter: ctx.counter}
 }
 
 type metricHttpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
+	counter proxywasm.MetricCounter
 }
 
 // Override DefaultHttpContext.
 func (ctx *metricHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	prev := counter.Get()
-	proxywasm.LogInfof("previous value of %s: %d", metricsName, prev)
+	prev := ctx.counter.Get()
+	proxywasm.LogInfof("previous value of %s: %d", "proxy_wasm_go.request_counter", prev)
 
-	counter.Increment(1)
+	ctx.counter.Increment(1)
 	proxywasm.LogInfo("incremented")
 	return types.ActionContinue
 }

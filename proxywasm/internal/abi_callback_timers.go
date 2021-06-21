@@ -15,8 +15,8 @@
 package internal
 
 //export proxy_on_tick
-func proxyOnTick(rootContextID uint32) {
-	ctx, ok := currentState.rootContexts[rootContextID]
+func proxyOnTick(pluginContextID uint32) {
+	ctx, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
 		panic("invalid root_context_id")
 	}

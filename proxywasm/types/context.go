@@ -14,37 +14,41 @@
 
 package types
 
-// There are three types of "contexts" you are supposed to implement for writing Proxy-Wasm plugins with this SDK.
-// They are called RootContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
+// There four three types of "contexts" you are supposed to implement for writing Proxy-Wasm plugins with this SDK.
+// They are called VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
+// TODO: Add VM Context.
 //
 //              ╱ TcpContext = handling each Tcp stream
 //             ╱
 //            ╱ 1: N
-//  RootContext
+//  PluginContext
 //            ╲ 1: N
 //             ╲
-//              ╲ Http = handling each Http stream
+//              ╲ HttpContext = handling each Http stream
 //
 // In other words, RootContex is the parent of others, and responsible for creating Tcp and Http contexts
 // corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
-// Given that, RootContext is the primary interface everyone has to implement.
+// Given that, PluginContext is the primary interface everyone has to implement.
 //
-// RootContext corresponds to each different plugin configurations (config.configuration),
-// and the root context created first is specially treated as a VM context, which can handle
-// vm_config.configuration during OnVMStart call to do VM-wise initialization.
-type RootContext interface {
+type VMContext interface {
 	// OnVMStart is called after the VM is created and main function is called.
 	// During this call, GetVmConfiguration hostcall is available and can be used to
 	// retrieve the configuration set at vm_config.configuration.
 	//
 	// Note that **only one root cnotext is called on this function**.
-	// That is because there's Wasm VM: RootContext = 1: N correspondence, and
+	// That is because there's Wasm VM: PluginContext = 1: N correspondence, and
 	// the firstly created root context of these root contexts will be treated
 	// as a *VM context* on which OnVMStart is invoked by host.
 	// In other words, vm_config.configuration is only available for only one root context
 	// which is created first.
 	OnVMStart(vmConfigurationSize int) OnVMStartStatus
+	NewPluginContext(contextID uint32) PluginContext
+}
 
+// PluginContext corresponds to each different plugin configurations (config.configuration),
+// and the root context created first is specially treated as a VM context, which can handle
+// vm_config.configuration during OnVMStart call to do VM-wise initialization.
+type PluginContext interface {
 	// OnPluginStart is called on all root contexts (after OnVmStart if this is the VM context).
 	// During this call, hostcalls.getPluginConfiguration is available and can be used to
 	// retrieve the configuration set at config.configuration in envoy.yaml
@@ -77,7 +81,7 @@ type RootContext interface {
 	NewHttpContext(contextID uint32) HttpContext
 }
 
-// TcpContext corresponds to each Tcp stream and is created by RootContext via NewTcpContext.
+// TcpContext corresponds to each Tcp stream and is created by PluginContext via NewTcpContext.
 type TcpContext interface {
 	// OnNewConnection is called when the Tcp connection is established between Down and Upstreams.
 	OnNewConnection() Action
@@ -100,7 +104,7 @@ type TcpContext interface {
 	OnStreamDone()
 }
 
-// HttpContext corresponds to each Http stream and is created by RootContext via NewHttpContext.
+// HttpContext corresponds to each Http stream and is created by PluginContext via NewHttpContext.
 type HttpContext interface {
 	// OnHttpRequestHeaders is called when request headers arrives.
 	// Return types.ActionPause if you want to stop sending headers to upstream.
@@ -140,8 +144,8 @@ type HttpContext interface {
 // Users can embed them into their custom contexts, so that
 // they only have to implement methods they want.
 type (
-	// DefaultRootContext provides the no-op implementation of RootContext interface.
-	DefaultRootContext struct{}
+	// DefaultPluginContext provides the no-op implementation of PluginContext interface.
+	DefaultPluginContext struct{}
 
 	// DefaultTcpContext provides the no-op implementation of TcpContext interface.
 	DefaultTcpContext struct{}
@@ -150,16 +154,15 @@ type (
 	DefaultHttpContext struct{}
 )
 
-// impl RootContext
-func (*DefaultRootContext) OnQueueReady(uint32)           {}
-func (*DefaultRootContext) OnTick()                       {}
-func (*DefaultRootContext) OnVMStart(int) OnVMStartStatus { return OnVMStartStatusOK }
-func (*DefaultRootContext) OnPluginStart(int) OnPluginStartStatus {
+// impl PluginContext
+func (*DefaultPluginContext) OnQueueReady(uint32) {}
+func (*DefaultPluginContext) OnTick()             {}
+func (*DefaultPluginContext) OnPluginStart(int) OnPluginStartStatus {
 	return OnPluginStartStatusOK
 }
-func (*DefaultRootContext) OnPluginDone() bool                { return true }
-func (*DefaultRootContext) NewTcpContext(uint32) TcpContext   { return nil }
-func (*DefaultRootContext) NewHttpContext(uint32) HttpContext { return nil }
+func (*DefaultPluginContext) OnPluginDone() bool                { return true }
+func (*DefaultPluginContext) NewTcpContext(uint32) TcpContext   { return nil }
+func (*DefaultPluginContext) NewHttpContext(uint32) HttpContext { return nil }
 
 // impl TcpContext
 func (*DefaultTcpContext) OnDownstreamData(int, bool) Action { return ActionContinue }
@@ -179,7 +182,7 @@ func (*DefaultHttpContext) OnHttpResponseTrailers(int) Action      { return Acti
 func (*DefaultHttpContext) OnHttpStreamDone()                      {}
 
 var (
-	_ RootContext = &DefaultRootContext{}
-	_ TcpContext  = &DefaultTcpContext{}
-	_ HttpContext = &DefaultHttpContext{}
+	_ PluginContext = &DefaultPluginContext{}
+	_ TcpContext    = &DefaultTcpContext{}
+	_ HttpContext   = &DefaultHttpContext{}
 )
