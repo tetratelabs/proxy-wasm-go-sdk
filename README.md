@@ -27,11 +27,11 @@ type pluginContext struct {
 
 // Implement types.PluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &httpContext{context: proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")}
+	return &httpContext{counter: proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter")}
 }
 
-type httpContext struct { 
-    types.DefaultHttpContext 
+type httpContext struct {
+	types.DefaultHttpContext
 	counter proxywasm.MetricCounter
 }
 
