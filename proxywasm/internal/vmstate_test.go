@@ -26,8 +26,7 @@ import (
 var currentStateMux sync.Mutex
 
 type testSetVMContext struct {
-	cnt               int
-	shuldCreatePlugin bool
+	cnt int
 }
 
 func (*testSetVMContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
