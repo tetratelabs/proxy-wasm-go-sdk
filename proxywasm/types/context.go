@@ -14,40 +14,59 @@
 
 package types
 
-// There four three types of "contexts" you are supposed to implement for writing Proxy-Wasm plugins with this SDK.
-// They are called VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
-// TODO: Add VM Context.
+// There are four types of these intefaces which you are supposed to implement in order to extend your network proxies.
+// They are VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 //
-//              ╱ TcpContext = handling each Tcp stream
-//             ╱
-//            ╱ 1: N
-//  PluginContext
-//            ╲ 1: N
-//             ╲
-//              ╲ HttpContext = handling each Http stream
+//                          Wasm Virtual Machine(VM)
+//                     (corresponds to VM configuration)
+//  ┌────────────────────────────────────────────────────────────────────────────┐
+//  │                                                      TcpContext            │
+//  │                                                  ╱ (Each Tcp stream)       │
+//  │                                                 ╱                          │
+//  │                      1: N                      ╱ 1: N                      │
+//  │       VMContext  ──────────  PluginContext                                 │
+//  │  (VM configuration)     (Plugin configuration) ╲ 1: N                      │
+//  │                                                 ╲                          │
+//  │                                                  ╲   HttpContext           │
+//  │                                                   (Each Http stream)       │
+//  └────────────────────────────────────────────────────────────────────────────┘
 //
-// In other words, RootContex is the parent of others, and responsible for creating Tcp and Http contexts
-// corresponding to each streams if it is configured for running as a Http/Tcp stream plugin.
-// Given that, PluginContext is the primary interface everyone has to implement.
+// To summarize,
 //
+// 1) VMContext corresponds to each Wasm Virtual Machine, and only one VMContext exists in each VM.
+// Note that in Envoy, Wasm VMs are created per "vm_config" field in envoy.yaml. For example having different "vm_config.configuration" fields
+// results in multiple VMs being created and each of them corresponds to each "vm_config.configuration".
+//
+// 2) VMContext is parent of PluginContext, and is responsible for creating arbitrary number of PluginContexts.
+//
+// 3) PluginContext corresponds to each plugin configurations in the host. In Envoy, each plugin configuration is given at HttpFilter or NetworkFilter
+// on listeners. That said, a plugin context corresponds to a Http or Network filter on a litener and is in charge of creating "filter instances" for
+// each Http or Tcp streams. And these "filter instances" are HttpContexts or TcpContexts.
+//
+// 4) PluginContext is parent of TcpContext and HttpContexts, and is responsible for creating arbitrary number of these contexts.
+//
+// 5) TcpContext is responsible for handling each Tcp stream events.
+//
+// 6) HttpContext is responsible for handling each Http stream events.
+//
+//
+// VMContext corresponds to each Wasm VM machine and its configuration. Thefore,
+// this is the entrypoint for extending your network proxy.
+// Its lifetime is exactly the same as Wasm Virtual Machines on the host.
 type VMContext interface {
 	// OnVMStart is called after the VM is created and main function is called.
 	// During this call, GetVmConfiguration hostcall is available and can be used to
 	// retrieve the configuration set at vm_config.configuration.
-	//
-	// Note that **only one root cnotext is called on this function**.
-	// That is because there's Wasm VM: PluginContext = 1: N correspondence, and
-	// the firstly created root context of these root contexts will be treated
-	// as a *VM context* on which OnVMStart is invoked by host.
-	// In other words, vm_config.configuration is only available for only one root context
-	// which is created first.
+	// This is mainly used for doing Wasm VM-wise initialization.
 	OnVMStart(vmConfigurationSize int) OnVMStartStatus
+
+	// NewPluginContext is used for creating PluginContext for each plugin configurations.
 	NewPluginContext(contextID uint32) PluginContext
 }
 
-// PluginContext corresponds to each different plugin configurations (config.configuration),
-// and the root context created first is specially treated as a VM context, which can handle
-// vm_config.configuration during OnVMStart call to do VM-wise initialization.
+// PluginContext corresponds to each different plugin configurations (config.configuration).
+// Each configuration is usually given at each http/tcp filter in a listener in the hosts,
+// so PluginContext is responsible for creating "filter instances" for each Tcp/Http streams on the listener.
 type PluginContext interface {
 	// OnPluginStart is called on all root contexts (after OnVmStart if this is the VM context).
 	// During this call, hostcalls.getPluginConfiguration is available and can be used to
