@@ -28,11 +28,7 @@ func main() {
 }
 
 type (
-	vmContext struct {
-		// Embed the default VM context here,
-		// so that we don't need to reimplement all the methods.
-		types.DefaultVMContext
-	}
+	vmContext     struct{}
 	pluginContext struct {
 		// Embed the default plugin context here,
 		// so that we don't need to reimplement all the methods.
@@ -45,6 +41,14 @@ type (
 		types.DefaultHttpContext
 	}
 )
+
+// Override types.VMContext.
+func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
+	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
+		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
+	}
+	return types.OnVMStartStatusOK
+}
 
 // Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
