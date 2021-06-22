@@ -25,7 +25,6 @@ func main() {
 
 type vmContext struct{}
 
-// Implement types.VMContext.
 func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
 	if err != nil {
@@ -42,12 +41,12 @@ func (*vmContext) NewPluginContext(uint32) types.PluginContext {
 }
 
 type pluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {

@@ -96,7 +96,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Increment(c.offset)
 
 				// get
-				require.Equal(t, c.offset, m.Get())
+				require.Equal(t, c.offset, m.Value())
 			})
 		}
 	})
@@ -116,7 +116,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Add(c.offset)
 
 				// get
-				require.Equal(t, c.offset, m.Get())
+				require.Equal(t, c.offset, m.Value())
 			})
 		}
 	})
@@ -136,7 +136,7 @@ func TestHostCall_Metric(t *testing.T) {
 				m.Record(c.value)
 
 				// get
-				require.Equal(t, c.value, m.Get())
+				require.Equal(t, c.value, m.Value())
 			})
 		}
 	})

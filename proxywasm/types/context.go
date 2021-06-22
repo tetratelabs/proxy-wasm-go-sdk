@@ -68,12 +68,12 @@ type VMContext interface {
 // Each configuration is usually given at each http/tcp filter in a listener in the hosts,
 // so PluginContext is responsible for creating "filter instances" for each Tcp/Http streams on the listener.
 type PluginContext interface {
-	// OnPluginStart is called on all root contexts (after OnVmStart if this is the VM context).
+	// OnPluginStart is called on all plugin contexts (after OnVmStart if this is the VM context).
 	// During this call, hostcalls.getPluginConfiguration is available and can be used to
 	// retrieve the configuration set at config.configuration in envoy.yaml
 	OnPluginStart(pluginConfigurationSize int) OnPluginStartStatus
 
-	// onPluginDone is called right before root contexts are deleted by hosts.
+	// onPluginDone is called right before plugin contexts are deleted by hosts.
 	// Return false to indicate it's in a pending state to do some more work left.
 	// In that case, must call PluginDone() host call after the work is done to indicate that
 	// hosts can kill this contexts.
@@ -84,13 +84,13 @@ type PluginContext interface {
 	// the queue is empty during OnQueueReady even if it is not dequeued by this VM.
 	OnQueueReady(queueID uint32)
 
-	// OnTick is called when SetTickPeriodMilliSeconds hostcall is called by this root context.
+	// OnTick is called when SetTickPeriodMilliSeconds hostcall is called by this plugin context.
 	// This can be used for doing some asynchronous tasks in parallel to stream processing.
 	OnTick()
 
 	// The following functions are used for creating contexts on streams,
 	// and developers *must* implement either of them corresponding to
-	// extension points. For example, if you configure this root context is running
+	// extension points. For example, if you configure this plugin context is running
 	// at Http filters, then NewHttpContext must be implemented. Same goes for
 	// Tcp filters.
 	//
@@ -163,6 +163,9 @@ type HttpContext interface {
 // Users can embed them into their custom contexts, so that
 // they only have to implement methods they want.
 type (
+	// DefaultVMContext provides the no-op implementation of VMContext interface.
+	DefaultVMContext struct{}
+
 	// DefaultPluginContext provides the no-op implementation of PluginContext interface.
 	DefaultPluginContext struct{}
 
@@ -172,6 +175,12 @@ type (
 	// DefaultHttpContext provides the no-op implementation of HttpContext interface.
 	DefaultHttpContext struct{}
 )
+
+// impl VMContext
+func (*DefaultVMContext) OnVMStart(vmConfigurationSize int) OnVMStartStatus { return OnVMStartStatusOK }
+func (*DefaultVMContext) NewPluginContext(contextID uint32) PluginContext {
+	return &DefaultPluginContext{}
+}
 
 // impl PluginContext
 func (*DefaultPluginContext) OnQueueReady(uint32) {}
@@ -201,6 +210,7 @@ func (*DefaultHttpContext) OnHttpResponseTrailers(int) Action      { return Acti
 func (*DefaultHttpContext) OnHttpStreamDone()                      {}
 
 var (
+	_ VMContext     = &DefaultVMContext{}
 	_ PluginContext = &DefaultPluginContext{}
 	_ TcpContext    = &DefaultTcpContext{}
 	_ HttpContext   = &DefaultHttpContext{}

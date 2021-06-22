@@ -28,26 +28,25 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &helloWorld{}
 }
 
 type helloWorld struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 	contextID uint32
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *helloWorld) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
@@ -59,7 +58,7 @@ func (ctx *helloWorld) OnPluginStart(vmConfigurationSize int) types.OnPluginStar
 	return types.OnPluginStartStatusOK
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *helloWorld) OnTick() {
 	t := time.Now().UnixNano()
 	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())

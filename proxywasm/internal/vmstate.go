@@ -72,7 +72,7 @@ func (s *state) createPluginContext(contextID uint32) {
 func (s *state) createTcpContext(contextID uint32, pluginContextID uint32) bool {
 	root, ok := s.pluginContexts[pluginContextID]
 	if !ok {
-		panic("invalid root context id")
+		panic("invalid plugin context id")
 	}
 
 	if _, ok := s.tcpContexts[contextID]; ok {
@@ -92,7 +92,7 @@ func (s *state) createTcpContext(contextID uint32, pluginContextID uint32) bool 
 func (s *state) createHttpContext(contextID uint32, pluginContextID uint32) bool {
 	root, ok := s.pluginContexts[pluginContextID]
 	if !ok {
-		panic("invalid root context id")
+		panic("invalid plugin context id")
 	}
 
 	if _, ok := s.httpContexts[contextID]; ok {
@@ -114,7 +114,6 @@ func (s *state) registerHttpCallOut(calloutID uint32, callback func(numHeaders, 
 	r.httpCallbacks[calloutID] = &httpCallbackAttribute{callback: callback, callerContextID: s.activeContextID}
 }
 
-//go:inline
 func (s *state) setActiveContextID(contextID uint32) {
 	s.activeContextID = contextID
 }

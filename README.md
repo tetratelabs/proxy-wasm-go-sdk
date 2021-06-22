@@ -21,7 +21,6 @@ func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 }
 
 type pluginContext struct {
-	types.DefaultPluginContext
 	counter proxywasm.MetricCounter
 }
 
@@ -31,7 +30,6 @@ func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 type httpContext struct {
-	types.DefaultHttpContext
 	counter proxywasm.MetricCounter
 }
 
@@ -54,7 +52,7 @@ Please follow the official instruction [here](https://tinygo.org/getting-started
 | proxy-wasm-go-sdk| proxy-wasm ABI version |istio/proxyv2| Envoy upstream|
 |:-------------:|:-------------:|:-------------:|:-------------:|
 | main | 0.2.0| 1.9, 1.10 | 1.18 |
-| v0.3.0 | 0.2.0| 1.8, 1.9 | 1.17 |
+| v0.3.0 | 0.2.0| 1.9, 1.10 | 1.18 |
 
 ## Development
 

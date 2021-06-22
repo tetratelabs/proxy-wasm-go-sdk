@@ -23,26 +23,25 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{counter: proxywasm.DefineCounterMetric("proxy_wasm_go.connection_counter")}
 }
 
 type pluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 	counter proxywasm.MetricCounter
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *pluginContext) NewTcpContext(contextID uint32) types.TcpContext {
 	return &networkContext{counter: ctx.counter}
 }
@@ -54,13 +53,13 @@ type networkContext struct {
 	counter proxywasm.MetricCounter
 }
 
-// Override DefaultTcpContext.
+// Override types.DefaultTcpContext.
 func (ctx *networkContext) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
-// Override DefaultTcpContext.
+// Override types.DefaultTcpContext.
 func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -76,13 +75,13 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 	return types.ActionContinue
 }
 
-// Override DefaultTcpContext.
+// Override types.DefaultTcpContext.
 func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
 	return
 }
 
-// Override DefaultTcpContext.
+// Override types.DefaultTcpContext.
 func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -105,7 +104,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	return types.ActionContinue
 }
 
-// Override DefaultTcpContext.
+// Override types.DefaultTcpContext.
 func (ctx *networkContext) OnStreamDone() {
 	ctx.counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")

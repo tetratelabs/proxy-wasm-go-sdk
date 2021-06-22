@@ -29,26 +29,25 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
 type pluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 	shouldEchoBody bool
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	if ctx.shouldEchoBody {
 		return &echoBodyContext{}
@@ -56,7 +55,7 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &setBodyContext{}
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {
@@ -74,7 +73,7 @@ type setBodyContext struct {
 	bufferOperation      string
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided")); err != nil {
@@ -100,7 +99,7 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 	return types.ActionContinue
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
@@ -131,13 +130,13 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 }
 
 type echoBodyContext struct {
-	// mbed the default root context
+	// mbed the default plugin context
 	// so that you don't need to reimplement all the methods by yourself.
 	types.DefaultHttpContext
 	totalRequestBodySize int
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {

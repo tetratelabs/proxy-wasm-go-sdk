@@ -83,7 +83,7 @@ func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 func proxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
 	root, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
-		panic("http_call_response on invalid root context")
+		panic("http_call_response on invalid plugin context")
 	}
 
 	cb := root.httpCallbacks[calloutID]

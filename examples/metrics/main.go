@@ -23,14 +23,13 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &metricPluginContext{
 		counter: proxywasm.DefineCounterMetric("proxy_wasm_go.request_counter"),
@@ -38,13 +37,13 @@ func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 }
 
 type metricPluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 	counter proxywasm.MetricCounter
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *metricPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &metricHttpContext{counter: ctx.counter}
 }
@@ -56,9 +55,9 @@ type metricHttpContext struct {
 	counter proxywasm.MetricCounter
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *metricHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	prev := ctx.counter.Get()
+	prev := ctx.counter.Value()
 	proxywasm.LogInfof("previous value of %s: %d", "proxy_wasm_go.request_counter", prev)
 
 	ctx.counter.Increment(1)
