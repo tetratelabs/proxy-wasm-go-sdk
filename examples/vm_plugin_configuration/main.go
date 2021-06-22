@@ -23,31 +23,24 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
-	if err != nil {
-		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
-	}
-
-	proxywasm.LogInfof("vm config: %s", string(data))
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
 type pluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
 	if err != nil {

@@ -28,40 +28,36 @@ func main() {
 }
 
 type (
-	vmContext               struct{}
-	sharedDataPluginContext struct {
-		// Embed the default root context here,
+	vmContext struct {
+		// Embed the default VM context here,
+		// so that we don't need to reimplement all the methods.
+		types.DefaultVMContext
+	}
+	pluginContext struct {
+		// Embed the default plugin context here,
 		// so that we don't need to reimplement all the methods.
 		types.DefaultPluginContext
 	}
 
-	sharedDataHttpContext struct {
+	httpContext struct {
 		// Embed the default http context here,
 		// so that we don't need to reimplement all the methods.
 		types.DefaultHttpContext
 	}
 )
 
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
-		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
-	}
-	return types.OnVMStartStatusOK
-}
-
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
-	return &sharedDataPluginContext{}
+	return &pluginContext{}
 }
 
-// Override DefaultPluginContext.
-func (*sharedDataPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &sharedDataHttpContext{}
+// Override types.DefaultPluginContext.
+func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	return &httpContext{}
 }
 
-// Override DefaultHttpContext.
-func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+// Override types.DefaultHttpContext.
+func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	for {
 		value, err := ctx.incrementData()
 		if err == nil {
@@ -74,7 +70,7 @@ func (ctx *sharedDataHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStre
 	return types.ActionContinue
 }
 
-func (ctx *sharedDataHttpContext) incrementData() ([]byte, error) {
+func (ctx *httpContext) incrementData() ([]byte, error) {
 	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)

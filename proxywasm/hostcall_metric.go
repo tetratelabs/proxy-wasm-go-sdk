@@ -15,106 +15,102 @@
 package proxywasm
 
 import (
+	"fmt"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 )
 
 type (
-	MetricCounter   uint32
-	MetricGauge     uint32
+	// MetricCounter represents a counter metric.
+	// Use DefineCounterMetric for initialization.
+	MetricCounter uint32
+	// MetricGauge represents a gauge metric.
+	// Use DefineGaugeMetric for initialization.
+	MetricGauge uint32
+	// MetricHistogram represents a histogram metric.
+	// Use DefineHistogramMetric for initialization.
 	MetricHistogram uint32
 )
 
+// DefineCounterMetric returnes MetricCounter for a name.
 func DefineCounterMetric(name string) MetricCounter {
 	var id uint32
 	ptr := internal.StringBytePtr(name)
 	st := internal.ProxyDefineMetric(internal.MetricTypeCounter, ptr, len(name), &id)
 	if err := internal.StatusToError(st); err != nil {
-		LogCriticalf("define metric of name %s: %v", name, internal.StatusToError(st))
-		panic("") // abort
+		panic(fmt.Sprintf("define metric of name %s: %v", name, internal.StatusToError(st)))
 	}
 	return MetricCounter(id)
 }
 
-func (m MetricCounter) ID() uint32 {
-	return uint32(m)
-}
-
-func (m MetricCounter) Get() uint64 {
+// Value returnes the current value for this counter.
+func (m MetricCounter) Value() uint64 {
 	var val uint64
-	st := internal.ProxyGetMetric(m.ID(), &val)
+	st := internal.ProxyGetMetric(uint32(m), &val)
 	if err := internal.StatusToError(st); err != nil {
-		LogCriticalf("get metric of  %d: %v", m.ID(), internal.StatusToError(st))
-		panic("") // abort
+		panic(fmt.Sprintf("get metric of  %d: %v", uint32(m), internal.StatusToError(st)))
 	}
 	return val
 }
 
+// Increment increments the current value by a offset for this counter.
 func (m MetricCounter) Increment(offset uint64) {
-	if err := internal.StatusToError(internal.ProxyIncrementMetric(m.ID(), int64(offset))); err != nil {
-		LogCriticalf("increment %d by %d: %v", m.ID(), offset, err)
-		panic("") // abort
+	if err := internal.StatusToError(internal.ProxyIncrementMetric(uint32(m), int64(offset))); err != nil {
+		panic(fmt.Sprintf("increment %d by %d: %v", uint32(m), offset, err))
 	}
 }
 
+// DefineCounterMetric returnes MetricGauge for a name.
 func DefineGaugeMetric(name string) MetricGauge {
 	var id uint32
 	ptr := internal.StringBytePtr(name)
 	st := internal.ProxyDefineMetric(internal.MetricTypeGauge, ptr, len(name), &id)
 	if err := internal.StatusToError(st); err != nil {
-		LogCriticalf("error define metric of name %s: %v", name, internal.StatusToError(st))
-		panic("") // abort
+		panic(fmt.Sprintf("error define metric of name %s: %v", name, internal.StatusToError(st)))
 	}
 	return MetricGauge(id)
 }
 
-func (m MetricGauge) ID() uint32 {
-	return uint32(m)
-}
-
-func (m MetricGauge) Get() int64 {
+// Value returnes the current value for this gauge.
+func (m MetricGauge) Value() int64 {
 	var val uint64
-	if err := internal.StatusToError(internal.ProxyGetMetric(m.ID(), &val)); err != nil {
-		LogCriticalf("get metric of  %d: %v", m.ID(), err)
-		panic("") // abort
+	if err := internal.StatusToError(internal.ProxyGetMetric(uint32(m), &val)); err != nil {
+		panic(fmt.Sprintf("get metric of  %d: %v", uint32(m), err))
 	}
 	return int64(val)
 }
 
+// Add adds a offset to the current value for this counter.
 func (m MetricGauge) Add(offset int64) {
-	if err := internal.StatusToError(internal.ProxyIncrementMetric(m.ID(), offset)); err != nil {
-		LogCriticalf("error adding %d by %d: %v", m.ID(), offset, err)
-		panic("") // abort
+	if err := internal.StatusToError(internal.ProxyIncrementMetric(uint32(m), offset)); err != nil {
+		panic(fmt.Sprintf("error adding %d by %d: %v", uint32(m), offset, err))
 	}
 }
 
+// DefineHistogramMetric returnes MetricHistogram for a name.
 func DefineHistogramMetric(name string) MetricHistogram {
 	var id uint32
 	ptr := internal.StringBytePtr(name)
 	st := internal.ProxyDefineMetric(internal.MetricTypeHistogram, ptr, len(name), &id)
 	if err := internal.StatusToError(st); err != nil {
-		LogCriticalf("error define metric of name %s: %v", name, internal.StatusToError(st))
-		panic("") // abort
+		panic(fmt.Sprintf("error define metric of name %s: %v", name, internal.StatusToError(st)))
 	}
 	return MetricHistogram(id)
 }
 
-func (m MetricHistogram) ID() uint32 {
-	return uint32(m)
-}
-
-func (m MetricHistogram) Get() uint64 {
+// Value returnes the current value for this histogram.
+func (m MetricHistogram) Value() uint64 {
 	var val uint64
-	st := internal.ProxyGetMetric(m.ID(), &val)
+	st := internal.ProxyGetMetric(uint32(m), &val)
 	if err := internal.StatusToError(st); err != nil {
-		LogCriticalf("get metric of  %d: %v", m.ID(), internal.StatusToError(st))
-		panic("") // abort
+		panic(fmt.Sprintf("get metric of  %d: %v", uint32(m), internal.StatusToError(st)))
 	}
 	return val
 }
 
+// Record records a value for this histogram.
 func (m MetricHistogram) Record(value uint64) {
-	if err := internal.StatusToError(internal.ProxyRecordMetric(m.ID(), value)); err != nil {
-		LogCriticalf("error adding %d: %v", m.ID(), err)
-		panic("") // abort
+	if err := internal.StatusToError(internal.ProxyRecordMetric(uint32(m), value)); err != nil {
+		panic(fmt.Sprintf("error adding %d: %v", uint32(m), err))
 	}
 }

@@ -27,25 +27,24 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
 type pluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpAuthRandom{contextID: contextID}
 }
@@ -57,7 +56,7 @@ type httpAuthRandom struct {
 	contextID uint32
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {

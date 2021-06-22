@@ -38,8 +38,8 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
-// RegisterSharedQueue registers the shared queue on this root context.
-// "Register" means that OnQueueReady is called for this root context whenever a new item is enqueued on that queueID.
+// RegisterSharedQueue registers the shared queue on this plugin context.
+// "Register" means that OnQueueReady is called for this plugin context whenever a new item is enqueued on that queueID.
 // Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
 // Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
 // That means you can use "vm_id" can be used for separating shared queue namespace.

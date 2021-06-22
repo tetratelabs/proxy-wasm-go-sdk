@@ -25,25 +25,24 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(uint32) types.PluginContext {
 	return &receiverPluginContext{}
 }
 
 type receiverPluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *receiverPluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
 	queueID, err := proxywasm.RegisterSharedQueue(queueName)
 	if err != nil {
@@ -53,7 +52,7 @@ func (ctx *receiverPluginContext) OnPluginStart(vmConfigurationSize int) types.O
 	return types.OnPluginStartStatusOK
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *receiverPluginContext) OnQueueReady(queueID uint32) {
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {

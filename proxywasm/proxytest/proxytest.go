@@ -97,7 +97,7 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 	// set up state
 	proxywasm.SetVMContext(opt.vmContext)
 
-	// create root context: TODO: support multiple root contexts
+	// create plugin context: TODO: support multiple plugin contexts
 	internal.ProxyOnContextCreate(PluginContextID, 0)
 
 	return emulator, func() {

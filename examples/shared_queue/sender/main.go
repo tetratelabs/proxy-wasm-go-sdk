@@ -30,20 +30,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-type vmContext struct{}
-
-// Implement types.VMContext.
-func (*vmContext) OnVMStart(int) types.OnVMStartStatus {
-	return types.OnVMStartStatusOK
+type vmContext struct {
+	// Embed the default VM context here,
+	// so that we don't need to reimplement all the methods.
+	types.DefaultVMContext
 }
 
-// Implement types.VMContext.
+// Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(uint32) types.PluginContext {
 	return &senderPluginContext{}
 }
 
 type senderPluginContext struct {
-	// Embed the default root context here,
+	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
@@ -52,7 +51,7 @@ func newPluginContext(uint32) types.PluginContext {
 	return &senderPluginContext{}
 }
 
-// Override DefaultPluginContext.
+// Override types.DefaultPluginContext.
 func (ctx *senderPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	queueID, err := proxywasm.ResolveSharedQueue(receiverVMID, queueName)
 	if err != nil {
@@ -70,7 +69,7 @@ type senderHttpContext struct {
 	queueID uint32
 }
 
-// Override DefaultHttpContext.
+// Override types.DefaultHttpContext.
 func (ctx *senderHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	headers, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
