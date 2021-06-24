@@ -220,7 +220,7 @@ func Test_network(t *testing.T) {
 func Test_shared_data(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()
-	var count int
+	var count int = 10000000
 	require.Eventually(t, func() bool {
 		res, err := http.Get("http://localhost:18000")
 		if err != nil {
@@ -231,7 +231,7 @@ func Test_shared_data(t *testing.T) {
 			return false
 		}
 		count++
-		return count == 10
+		return count == 10000010
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)}, nil)

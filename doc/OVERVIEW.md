@@ -215,6 +215,8 @@ static_resources:
 You see that `vm_config` fields are all the same on Http filter chains on 18000 and 18001 listeners plus a Network filter chain on 18002. That means one Wasm VM is used by multiple plugins in Envoy per worker thread. As a result, **Three** `PluginContext` will be created per Wasm VM and each of them corresponds to each of the above filter configurations (at 18000, 18001, and 18002 respectively).
 
 
+TODO: add example and put link here.
+
 # Proxy-Wasm Go SDK API
 
 So far we have explaind the concepts and *plugin configs*. Now we are ready to dive into the API of this SDK.
@@ -322,17 +324,45 @@ var _ types.VMContext = &myVMContext{}
 
 # Cross-VM communications
 
-Given that VMs are created in the thread-local way, sometimes we may want to communicate with other VMs. For example, aggregating data or stats, sharing data, etc.
+Given that VMs are created in the thread-local way, sometimes we may want to communicate with other VMs. For example, aggregating data or stats, caching data, etc.
 
 There are two concepts for Cross-VM, are called *Shred Data* and *Shared Queue*.
 
+## *Shared Data (Shared KVS)*
+
+What if you want to have global request counters across all the Wasm VMs running in multiple worker threads? Or what if you want to cache some data that should be used by all of your Wasm VMs? Then *Shared Data* or equivalently *Shared KVS* will come into play.
+
+*Shared Data* is basically a key-value store that is shared across all the VMs (i.e. cross-VM or cross-threads). A shared-data KVS is created per [`vm_id`](#envoy-configuration) specified in the `vm_config`. That means you can share a key-value store across all Wasm VMs not necessarily with the same binary (`vm_config.code`). The only requirement is having the same `vm_id`. 
+
+Here's the shared data related API of this Go SDK in [hostcall.go](../proxywasm/hostcall.go):
+
+```go
+// GetSharedData is used for retrieving the value for given "key".
+// Returned "cas" is be used for SetSharedData on that key for
+// thread-safe updates.
+func GetSharedData(key string) (value []byte, cas uint32, err error)
+
+// SetSharedData is used for seting key-value pairs in the shared data storage
+// which is defined per "vm_config.vm_id" in the hosts.
+//
+// ErrorStatusCasMismatch will be returned when a given CAS value is mismatched
+// with the current value. That indicates that other Wasm VMs has already succeeded
+// to set a value on the same key and the current CAS for the key is incremented.
+// Having retry logic in the face of this error is recommended.
+//
+// Setting cas = 0 will never return ErrorStatusCasMismatch and always succeed, but
+// it is not thread-safe, i.e. maybe another VM has already set the value
+// and the value you see is already different from the one stored by the time
+// when you call this function.
+func SetSharedData(key string, value []byte, cas uint32) error
+```
+
+The API is straightforward, but the important part is its thread-safeness or cross-VM-safeness with "cas" or [Compare-And-Swap](https://en.wikipedia.org/wiki/Compare-and-swap) value.
+
+Please refer to [an example](../examples/shared_data) for demonstration.
+
 ## *Shared queue*
 
-TODO 
-
-## *Shared Data*
-
-TODO
 
 # Running unit tests with the testing framework
 

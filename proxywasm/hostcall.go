@@ -496,7 +496,8 @@ func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error
 }
 
 // GetSharedData is used for retrieving the value for given "key".
-// Returned "cas" is be used for SetSharedData on that key.
+// Returned "cas" is be used for SetSharedData on that key for
+// thread-safe updates.
 func GetSharedData(key string) (value []byte, cas uint32, err error) {
 	var raw *byte
 	var size int
@@ -510,10 +511,16 @@ func GetSharedData(key string) (value []byte, cas uint32, err error) {
 
 // SetSharedData is used for seting key-value pairs in the shared data storage
 // which is defined per "vm_config.vm_id" in the hosts.
-// ErrorStatusNotFound will be returned when a given CAS value is mismatched
+//
+// ErrorStatusCasMismatch will be returned when a given CAS value is mismatched
 // with the current value. That indicates that other Wasm VMs has already succeeded
 // to set a value on the same key and the current CAS for the key is incremented.
 // Having retry logic in the face of this error is recommended.
+//
+// Setting cas = 0 will never return ErrorStatusCasMismatch and always succeed, but
+// it is not thread-safe, i.e. maybe another VM has already incremented the value
+// and the value you see is already different from the one stored by the time
+// when you call this function.
 func SetSharedData(key string, data []byte, cas uint32) error {
 	st := internal.ProxySetSharedData(internal.StringBytePtr(key),
 		len(key), &data[0], len(data), cas)

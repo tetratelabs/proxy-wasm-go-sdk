@@ -15,13 +15,17 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const sharedDataKey = "shared_data_key"
+const (
+	sharedDataKey                 = "shared_data_key"
+	sharedDataInitialValue uint64 = 10000000
+)
 
 func main() {
 	proxywasm.SetVMContext(&vmContext{})
@@ -44,7 +48,9 @@ type (
 
 // Override types.VMContext.
 func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	if err := proxywasm.SetSharedData(sharedDataKey, []byte{0}, 0); err != nil {
+	initialValueBuf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(initialValueBuf, sharedDataInitialValue)
+	if err := proxywasm.SetSharedData(sharedDataKey, initialValueBuf, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
 	return types.OnVMStartStatusOK
@@ -65,7 +71,7 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	for {
 		value, err := ctx.incrementData()
 		if err == nil {
-			proxywasm.LogInfof("shared value: %d", value[0])
+			proxywasm.LogInfof("shared value: %d", value)
 		} else if errors.Is(err, types.ErrorStatusCasMismatch) {
 			continue
 		}
@@ -74,17 +80,19 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	return types.ActionContinue
 }
 
-func (ctx *httpContext) incrementData() ([]byte, error) {
+func (ctx *httpContext) incrementData() (uint64, error) {
 	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)
-		return value, err
+		return 0, err
 	}
 
-	value[0]++
-	if err := proxywasm.SetSharedData(sharedDataKey, value, cas); err != nil {
+	buf := make([]byte, 8)
+	ret := binary.LittleEndian.Uint64(value) + 1
+	binary.LittleEndian.PutUint64(buf, ret)
+	if err := proxywasm.SetSharedData(sharedDataKey, buf, cas); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnHttpRequestHeaders: %v", err)
-		return value, err
+		return 0, err
 	}
-	return value, err
+	return ret, err
 }
