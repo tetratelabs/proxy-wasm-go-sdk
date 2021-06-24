@@ -55,7 +55,7 @@ package types
 // Its lifetime is exactly the same as Wasm Virtual Machines on the host.
 type VMContext interface {
 	// OnVMStart is called after the VM is created and main function is called.
-	// During this call, GetVmConfiguration hostcall is available and can be used to
+	// During this call, GetVMConfiguration hostcall is available and can be used to
 	// retrieve the configuration set at vm_config.configuration.
 	// This is mainly used for doing Wasm VM-wise initialization.
 	OnVMStart(vmConfigurationSize int) OnVMStartStatus
@@ -69,7 +69,7 @@ type VMContext interface {
 // so PluginContext is responsible for creating "filter instances" for each Tcp/Http streams on the listener.
 type PluginContext interface {
 	// OnPluginStart is called on all plugin contexts (after OnVmStart if this is the VM context).
-	// During this call, hostcalls.getPluginConfiguration is available and can be used to
+	// During this call, GetPluginConfiguration is available and can be used to
 	// retrieve the configuration set at config.configuration in envoy.yaml
 	OnPluginStart(pluginConfigurationSize int) OnPluginStartStatus
 
