@@ -331,8 +331,6 @@ There are two concepts for Cross-VM, are called *Shred Data* and *Shared Queue*.
 
 We also recommend you watch [this talk](https://www.youtube.com/watch?v=XdWmm_mtVXI&t=1168s) for introduction.
 
-TODO: Add diagram
-
 ## *Shared Data (Shared KVS)*
 
 What if you want to have global request counters across all the Wasm VMs running in multiple worker threads? Or what if you want to cache some data that should be used by all of your Wasm VMs? Then *Shared Data* or equivalently *Shared KVS* will come into play.
@@ -364,6 +362,8 @@ func SetSharedData(key string, value []byte, cas uint32) error
 
 The API is straightforward, but the important part is its thread-safeness or cross-VM-safeness with "cas" or [Compare-And-Swap](https://en.wikipedia.org/wiki/Compare-and-swap) value.
 
+TODO: add diagram
+
 Please refer to [an example](../examples/shared_data) for demonstration.
 
 ## *Shared Queue*
@@ -375,10 +375,6 @@ What if you want to aggregate metrics across all the Wasm VMs in parallel to req
  As you expect, the operations such as "enqueue" and "dequeue" have thread-safeness or cross-VM-safeness. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):;
 
 ```golang
-// EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
-// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
-func EnqueueSharedQueue(queueID uint32, data []byte) error
-
 // DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
 // In order to get queue id for a target queue, use "ResolveSharedQueue" first.
 func DequeueSharedQueue(queueID uint32) ([]byte, error)
@@ -393,17 +389,28 @@ func DequeueSharedQueue(queueID uint32) ([]byte, error)
 // to retrive queueID by other VMs.
 func RegisterSharedQueue(name string) (ququeID uint32, err error)
 
+// EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func EnqueueSharedQueue(queueID uint32, data []byte) error
+
 // ResolveSharedQueue acquires the queueID for the given vm_id and queue name.
 // The returned ququeID can be used for Enqueue/DequeueSharedQueue.
 func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error)
 ```
 
-`RegisterSharedQueue` and `ResolveSharedQueue` APIs might be worth explantaion here.
-- `RegisterSharedQueue` is used for "creating" a shared queue for "name" and the `vm_id` of the caller. That means if you want to use a queue, then `RegisterSharedQueue` must be called by a VM beforehand.
-- `ResolveSharedQueue` is used for getting the *queue id* for given "name" and `vm_id`. Usually this is used by VMs that doesn't call `ResolveSharedQueue` but rather are supposed to enqueue items.
+Basically `RegisterSharedQueue` and `DequeueSharedQueue` are used by "consumer" of the queue 
+while `ResolveSharedQueue` and `EnqueueSharedQueue` are for "producer" of queue items. Note that
+
+- `RegisterSharedQueue` is used for creating a shared queue for `name` and `vm_id` of the caller. That means if you want to use a queue, then this must be called by a VM beforehand.  This can be called by `PluginContext`, and therefore we can think of "comsumers" = `PluginContext`s.
+- `ResolveSharedQueue` is used for getting the *queue id* for `name` and `vm_id`. Usually this is used by VMs that doesn't call `ResolveSharedQueue` but rather are supposed to enqueue items. This is for "producer".
+
+and both of these calls return a queue id, and it is used for `DequeueSharedQueue` and `EnqueueSharedQueue`.
+
+However, from the consumer's point of view, how can a consumer (= `PluginContext`) be notified when a queue is enqueued by a item? This is why we have the `OnQueueReady(queueID uint32)` interface in `PluginContext`. This method is called whenever an item is enqueued in a queue registered by that `PluginContext`.
+
+TODO: add diagram
 
 Please refer to [an example](../examples/shared_queue) for demonstration.
-
 
 # Unit tests with testing framework
 
