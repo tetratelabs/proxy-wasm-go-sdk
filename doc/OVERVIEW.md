@@ -226,27 +226,28 @@ So far we have explaind the concepts and *plugin configs*. Now we are ready to d
 *Contexts* are collection of interfaces in Proxy-Wasm Go SDK, and all of them are mapped to the concepts  explained above. They are defined in [types](../proxywasm/types) package, and developers are supposed to implement these interfaces in order to extend network proxies.
 
 There are four types of contexts: `VMContext`, `PluginContext`, `TcpContext` and `HttpContext`. Their relationship and how they are mapped to the concepts above can be described as the following diagram:
+
 ```
-                       Wasm Virtual Machine
-                           (.vm_config)
-┌────────────────────────────────────────────────────────────────────┐
-│  Your program (.vm_config.code)                    TcpContext      │
-│                                                 ╱ (Tcp stream)     │
-│                                                ╱                   │
-│                        1: N                   ╱ 1: N               │
-│          VMContext  ──────────  PluginContext                      │
-│  (.vm_config.configuration)        (Plugin)   ╲ 1: N               │
-│                                                ╲                   │
-│                                                 ╲  HttpContext     │
-│                                                   (Http stream)    │
-└────────────────────────────────────────────────────────────────────┘
+                    Wasm Virtual Machine
+                      (.vm_config.code)
+┌────────────────────────────────────────────────────────────────┐
+│  Your program (.vm_config.code)                TcpContext      │
+│          │                                  ╱ (Tcp stream)     │
+│          │ 1: 1                            ╱                   │
+│          │         1: N                   ╱ 1: N               │
+│      VMContext  ──────────  PluginContext                      │
+│                                (Plugin)   ╲ 1: N               │
+│                                            ╲                   │
+│                                             ╲  HttpContext     │
+│                                               (Http stream)    │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 To summarize,
 
-1) `VMContext` corresponds to each `vm_config.configuration`, and only one `VMContext` exists in each VM.
-2) `VMContext` is the parent of *PluginContexts*, and is responsible for creating arbitrary number of *PluginContexts*.
-3) `PluginContext` corresponds to a *Plugin* instance. That means, a `PluginContext` corresponds to a *Http Filter* or *Network Filter* or maybe *Wasm Service* configured by the top `configuration` field in the *plugin config*.
+1) `VMContext` corresponds to each `.vm_config.code`, and only one `VMContext` exists in each VM.
+2) `VMContext` is the parent of *PluginContexts*, and is responsible for creating arbitrary number of `PluginContexts`.
+3) `PluginContext` corresponds to a *Plugin* instance. That means, a `PluginContext` corresponds to a *Http Filter* or *Network Filter* or maybe *Wasm Service*, configured via `.configuration` field in the *plugin config*.
 4) `PluginContext` is the parent of `TcpContext` and `HttpContexts`, and is responsible for creating arbitrary number of these contexts when it is configured at *Http Filter* or *Network Filter*.
 5) `TcpContext` is responsible for handling each Tcp stream.
 6) `HttpContexts` is responsible for handling each Http stream.
@@ -268,7 +269,7 @@ type VMContext interface {
 }
 ```
 
-As you expect, `VMContext` is responsible for creating `PluginContext` via `NewPluginContext` method. In addition, `OnVMStart` is called at the startup phase of the VM, and you can retrieve the value of `vm_config.configuration` via `GetVMConfiguration` [hostcall API](#hostcall-api). This way you can do the VM-wise plugin-independent initialization.
+As you expect, `VMContext` is responsible for creating `PluginContext` via `NewPluginContext` method. In addition, `OnVMStart` is called at the startup phase of the VM, and you can retrieve the value of `.vm_config.configuration` via `GetVMConfiguration` [hostcall API](#hostcall-api). This way you can do the VM-wise plugin-independent initialization and control the behavior of `VMContext`.
 
 Next is `PluginContext` and it it defined as (here we omit some of them for simplicity)
 
@@ -292,7 +293,7 @@ type PluginContext interface {
 }
 ```
 
-Just like `VMContext`, `PluginContext` has `OnPluginStart` method which is called on the plugin creation in network proxies. During that call, the top level `configuratin` field's value in the *plugin config* can be retrieved via `GetPluginConfiguration` [hostcall API](#hostcall-api). This way developers can inform a `PluginContext` how it should behave, for example, specifying a `PluginContext` should behave as a Http Filter and which custom headers it should insert as a request headers, etc. 
+Just like `VMContext`, `PluginContext` has `OnPluginStart` method which is called on the plugin creation in network proxies. During that call, the top level `.configuratin` field's value in the *plugin config* can be retrieved via `GetPluginConfiguration` [hostcall API](#hostcall-api). This way developers can inform a `PluginContext` how it should behave, for example, specifying a `PluginContext` should behave as a Http Filter and which custom headers it should insert as a request headers, etc. 
 
 Also note that `PluginContext` has `NewTcpContext` and `NewHttpContext` methods which are called when creating these contexts in response to each Http or Tcp streams in network proxies.
 
@@ -328,11 +329,15 @@ Given that VMs are created in the thread-local way, sometimes we may want to com
 
 There are two concepts for Cross-VM, are called *Shred Data* and *Shared Queue*.
 
+We also recommend you watch [this talk](https://www.youtube.com/watch?v=XdWmm_mtVXI&t=1168s) for introduction.
+
+TODO: Add diagram
+
 ## *Shared Data (Shared KVS)*
 
 What if you want to have global request counters across all the Wasm VMs running in multiple worker threads? Or what if you want to cache some data that should be used by all of your Wasm VMs? Then *Shared Data* or equivalently *Shared KVS* will come into play.
 
-*Shared Data* is basically a key-value store that is shared across all the VMs (i.e. cross-VM or cross-threads). A shared-data KVS is created per [`vm_id`](#envoy-configuration) specified in the `vm_config`. That means you can share a key-value store across all Wasm VMs not necessarily with the same binary (`vm_config.code`). The only requirement is having the same `vm_id`. 
+*Shared Data* is basically a key-value store that is shared across all the VMs (i.e. cross-VM or cross-threads). A shared-data KVS is created per [`vm_id`](#envoy-configuration) specified in the `vm_config`. That means you can share a key-value store across all Wasm VMs not necessarily with the same binary (`vm_config.code`). The only requirement is having the same `vm_id`.
 
 Here's the shared data related API of this Go SDK in [hostcall.go](../proxywasm/hostcall.go):
 
@@ -361,10 +366,46 @@ The API is straightforward, but the important part is its thread-safeness or cro
 
 Please refer to [an example](../examples/shared_data) for demonstration.
 
-## *Shared queue*
+## *Shared Queue*
+
+What if you want to aggregate metrics across all the Wasm VMs in parallel to request/response processing? Or what if you want to push some cross-VM aggregated information to a remote server? Now *Shared Queue* is here for you.
+
+*Shared Queue* is a FIFO(First-In-First-Out) queue created per a pair of `vm_id` and the name of the queue. And A *queue id* is assigned uniquely to the pair (vm_id, name) which is used for enqueue/dequeue operations.
+
+ As you expect, the operations such as "enqueue" and "dequeue" have thread-safeness or cross-VM-safeness. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):;
+
+```golang
+// EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func EnqueueSharedQueue(queueID uint32, data []byte) error
+
+// DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
+// In order to get queue id for a target queue, use "ResolveSharedQueue" first.
+func DequeueSharedQueue(queueID uint32) ([]byte, error)
+
+// RegisterSharedQueue registers the shared queue on this plugin context.
+// "Register" means that OnQueueReady is called for this plugin context whenever a new item is enqueued on that queueID.
+// Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
+// That means you can use "vm_id" can be used for separating shared queue namespace.
+//
+// Only after RegisterSharedQueue is called, ResolveSharedQueue("this vm_id", "name") succeeds
+// to retrive queueID by other VMs.
+func RegisterSharedQueue(name string) (ququeID uint32, err error)
+
+// ResolveSharedQueue acquires the queueID for the given vm_id and queue name.
+// The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error)
+```
+
+`RegisterSharedQueue` and `ResolveSharedQueue` APIs might be worth explantaion here.
+- `RegisterSharedQueue` is used for "creating" a shared queue for "name" and the `vm_id` of the caller. That means if you want to use a queue, then `RegisterSharedQueue` must be called by a VM beforehand.
+- `ResolveSharedQueue` is used for getting the *queue id* for given "name" and `vm_id`. Usually this is used by VMs that doesn't call `ResolveSharedQueue` but rather are supposed to enqueue items.
+
+Please refer to [an example](../examples/shared_queue) for demonstration.
 
 
-# Running unit tests with the testing framework
+# Unit tests with testing framework
 
 This SDK contains the testing framework for unit testing Proxy-Wasm programs without actually running network proxies and with the official Go test toolchain. [proxytest](../proxywasm/proxytest) package implements the Envoy proxy emulator and can be used with "proxytest" build tag. That is, you can run tests just like you do when writing native programs:
 

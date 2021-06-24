@@ -529,6 +529,8 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 
 // GetProperty is used for retrieving property/metadata in the host
 // for a given path.
+// Available path and properties depend on the host implementations.
+// For Envoy, prefer refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
 func GetProperty(path []string) ([]byte, error) {
 	var ret *byte
 	var retSize int
@@ -545,6 +547,8 @@ func GetProperty(path []string) ([]byte, error) {
 
 // SetProperty is used for setting property/metadata in the host
 // for a given path.
+// Available path and properties depend on the host implementations.
+// For Envoy, prefer refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
 func SetProperty(path []string, data []byte) error {
 	raw := internal.SerializePropertyPath(path)
 	return internal.StatusToError(internal.ProxySetProperty(
