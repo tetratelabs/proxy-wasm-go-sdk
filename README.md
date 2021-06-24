@@ -9,7 +9,6 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 ## Getting Started
 
 - [examples](examples) directory contains the example codes on top of this SDK.
-- [OVERVIEW.md](doc/OVERVIEW.md) the overview of Proxy-Wasm, the API of this SDK, and the things you should know when writing plugins.
 
 ## Requirements
 
