@@ -45,15 +45,13 @@ vm_config:
   runtime: "envoy.wasm.runtime.v8"
   configuration:
     "@type": type.googleapis.com/google.protobuf.StringValue
-    value: |
-      {"my-vm-env": "dev"}
+    value: '{"my-vm-env": "dev"}'
   code:
     local:
       filename: "example.wasm"
 configuration:
   "@type": type.googleapis.com/google.protobuf.StringValue
-  value: |
-    {"my-plugin-config": "bar"}
+  value: '{"my-plugin-config": "bar"}'
 ```
 
 where
@@ -179,8 +177,7 @@ static_resources:
                       config:
                         configuration:
                           "@type": type.googleapis.com/google.protobuf.StringValue
-                          value: |
-                            http-body-operation
+                          value: http-body-operation
                         vm_config:
                           runtime: "envoy.wasm.runtime.v8"
                           code:
@@ -214,8 +211,7 @@ static_resources:
 
 You see that `vm_config` fields are all the same on Http filter chains on 18000 and 18001 listeners plus a Network filter chain on 18002. That means one Wasm VM is used by multiple plugins in Envoy per worker thread. As a result, **Three** `PluginContext` will be created per Wasm VM and each of them corresponds to each of the above filter configurations (at 18000, 18001, and 18002 respectively).
 
-
-TODO: add example and put link here.
+See [example.yaml](../examples/shared_queue/envoy.yaml) for a full example.
 
 # Proxy-Wasm Go SDK API
 
