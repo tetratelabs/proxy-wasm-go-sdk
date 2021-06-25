@@ -4,6 +4,26 @@ bootstrap_extensions:
     "@type": type.googleapis.com/envoy.extensions.wasm.v3.WasmService
     singleton: true
     config:
+      configuration:
+        "@type": type.googleapis.com/google.protobuf.StringValue
+        value: "http_request_headers"
+      # Use the same vm_config as below, so we can reuse the same VM for multiple queues.
+      vm_config:
+        vm_id: "receiver"
+        runtime: "envoy.wasm.runtime.v8"
+        code:
+          local:
+            filename: "./examples/shared_queue/receiver/main.go.wasm"
+
+- name: envoy.bootstrap.wasm
+  typed_config:
+    "@type": type.googleapis.com/envoy.extensions.wasm.v3.WasmService
+    singleton: true
+    config:
+      configuration:
+        "@type": type.googleapis.com/google.protobuf.StringValue
+        value: "http_response_headers"
+      # Use the same vm_config as above, so we can reuse the same VM for multiple queues.
       vm_config:
         vm_id: "receiver"
         runtime: "envoy.wasm.runtime.v8"

@@ -15,11 +15,11 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
-
-const queueName = "http_headers"
 
 func main() {
 	proxywasm.SetVMContext(&vmContext{})
@@ -32,23 +32,34 @@ type vmContext struct {
 }
 
 // Override types.DefaultVMContext.
-func (*vmContext) NewPluginContext(uint32) types.PluginContext {
-	return &receiverPluginContext{}
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	return &receiverPluginContext{contextID: contextID}
 }
 
 type receiverPluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
+	contextID uint32
 	types.DefaultPluginContext
+	queueName string
 }
 
 // Override types.DefaultPluginContext.
-func (ctx *receiverPluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
-	queueID, err := proxywasm.RegisterSharedQueue(queueName)
+func (ctx *receiverPluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	// Get Plugin configuration.
+	config, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
+	if err != nil {
+		panic(fmt.Sprintf("failed to get plugin config: %v", err))
+	}
+
+	// Treat the config as the queue name for receiving.
+	ctx.queueName = string(config)
+
+	queueID, err := proxywasm.RegisterSharedQueue(ctx.queueName)
 	if err != nil {
 		panic("failed register queue")
 	}
-	proxywasm.LogInfof("queue \"%s\" registered as id=%d", queueName, queueID)
+	proxywasm.LogInfof("queue \"%s\" registered as id=%d", ctx.queueName, queueID)
 	return types.OnPluginStartStatusOK
 }
 
@@ -59,7 +70,7 @@ func (ctx *receiverPluginContext) OnQueueReady(queueID uint32) {
 	case types.ErrorStatusEmpty:
 		return
 	case nil:
-		proxywasm.LogInfof("dequeued data: %s", string(data))
+		proxywasm.LogInfof("(contextID=%d) dequeued data from %s: %s", ctx.contextID, ctx.queueName, string(data))
 	default:
 		proxywasm.LogCriticalf("error retrieving data from queue %d: %v", queueID, err)
 	}

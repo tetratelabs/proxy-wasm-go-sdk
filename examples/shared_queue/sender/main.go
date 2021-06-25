@@ -53,20 +53,28 @@ func newPluginContext(uint32) types.PluginContext {
 
 // Override types.DefaultPluginContext.
 func (ctx *senderPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	queueID, err := proxywasm.ResolveSharedQueue(receiverVMID, queueName)
+	requestHeadersQueueID, err := proxywasm.ResolveSharedQueue(receiverVMID, "http_request_headers")
+	if err != nil {
+		proxywasm.LogCriticalf("error resolving queue id: %v", err)
+	}
+
+	responseHeadersQueueID, err := proxywasm.ResolveSharedQueue(receiverVMID, "http_response_headers")
 	if err != nil {
 		proxywasm.LogCriticalf("error resolving queue id: %v", err)
 	}
 
 	// Pass the resolved queueID to http contexts so they can enqueue.
-	return &senderHttpContext{queueID: queueID}
+	return &senderHttpContext{
+		requestHeadersQueueID:  requestHeadersQueueID,
+		responseHeadersQueueID: responseHeadersQueueID,
+	}
 }
 
 type senderHttpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
-	queueID uint32
+	requestHeadersQueueID, responseHeadersQueueID uint32
 }
 
 // Override types.DefaultHttpContext.
@@ -77,7 +85,24 @@ func (ctx *senderHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	}
 	for _, h := range headers {
 		msg := fmt.Sprintf("{\"key\": \"%s\",\"value\": \"%s\"}", h[0], h[1])
-		if err := proxywasm.EnqueueSharedQueue(ctx.queueID, []byte(msg)); err != nil {
+		if err := proxywasm.EnqueueSharedQueue(ctx.requestHeadersQueueID, []byte(msg)); err != nil {
+			proxywasm.LogCriticalf("error queueing: %v", err)
+		} else {
+			proxywasm.LogInfof("enqueued data: %s", msg)
+		}
+	}
+	return types.ActionContinue
+}
+
+// Override types.DefaultHttpContext.
+func (ctx *senderHttpContext) OnHttpResponseHeaders(int, bool) types.Action {
+	headers, err := proxywasm.GetHttpResponseHeaders()
+	if err != nil {
+		proxywasm.LogCriticalf("error getting response headers: %v", err)
+	}
+	for _, h := range headers {
+		msg := fmt.Sprintf("{\"key\": \"%s\",\"value\": \"%s\"}", h[0], h[1])
+		if err := proxywasm.EnqueueSharedQueue(ctx.responseHeadersQueueID, []byte(msg)); err != nil {
 			proxywasm.LogCriticalf("error queueing: %v", err)
 		} else {
 			proxywasm.LogInfof("enqueued data: %s", msg)
