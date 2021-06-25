@@ -59,7 +59,7 @@ func (ctx *receiverPluginContext) OnPluginStart(pluginConfigurationSize int) typ
 	if err != nil {
 		panic("failed register queue")
 	}
-	proxywasm.LogInfof("queue \"%s\" registered as id=%d", ctx.queueName, queueID)
+	proxywasm.LogInfof("queue \"%s\" registered as queueID=%d by contextID=%d", ctx.queueName, queueID, ctx.contextID)
 	return types.OnPluginStartStatusOK
 }
 
@@ -70,7 +70,7 @@ func (ctx *receiverPluginContext) OnQueueReady(queueID uint32) {
 	case types.ErrorStatusEmpty:
 		return
 	case nil:
-		proxywasm.LogInfof("(contextID=%d) dequeued data from %s: %s", ctx.contextID, ctx.queueName, string(data))
+		proxywasm.LogInfof("(contextID=%d) dequeued data from %s(queueID=%d): %s", ctx.contextID, ctx.queueName, queueID, string(data))
 	default:
 		proxywasm.LogCriticalf("error retrieving data from queue %d: %v", queueID, err)
 	}

@@ -243,6 +243,12 @@ func Test_shared_queue(t *testing.T) {
 	defer kill()
 	require.Eventually(t, func() bool {
 		res, err := http.Get("http://localhost:18000")
+		if err != nil || res.StatusCode != http.StatusOK {
+			return false
+		}
+		defer res.Body.Close()
+
+		res, err = http.Get("http://localhost:18001")
 		if err != nil {
 			return false
 		}
@@ -252,8 +258,9 @@ func Test_shared_queue(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
 			`enqueued data: {"key": ":method","value": "GET"}`,
-			`dequeued data from http_request_headers: {"key": ":method","value": "GET"}`,
-			`dequeued data from http_response_headers: {"key": ":status","value": "200"}`,
+			`dequeued data from http_request_headers`,
+			`dequeued data from http_response_headers`,
+			`dequeued data from tcp_data_hashes`,
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }

@@ -95,8 +95,10 @@ type PluginContext interface {
 	// Tcp filters.
 	//
 	// NewTcpContext is used for creating TcpContext for each Tcp streams.
+	// Return nil to indicate this PluginContext is not for TcpContext.
 	NewTcpContext(contextID uint32) TcpContext
 	// NewHttpContext is used for creating HttpContext for each Http streams.
+	// Return nil to indicate this PluginContext is not for HttpContext.
 	NewHttpContext(contextID uint32) HttpContext
 }
 
