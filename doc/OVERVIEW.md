@@ -35,7 +35,7 @@ For those who are insterested in the detail, please refer to the related issues 
 
 *Wasm Service* is a type of plugins running in a singleton VM (i.e. only one instance exists in the Envoy main thread). It is mainly used for doing some extra work in parallel to Network or Http Filters such as aggregating metrics, logs, etc. Sometimes, such a singleton VM itself is also called *Wasm Service*.
 
-<img src="./images/terminology.png" width="1200">
+<img src="./images/terminology.png" width="1000">
 
 ## Envoy configuration
 
