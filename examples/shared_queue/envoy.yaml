@@ -82,6 +82,7 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       config:
+                        # Instruct that the PluginContext should behave as a Http filter.
                         configuration:
                           "@type": type.googleapis.com/google.protobuf.StringValue
                           value: "http"
@@ -104,6 +105,7 @@ static_resources:
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
                 config:
+                  # Instruct that the PluginContext should behave as a Tcp filter.
                   configuration:
                     "@type": type.googleapis.com/google.protobuf.StringValue
                     value: "tcp"
