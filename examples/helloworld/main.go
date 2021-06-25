@@ -47,7 +47,7 @@ type helloWorld struct {
 }
 
 // Override types.DefaultPluginContext.
-func (ctx *helloWorld) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
+func (ctx *helloWorld) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
 	proxywasm.LogInfo("proxy_on_vm_start from Go!")

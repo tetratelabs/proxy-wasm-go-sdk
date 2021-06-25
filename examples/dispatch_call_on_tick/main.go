@@ -44,7 +44,7 @@ type pluginContext struct {
 }
 
 // Override types.DefaultPluginContext.
-func (ctx *pluginContext) OnPluginStart(vmConfigurationSize int) types.OnPluginStartStatus {
+func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 		return types.OnPluginStartStatusFailed
