@@ -27,13 +27,15 @@ For those who are insterested in the detail, please refer to the related issues 
 
 *Wasm virtual machine (Wasm VM)* or simply *VM* means instances of loaded programs. In Envoy, VMs are usually created in *each thread* and isolated from each other. Therefore, your program will be copied up to the number of threads created by Envoy, and loaded on each of these virtual machines.
 
-*Plugin* means the basic unit of your configuration for extending your network proxies. Proxy-Wasm specification allows for having **multiple plugins in a single VM**. With this SDK, there are three types of plugins that you can configure in Envoy; *Http Filter*, *Network(Tcp) Filter*, and *Wasm Service*. Given that, you can write programs which can be run as, for example, Network Filter and Http Filter at the same time.
+*Plugin* means the basic unit of your configuration for extending your network proxies. Proxy-Wasm specification allows for having **multiple plugins in a single VM**. In other words, a VM may be used by multiple plugins of network proxies. With this SDK, there are three types of plugins that you can configure in Envoy; *Http Filter*, *Network(Tcp) Filter*, and *Wasm Service*. Given that, you can write programs which can be run as, for example, Network Filter and Http Filter at the same time.
 
-*Http Filter* is a type of plugins to handle Http protocol such as operating on Http request headers, body, trailers, etc.
+*Http Filter* is a type of plugins to handle Http protocol such as operating on Http request headers, body, trailers, etc. It uses a VM in worker threads which handle traffic.
 
-*Network Filter* is a type of plugins to handle Tcp protocol such as operating on Tcp data frame, connection establishment, etc.
+*Network Filter* is a type of plugins to handle Tcp protocol such as operating on Tcp data frame, connection establishment, etc. It uses a VM in worker threads which handle traffic.
 
-*Wasm Service* is a type of plugins running in a singleton VM (i.e. only one instance exists in the Envoy process). Mainly used for doing some extra work in parallel to Network or Http Filters such as aggregating metrics, logs, etc. Sometimes, such a singleton VM itself is also called *Wasm Service*.
+*Wasm Service* is a type of plugins running in a singleton VM (i.e. only one instance exists in the Envoy main thread). It is mainly used for doing some extra work in parallel to Network or Http Filters such as aggregating metrics, logs, etc. Sometimes, such a singleton VM itself is also called *Wasm Service*.
+
+<img src="./images/terminology.png" width="1200">
 
 ## Envoy configuration
 
