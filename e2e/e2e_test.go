@@ -252,7 +252,8 @@ func Test_shared_queue(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
 			`enqueued data: {"key": ":method","value": "GET"}`,
-			`dequeued data: {"key": ":method","value": "GET"}`,
+			`dequeued data from http_request_headers: {"key": ":method","value": "GET"}`,
+			`dequeued data from http_response_headers: {"key": ":status","value": "200"}`,
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
