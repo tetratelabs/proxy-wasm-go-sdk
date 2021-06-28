@@ -42,7 +42,7 @@ make run name=helloworld
 Envoy is the first host side implementation of Proxy-Wasm ABI, 
 and we run end-to-end tests with multiple versions of Envoy and Envoy-based [istio/proxy](https://github.com/istio/proxy) in order to verify Proxy-Wasm Go SDK works as expected.
 
-Please refer to [.github/workflows/workflow.yaml](.github/workflows/workflow.yaml) for which version is used for End-to-End tests.
+Please refer to [workflow.yaml](.github/workflows/workflow.yaml) for which version is used for End-to-End tests.
 
 ## Contributing
 
