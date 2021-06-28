@@ -89,7 +89,7 @@ http_filters:
 - name: envoy.filters.http.router
 ```
 
-In this case, Wasm VMs are created on *each worker thread* in Envoy, and each VM is responsible for operating on each Http streams on a listener handled by a corresponding worker thread.
+In this case, Wasm VMs are created on *each worker thread* in Envoy, and each VM is responsible for operating on each Http streams on a listener handled by a corresponding worker thread. Note that the way VMs and Plugins get created is exactly the same as [*Network Filter*](#network-filter), and the only difference is that *Plugins* only operate on Http streams rather than Tcp streams.
 
 See [example.yaml](../examples/http_headers/envoy.yaml) for a full example.
 
@@ -109,7 +109,7 @@ filter_chains:
     - name: envoy.tcp_proxy
 ```
 
-In this case, Wasm VMs are created on *each worker thread* in Envoy, and each VM is responsible for operating on each Tcp streams on a listener handled by a corresponding worker thread.
+In this case, Wasm VMs are created on *each worker thread* in Envoy, and each VM is responsible for operating on each Tcp streams on a listener handled by a corresponding worker thread. Note that the way VMs and Plugins get created is exactly the same as [*Http Filter*](#http-filter), and the only difference is that *Plugins* only operate on Tcp streams rather than Http streams.
 
 See [example.yaml](../examples/network/envoy.yaml) for a full example.
 
