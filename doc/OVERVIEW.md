@@ -156,8 +156,7 @@ static_resources:
                       config:
                         configuration:
                           "@type": type.googleapis.com/google.protobuf.StringValue
-                          value: |
-                            http-header-operation
+                          value: "http-header-operation"
                         vm_config:
                           runtime: "envoy.wasm.runtime.v8"
                           code:
@@ -182,7 +181,7 @@ static_resources:
                       config:
                         configuration:
                           "@type": type.googleapis.com/google.protobuf.StringValue
-                          value: http-body-operation
+                          value: "http-body-operation"
                         vm_config:
                           runtime: "envoy.wasm.runtime.v8"
                           code:
@@ -203,8 +202,7 @@ static_resources:
                 config:
                   configuration:
                     "@type": type.googleapis.com/google.protobuf.StringValue
-                    value: |
-                      tcp-total-data-size-counter
+                    value: "tcp-total-data-size-counter"
                     vm_config:
                       runtime: "envoy.wasm.runtime.v8"
                       code:
@@ -272,7 +270,7 @@ type VMContext interface {
 
 As you expect, `VMContext` is responsible for creating `PluginContext` via `NewPluginContext` method. In addition, `OnVMStart` is called at the startup phase of the VM, and you can retrieve the value of `.vm_config.configuration` via `GetVMConfiguration` [hostcall API](#hostcall-api). This way you can do the VM-wise plugin-independent initialization and control the behavior of `VMContext`.
 
-Next is `PluginContext` and it it defined as (here we omit some of them for simplicity)
+Next is `PluginContext` and it it defined as (here we omit some of the methods for simplicity)
 
 ```go
 type PluginContext interface {
