@@ -57,12 +57,15 @@ configuration:
 ```
 
 where
-- `vm_config` configures specific Wasm VM on which this plugin runs. Here
-    - `vm_id` is used for semantic isolation towards Cross-VM communications. Please refer to [Cross-VM communications](#cross-vm-communications) section for detail.
-    - `runtime` specifies the Wasm runtime type. Usually set to `envoy.wasm.runtime.v8`.
-    - `configuration` is arbitray configuration data used for setting up the VM.
-    - `code` field specifies the location of your binary
-- `configuration` corresponds to each *Plugin* instance (which we call `PluginContext` explained below) inside the Wasm VM.
+
+| Field | Description |
+| --- | --- |
+| `vm_config` | configures specific Wasm VM on which this plugin runs |
+| `vm_config.vm_id` | used for semantic isolation towards Cross-VM communications. Please refer to [Cross-VM communications](#cross-vm-communications) section for detail.|
+| `vm_config.runtime` | specifies the Wasm runtime type. Usually set to `envoy.wasm.runtime.v8`. |
+| `vm_config.configuration` | arbitray configuration data used for setting up the VM. |
+| `vm_config.code` | location of a Wasm binary |
+| `configuration` | corresponds to each *Plugin* instance (which we call `PluginContext` explained below) inside the Wasm VM. |
 
 The important thing is that **giving exactly the same `vm_config` field for multiple plugins ends up sharing one Wasm VM among them**. 
 That means you can use a single Wasm VM for multiple Http filters, or maybe Http and Tcp filters per thread (See [example config](#sharing-one-vm-among-multiple-plugins-per-thread) for detail). This is useful in terms of memory/cpu resource efficiency, startup latency, etc.
