@@ -1,6 +1,6 @@
 # Introduction
 
-Proxy-Wasm project's key objective is to bring the extensibility to network proxies with any programing language in a flexible way.
+Proxy-Wasm project's key objective is to bring the extensibility to network proxies with any programming language in a flexible way.
 
 This Proxy-Wasm Go SDK is the SDK for extending network proxies (e.g. Envoyproxy) on top of the [Proxy-Wasm ABI specification](https://github.com/proxy-wasm/spec) with Go programming language, and the Proxy-Wasm ABI defines the interface between network proxies and Wasm virtual machines running inside network proxies.
 
@@ -12,7 +12,7 @@ This document explains the things you should know when writing programs with thi
 
 # TinyGo vs the official Go compiler
 
-This SDK relies on the TinyGo, a compiler implementation of Go programing language specification. So first of all, we answer the question "Why not the official Go?".
+This SDK relies on the TinyGo, a compiler implementation of Go programming language specification. So first of all, we answer the question "Why not the official Go?".
 
 There are several reasons why we cannot use the official Go compiler. Tl;dr is that as of this writing, the official compiler cannot produce Wasm binary which can run outside web browsers, and therefore cannot produce Proxy-Wasm compatible binaries.
 
@@ -57,12 +57,12 @@ configuration:
 ```
 
 where
-- `vm_config` configures specifies Wasm VM on which this plugin runs. Here
+- `vm_config` configures specific Wasm VM on which this plugin runs. Here
     - `vm_id` is used for semantic isolation towards Cross-VM communications. Please refer to [Cross-VM communications](#cross-vm-communications) section for detail.
     - `runtime` specifies the Wasm runtime type. Usually set to `envoy.wasm.runtime.v8`.
     - `configuration` is arbitray configuration data used for setting up the VM.
     - `code` field specifies the location of your binary
-- `configrutaion` corresponds to each *Plugin* instance (which we call `PluginContext` explained below) inside the Wasm VM.
+- `configuration` corresponds to each *Plugin* instance (which we call `PluginContext` explained below) inside the Wasm VM.
 
 The important thing is that **giving exactly the same `vm_config` field for multiple plugins ends up sharing one Wasm VM among them**. 
 That means you can use a single Wasm VM for multiple Http filters, or maybe Http and Tcp filters per thread (See [example config](#sharing-one-vm-among-multiple-plugins-per-thread) for detail). This is useful in terms of memory/cpu resource efficiency, startup latency, etc.
@@ -325,7 +325,7 @@ var _ types.VMContext = &myVMContext{}
 
 Given that VMs are created in the thread-local way, sometimes we may want to communicate with other VMs. For example, aggregating data or stats, caching data, etc.
 
-There are two concepts for Cross-VM communications called *Shred Data* and *Shared Queue*.
+There are two concepts for Cross-VM communications called *Shared Data* and *Shared Queue*.
 
 We also recommend you watch [this talk](https://www.youtube.com/watch?v=XdWmm_mtVXI&t=1168s) for introduction.
 
@@ -337,7 +337,7 @@ What if you want to have global request counters across all the Wasm VMs running
 
 <img src="./images/shared_data.png" width="600">
 
-In the diagram above, you see that VMs with "vm_id=foo" share the same shared data strage even though they have different binary (hello.wasm and bye.wasm).
+In the diagram above, you see that VMs with "vm_id=foo" share the same shared data storage even though they have different binary (hello.wasm and bye.wasm).
 
 Here's the shared data related API of this Go SDK in [hostcall.go](../proxywasm/hostcall.go):
 
@@ -363,7 +363,7 @@ func SetSharedData(key string, value []byte, cas uint32) error
 ```
 
 
-The API is straightforward, but the important part is its thread-safeness or cross-VM-safeness with "cas" or [Compare-And-Swap](https://en.wikipedia.org/wiki/Compare-and-swap) value.
+The API is straightforward, but the important part is its thread-safety and cross-VM-safety with "cas" or [Compare-And-Swap](https://en.wikipedia.org/wiki/Compare-and-swap) value.
 
 Please refer to [an example](../examples/shared_data) for demonstration.
 
@@ -373,7 +373,7 @@ What if you want to aggregate metrics across all the Wasm VMs in parallel to req
 
 *Shared Queue* is a FIFO(First-In-First-Out) queue created per a pair of `vm_id` and the name of the queue. And A *queue id* is assigned uniquely to the pair (vm_id, name) which is used for enqueue/dequeue operations.
 
- As you expect, the operations such as "enqueue" and "dequeue" have thread-safeness or cross-VM-safeness. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):;
+ As you expect, the operations such as "enqueue" and "dequeue" have thread-safety and cross-VM-safety. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):;
 
 ```golang
 // DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
@@ -445,7 +445,7 @@ These issues will be mitigated as TinyGo and Proxy-Wasm evolve.
 
 ## Performance overhead due to Garbage Collection
 
-There's performance overhead of using Go/TinyGo due to GC, although, optimically speaking, we could say that the overhead of GC is small enough compared to the other operations in the proxy.
+There's performance overhead of using Go/TinyGo due to GC, although, optimistically speaking, we could say that the overhead of GC is small enough compared to the other operations in the proxy.
 
 Internally, `runtime.GC` is called whenever the heap runs out (see 
 [1](https://tinygo.org/lang-support/#garbage-collection),
@@ -459,7 +459,7 @@ TinyGo allows us to disable GC, but we cannot do that since interanlly we need t
 
 ## Goroutine support
 
-In TinyGo, Goroutine is implmeneted through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
+In TinyGo, Goroutine is implemented through LLVM's coroutine (see [this blog post](https://aykevl.nl/2019/02/tinygo-goroutines)).
 
 In Envoy, Wasm modules are run in the event driven manner, and therefore the "scheduler" is not executed once the main function exits.
 That means you cannot have the expected behavior of Goroutine as in ordinary host environments.
