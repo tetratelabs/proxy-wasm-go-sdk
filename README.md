@@ -37,14 +37,12 @@ make build.example name=helloworld
 make run name=helloworld
 ```
 
-## Compatible Envoy builds (End-to-End tested)
+## Compatible Envoy builds
 
 Envoy is the first host side implementation of Proxy-Wasm ABI, 
-and we run end-to-end tests with multiple Envoy versions in order to verify Proxy-Wasm Go SDK works as expected.
+and we run end-to-end tests with multiple versions of Envoy and Envoy-based [istio/proxy](https://github.com/istio/proxy) in order to verify Proxy-Wasm Go SDK works as expected.
 
-| Istio| Envoy |
-|:-------------:|:-------------:|
-|  1.9, 1.10 | 1.18 |
+Please refer to [.github/workflows/workflow.yaml](.github/workflows/workflow.yaml) for which version is used for End-to-End tests.
 
 ## Contributing
 
