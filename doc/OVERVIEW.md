@@ -158,7 +158,11 @@ static_resources:
                           "@type": type.googleapis.com/google.protobuf.StringValue
                           value: "http-header-operation"
                         vm_config:
+                          vm_id: "my-vm-id"
                           runtime: "envoy.wasm.runtime.v8"
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "my-vm-configuration"
                           code:
                             local:
                               filename: "all-in-one.wasm"
@@ -183,7 +187,11 @@ static_resources:
                           "@type": type.googleapis.com/google.protobuf.StringValue
                           value: "http-body-operation"
                         vm_config:
+                          vm_id: "my-vm-id"
                           runtime: "envoy.wasm.runtime.v8"
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "my-vm-configuration"
                           code:
                             local:
                               filename: "all-in-one.wasm"
@@ -204,7 +212,11 @@ static_resources:
                     "@type": type.googleapis.com/google.protobuf.StringValue
                     value: "tcp-total-data-size-counter"
                     vm_config:
+                      vm_id: "my-vm-id"
                       runtime: "envoy.wasm.runtime.v8"
+                      configuration:
+                        "@type": type.googleapis.com/google.protobuf.StringValue
+                        value: "my-vm-configuration"
                       code:
                         local:
                           filename: "all-in-one.wasm"
@@ -212,7 +224,9 @@ static_resources:
               typed_config: # ...
 ```
 
-You see that `vm_config` fields are all the same on Http filter chains on 18000 and 18001 listeners plus a Network filter chain on 18002. That means one Wasm VM is used by multiple plugins in Envoy per worker thread. As a result, **Three** `PluginContext` will be created per Wasm VM and each of them corresponds to each of the above filter configurations (at 18000, 18001, and 18002 respectively).
+You see that `vm_config` fields are all the same on Http filter chains on 18000 and 18001 listeners plus a Network filter chain on 18002. That means one Wasm VM is used by multiple plugins in Envoy per worker thread in this case. In other words, all of `vm_config.vm_id`, `vm_config.runtime` `vm_config.configuration`, and `vm_config.code` must be same in order to reuse the same VMs.
+
+As a result, **Three** [`PluginContext`](#contexts) will be created per Wasm VM and each of them corresponds to each of the above filter configurations (the top `configuration` fields at 18000, 18001, and 18002 respectively).
 
 See [example.yaml](../examples/shared_queue/envoy.yaml) for a full example.
 
