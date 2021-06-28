@@ -422,9 +422,9 @@ while `ResolveSharedQueue` and `EnqueueSharedQueue` are for "producer" of queue 
 
 and both of these calls return a queue id, and it is used for `DequeueSharedQueue` and `EnqueueSharedQueue`.
 
-However, from the consumer's point of view, how can a consumer (= `PluginContext`) be notified when a queue is enqueued by a item? This is why we have the `OnQueueReady(queueID uint32)` interface in `PluginContext`. This method is called whenever an item is enqueued in a queue registered by that `PluginContext`.
+However, from the consumer's point of view, how can a consumer (= `PluginContext`) be notified when a queue is enqueued with an item? This is why we have the `OnQueueReady(queueID uint32)` interface in `PluginContext`. This method is called whenever an item is enqueued in a queue registered by that `PluginContext`.
 
-Also it is important to note that normally shared queues should be created by *Wasm Service* so that `OnQueueReady` or dequeue operation won't block worker threads' processing of Http or Tcp streams.
+Also it is highly recommended that shared queues should be created by a singleton *Wasm Service*, i.e. on the Envoy's main thread. Otherwise `OnQueueReady` is called on worker threads which blocks their processing of Http or Tcp streams.
 
 The following diagram is an illustrative usage of shared queues:
 
