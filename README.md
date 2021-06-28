@@ -15,6 +15,15 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 - [TinyGo](https://tinygo.org/) - This SDK depends on TinyGo and leverages its [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target. Please follow the official instruction [here](https://tinygo.org/getting-started/) for installing TinyGo.
 - [Envoy](https://www.envoyproxy.io) - To run compiled examples, you need to have Envoy binary. Please follow [the official instruction](https://www.envoyproxy.io/docs/envoy/latest/start/install).
 
+## Installation
+
+`go get` cannot be used for fetching this SDK and updating go.mod of your project due to the existence of "extern" functions which are only available in TinyGo. Instead, we can manually setup go.mod and go.sum via `go mod edit` and `go mod download`: 
+
+```
+$ go mod edit -require=github.com/tetratelabs/proxy-wasm-go-sdk@main
+$ go mod download github.com/tetratelabs/proxy-wasm-go-sdk
+```
+
 ## Build and run Examples
 
 ```bash
