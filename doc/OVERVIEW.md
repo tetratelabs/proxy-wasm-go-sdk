@@ -386,9 +386,9 @@ Please refer to [an example](../examples/shared_data) for demonstration.
 
 What if you want to aggregate metrics across all the Wasm VMs in parallel to request/response processing? Or what if you want to push some cross-VM aggregated information to a remote server? Now *Shared Queue* is here for you.
 
-*Shared Queue* is a FIFO(First-In-First-Out) queue created per a pair of `vm_id` and the name of the queue. And A *queue id* is assigned uniquely to the pair (vm_id, name) which is used for enqueue/dequeue operations.
+*Shared Queue* is a FIFO(First-In-First-Out) queue created for a pair of `vm_id` and the name of the queue. And a *queue id* is assigned uniquely to the pair (vm_id, name) which is used for enqueue/dequeue operations.
 
- As you expect, the operations such as "enqueue" and "dequeue" have thread-safety and cross-VM-safety. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):;
+As you expect, the operations such as "enqueue" and "dequeue" have thread-safety and cross-VM-safety. Let's look at the *Shared Queue* related API in [hostcall.go](../proxywasm/hostcall.go):
 
 ```golang
 // DequeueSharedQueue dequeues an data from the shared queue of the given queueID.
