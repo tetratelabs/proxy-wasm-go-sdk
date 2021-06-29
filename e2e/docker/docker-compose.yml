@@ -1,0 +1,9 @@
+version: '3'
+services:
+  sandbox:
+    build:
+      context: .
+    volumes:
+      - ../../:/app
+    working_dir: /app
+

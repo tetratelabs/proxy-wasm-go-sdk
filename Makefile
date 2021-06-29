@@ -1,7 +1,7 @@
 # bingo manages go binaries needed for building the project
 include .bingo/Variables.mk
 
-.PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e format check
+.PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e test.e2e.docker format check
 
 build.example:
 	find ./examples -type f -name "main.go" | grep ${name} | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
@@ -12,11 +12,14 @@ build.examples:
 test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
-test.e2e:
+test.e2e: build.examples
 	go test -v ./e2e -count=1
 
 test.e2e.single:
 	go test -v ./e2e -run '/${name}' -count=1
+
+test.e2e.docker:
+	docker-compose -f ./e2e/docker/docker-compose.yml run --rm sandbox $(MAKE) test.e2e
 
 run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
