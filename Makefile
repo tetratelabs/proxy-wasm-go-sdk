@@ -12,13 +12,13 @@ build.examples:
 test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
-test.e2e: build.examples
+test.e2e:
 	go test -v ./e2e -count=1
 
 test.e2e.single:
 	go test -v ./e2e -run '/${name}' -count=1
 
-test.e2e.docker:
+test.e2e.docker: build.examples
 	docker-compose -f ./e2e/docker/docker-compose.yml run --rm sandbox $(MAKE) test.e2e
 
 run:
