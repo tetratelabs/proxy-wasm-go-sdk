@@ -15,6 +15,15 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 - [TinyGo](https://tinygo.org/) - This SDK depends on TinyGo and leverages its [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target. Please follow the official instruction [here](https://tinygo.org/getting-started/) for installing TinyGo.
 - [Envoy](https://www.envoyproxy.io) - To run compiled examples, you need to have Envoy binary. Please follow [the official instruction](https://www.envoyproxy.io/docs/envoy/latest/start/install).
 
+## Installation
+
+`go get` cannot be used for fetching this SDK and updating go.mod of your project due to the existence of "extern" functions which are only available in TinyGo. Instead, we can manually setup go.mod and go.sum via `go mod edit` and `go mod download`: 
+
+```
+$ go mod edit -require=github.com/tetratelabs/proxy-wasm-go-sdk@main
+$ go mod download github.com/tetratelabs/proxy-wasm-go-sdk
+```
+
 ## Build and run Examples
 
 ```bash
@@ -28,15 +37,12 @@ make build.example name=helloworld
 make run name=helloworld
 ```
 
-## Compatible Envoy builds (tested on CI)
+## Compatible Envoy builds
 
 Envoy is the first host side implementation of Proxy-Wasm ABI, 
-and we run end-to-end tests with multiple Envoy versions in order to verify Proxy-Wasm Go SDK works as expected.
+and we run end-to-end tests with multiple versions of Envoy and Envoy-based [istio/proxy](https://github.com/istio/proxy) in order to verify Proxy-Wasm Go SDK works as expected.
 
-| proxy-wasm-go-sdk| istio/proxyv2| Envoy upstream|
-|:-------------:|:-------------:|:-------------:|
-| main | 1.9, 1.10 | 1.18 |
-| v0.3.0 | 1.9, 1.10 | 1.18 |
+Please refer to [workflow.yaml](.github/workflows/workflow.yaml) for which version is used for End-to-End tests.
 
 ## Contributing
 

@@ -22,14 +22,14 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-// GetVMConfiguration is used for retrieving configurations ginve in the "vm_config.configuration" field.
+// GetVMConfiguration is used for retrieving configurations given in the "vm_config.configuration" field.
 // This hostcall is only available during types.PluginContext.OnVMStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
 func GetVMConfiguration(size int) ([]byte, error) {
 	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
 }
 
-// GetPluginConfiguration is used for retrieving configurations ginve in the "config.configuration" field.
+// GetPluginConfiguration is used for retrieving configurations given in the "config.configuration" field.
 // This hostcall is only available during types.PluginContext.OnPluginStart call.
 // "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
 func GetPluginConfiguration(size int) ([]byte, error) {
