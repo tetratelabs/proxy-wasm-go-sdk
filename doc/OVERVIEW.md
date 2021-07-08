@@ -259,13 +259,13 @@ There are four types of contexts: `VMContext`, `PluginContext`, `TcpContext` and
 To summarize,
 
 1) `VMContext` corresponds to each `.vm_config.code`, and only one `VMContext` exists in each VM.
-2) `VMContext` is the parent of *PluginContexts*, and is responsible for creating arbitrary number of `PluginContexts`.
+2) `VMContext` is the parent of *PluginContexts*, and is responsible for creating arbitrary number of `PluginContext`s.
 3) `PluginContext` corresponds to a *Plugin* instance. That means, a `PluginContext` corresponds to a *Http Filter* or *Network Filter* or maybe *Wasm Service*, configured via `.configuration` field in the *plugin config*.
-4) `PluginContext` is the parent of `TcpContext` and `HttpContexts`, and is responsible for creating arbitrary number of these contexts when it is configured at *Http Filter* or *Network Filter*.
+4) `PluginContext` is the parent of `TcpContext` and `HttpContext`, and is responsible for creating arbitrary number of these contexts when it is configured at *Http Filter* or *Network Filter*.
 5) `TcpContext` is responsible for handling each Tcp stream.
-6) `HttpContexts` is responsible for handling each Http stream.
+6) `HttpContext` is responsible for handling each Http stream.
 
-So all you have to do is implement `VMContext` and `PluginContext`. And if you want to plug in to *Http Filter* or *Network Filter*, then implement `HttpContext` or *TcpFilter* respectively.
+So all you have to do is implement `VMContext` and `PluginContext`. And if you want to plug in to *Http Filter* or *Network Filter*, then implement `HttpContext` or `TcpContext` respectively.
 
 Let's look at some of these interfaces. First we see `VMContext` is defined as follows:
 
