@@ -26,7 +26,7 @@ func main() {
 type vmContext struct{}
 
 func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	data, err := proxywasm.GetVMConfiguration(vmConfigurationSize)
+	data, err := proxywasm.GetVMConfiguration()
 	if err != nil {
 		proxywasm.LogCriticalf("error reading vm configuration: %v", err)
 	}
@@ -48,7 +48,7 @@ type pluginContext struct {
 
 // Override types.DefaultPluginContext.
 func (ctx pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	data, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
+	data, err := proxywasm.GetPluginConfiguration()
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 	}
