@@ -47,7 +47,7 @@ type receiverPluginContext struct {
 // Override types.DefaultPluginContext.
 func (ctx *receiverPluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	// Get Plugin configuration.
-	config, err := proxywasm.GetPluginConfiguration(pluginConfigurationSize)
+	config, err := proxywasm.GetPluginConfiguration()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get plugin config: %v", err))
 	}
