@@ -1,46 +1,9 @@
-name: test
+name: latest-envoy-schedule
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+  schedule:
+    - cron:  '0 2 * * *'
 
 jobs:
-  style:
-    name: Code style check
-    runs-on: ubuntu-latest
-    steps:
-      - name: install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.5'
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: run lint
-        run: make lint
-
-      - name: run format check
-        run: make check
-
-  sdk-tests:
-    name: SDK tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.5'
-
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: run tests
-        run: make test
-
   build-examples:
     name: Build examples
     runs-on: ubuntu-latest
@@ -52,7 +15,6 @@ jobs:
         with:
           go-version: '1.16.5'
 
-      # TinyGo's release container does not have Make command.
       - name: Install Make
         run: apt install make
 
@@ -74,12 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [ 
-          "envoyproxy/envoy-dev:latest", 
-          "envoyproxy/envoy:v1.18.2", 
-          "istio/proxyv2:1.9.3", 
-          "istio/proxyv2:1.10.0",
-        ]
+        image: ["envoyproxy/envoy-dev:latest"]
     name: E2E Test (${{ matrix.image }})
     needs: build-examples
     runs-on: ubuntu-latest

@@ -24,16 +24,14 @@ import (
 
 // GetVMConfiguration is used for retrieving configurations given in the "vm_config.configuration" field.
 // This hostcall is only available during types.PluginContext.OnVMStart call.
-// "size" argument specifies homw many bytes you want to read. Set it to "vmConfigurationSize" given in OnVMStart.
-func GetVMConfiguration(size int) ([]byte, error) {
-	return getBuffer(internal.BufferTypeVMConfiguration, 0, size)
+func GetVMConfiguration() ([]byte, error) {
+	return getBuffer(internal.BufferTypeVMConfiguration, 0, math.MaxInt32)
 }
 
 // GetPluginConfiguration is used for retrieving configurations given in the "config.configuration" field.
 // This hostcall is only available during types.PluginContext.OnPluginStart call.
-// "size" argument specifies homw many bytes you want to read. Set it to "pluginConfigurationSize" given in OnVMStart.
-func GetPluginConfiguration(size int) ([]byte, error) {
-	return getBuffer(internal.BufferTypePluginConfiguration, 0, size)
+func GetPluginConfiguration() ([]byte, error) {
+	return getBuffer(internal.BufferTypePluginConfiguration, 0, math.MaxInt32)
 }
 
 // SetTickPeriodMilliSeconds sets the tick interval of types.PluginContext.OnTick calls.
