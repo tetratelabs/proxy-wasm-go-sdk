@@ -45,7 +45,7 @@ func Test_http_load(t *testing.T) {
 
 	opts := fhttp.HTTPRunnerOptions{}
 	opts.URL = "http://localhost:18000"
-	opts.AbortOn = -1
+	opts.AllowInitialErrors = true
 
 	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
 	opts.Payload = fnet.Payload
@@ -53,11 +53,12 @@ func Test_http_load(t *testing.T) {
 	fortioLog := new(bytes.Buffer)
 	opts.Out = fortioLog
 
-	opts.Exactly = 10
+	opts.Exactly = 100
 	_, err := fhttp.RunHTTPTest(&opts) // warm up round
 	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 
 	opts.HTTPReqTimeOut = 5000 * time.Second
+	opts.AbortOn = -1
 
 	for _, state := range states {
 		stdErr.Reset()
