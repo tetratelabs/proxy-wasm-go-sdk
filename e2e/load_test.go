@@ -40,7 +40,7 @@ func Test_http_load(t *testing.T) {
 		{1, 4096 * fnet.KILOBYTE},
 		{1, 8192 * fnet.KILOBYTE},
 		{1, 16384 * fnet.KILOBYTE},
-		{1, 32798 * fnet.KILOBYTE},
+		{1, 32768 * fnet.KILOBYTE},
 	}
 
 	opts := fhttp.HTTPRunnerOptions{}
