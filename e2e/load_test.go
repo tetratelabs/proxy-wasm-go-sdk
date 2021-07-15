@@ -16,7 +16,9 @@ package e2e
 
 import (
 	"bytes"
+	"log"
 	"testing"
+	"time"
 
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/fnet"
@@ -27,20 +29,46 @@ func Test_http_load(t *testing.T) {
 	stdErr, kill := startEnvoyWith("network", t, 8001)
 	defer kill()
 
-	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
+	states := []struct {
+		numCalls    int64
+		payloadSize int
+	}{
+		{1, 256 * fnet.KILOBYTE},
+		{1, 512 * fnet.KILOBYTE},
+		{1, 1024 * fnet.KILOBYTE},
+		{1, 2048 * fnet.KILOBYTE},
+		{1, 4096 * fnet.KILOBYTE},
+		{1, 8192 * fnet.KILOBYTE},
+		{1, 16384 * fnet.KILOBYTE},
+		{1, 32798 * fnet.KILOBYTE},
+	}
+
 	opts := fhttp.HTTPRunnerOptions{}
-	numCalls := 100
-	opts.Exactly = int64(numCalls)
-	opts.QPS = float64(numCalls)
 	opts.URL = "http://localhost:18000"
+	opts.AbortOn = -1
+
+	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
+	opts.Payload = fnet.Payload
+
 	fortioLog := new(bytes.Buffer)
 	opts.Out = fortioLog
+
+	opts.Exactly = 10
 	_, err := fhttp.RunHTTPTest(&opts) // warm up round
 	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 
-	megaByte := 1024 * fnet.KILOBYTE
-	fnet.ChangeMaxPayloadSize(32 * megaByte)
-	opts.Payload = fnet.Payload
-	_, err = fhttp.RunHTTPTest(&opts)
-	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
+	opts.HTTPReqTimeOut = 5000 * time.Second
+
+	for _, state := range states {
+		stdErr.Reset()
+		fortioLog.Reset()
+		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.numCalls, state.payloadSize)
+		fnet.ChangeMaxPayloadSize(state.payloadSize)
+		opts.Payload = fnet.Payload
+		opts.Exactly = state.numCalls
+		results, err := fhttp.RunHTTPTest(&opts)
+		log.Printf("\tReturn Codes: %v\n", results.RetCodes)
+		require.Equal(t, results.RetCodes[200], state.numCalls, stdErr.String(), fortioLog.String())
+		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
+	}
 }
