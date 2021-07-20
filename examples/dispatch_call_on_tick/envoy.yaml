@@ -30,6 +30,23 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "plugin1"
+                          vm_config:
+                            runtime: "envoy.wasm.runtime.v8"
+                            code:
+                              local:
+                                filename: "./examples/dispatch_call_on_tick/main.go.wasm"
+                  - name: envoy.filters.http.wasm
+                    typed_config:
+                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+                      value:
+                        config:
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: "plugin2"
                           vm_config:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
