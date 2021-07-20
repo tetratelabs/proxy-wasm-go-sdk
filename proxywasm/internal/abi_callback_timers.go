@@ -20,5 +20,6 @@ func proxyOnTick(pluginContextID uint32) {
 	if !ok {
 		panic("invalid root_context_id")
 	}
+	currentState.setActiveContextID(pluginContextID)
 	ctx.context.OnTick()
 }

@@ -31,7 +31,10 @@ func Test_dispatch_call_on_tick(t *testing.T) {
 	defer kill()
 	var count int = 1
 	require.Eventually(t, func() bool {
-		if strings.Contains(stdErr.String(), fmt.Sprintf("called! %d", count)) {
+		if checkMessage(stdErr.String(), []string{
+			fmt.Sprintf("called %d for contextID=1", count),
+			fmt.Sprintf("called %d for contextID=2", count),
+		}, nil) {
 			count++
 		}
 		return count == 6
