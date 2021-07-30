@@ -35,7 +35,7 @@ func TestPluginContext_OnTick(t *testing.T) {
 		host.CallOnHttpCallResponse(attrs[0].CalloutID, nil, nil, nil)
 		// Check Envoy logs.
 		logs := host.GetInfoLogs()
-		require.Contains(t, logs, fmt.Sprintf("called! %d", i))
+		require.Contains(t, logs, fmt.Sprintf("called %d for contextID=%d", i, proxytest.PluginContextID))
 	}
 
 }

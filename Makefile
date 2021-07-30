@@ -4,10 +4,10 @@ include .bingo/Variables.mk
 .PHONY: build.example build.example.docker build.examples build.examples.docker lint test test.sdk test.e2e format check
 
 build.example:
-	find ./examples -type f -name "main.go" | grep ${name} | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
+	@find ./examples -type f -name "main.go" | grep ${name} | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
 
 build.examples:
-	find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
+	@find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
 
 test:
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
@@ -20,6 +20,14 @@ test.e2e.single:
 
 run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
+
+wasm_image.build_push:
+	@for f in `find ./examples -type f -name "main.go"`; do \
+		name=`echo $$f | sed -e 's/\\//-/g' | sed -e 's/\.-examples-//g' -e 's/\-main\.go//g'` ; \
+		ref=ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples:$$name; \
+		docker build -t $$ref . -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$f; \
+		docker push $$ref; \
+	done
 
 lint: $(GOLANGCI_LINT)
 	@$(GOLANGCI_LINT) run --build-tags proxytest

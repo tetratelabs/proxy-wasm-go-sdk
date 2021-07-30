@@ -19,7 +19,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const tickMilliseconds uint32 = 1
+const tickMilliseconds uint32 = 100
 
 func main() {
 	proxywasm.SetVMContext(&vmContext{})
@@ -41,6 +41,8 @@ type pluginContext struct {
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 	contextID uint32
+	callBack  func(numHeaders, bodySize, numTrailers int)
+	cnt       int
 }
 
 // Override types.DefaultPluginContext.
@@ -50,6 +52,10 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 		return types.OnPluginStartStatusFailed
 	}
 	proxywasm.LogInfof("set tick period milliseconds: %d", tickMilliseconds)
+	ctx.callBack = func(numHeaders, bodySize, numTrailers int) {
+		ctx.cnt++
+		proxywasm.LogInfof("called %d for contextID=%d", ctx.cnt, ctx.contextID)
+	}
 	return types.OnPluginStartStatusOK
 }
 
@@ -58,15 +64,7 @@ func (ctx *pluginContext) OnTick() {
 	hs := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
 	}
-	if _, err := proxywasm.DispatchHttpCall("web_service", hs, nil, nil,
-		5000, callback); err != nil {
+	if _, err := proxywasm.DispatchHttpCall("web_service", hs, nil, nil, 5000, ctx.callBack); err != nil {
 		proxywasm.LogCriticalf("dispatch httpcall failed: %v", err)
 	}
-}
-
-var cnt int
-
-func callback(numHeaders, bodySize, numTrailers int) {
-	cnt++
-	proxywasm.LogInfof("called! %d", cnt)
 }
