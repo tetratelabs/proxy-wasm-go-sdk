@@ -16,7 +16,7 @@ test.e2e:
 	go test -v ./e2e -count=1
 
 test.e2e.single:
-	go test -v ./e2e -run '/${name}' -count=1
+	go test -v ./e2e -run '${name}' -count=1
 
 run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
