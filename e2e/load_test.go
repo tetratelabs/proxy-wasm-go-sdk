@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_http_load(t *testing.T) {
+func Test_http_load_with_high_bandwidth(t *testing.T) {
 	stdErr, kill := startEnvoyWith("network", t, 8001)
 	defer kill()
 
@@ -40,7 +40,6 @@ func Test_http_load(t *testing.T) {
 		{1, 4096 * fnet.KILOBYTE},
 		{1, 8192 * fnet.KILOBYTE},
 		{1, 16384 * fnet.KILOBYTE},
-		{1, 32768 * fnet.KILOBYTE},
 	}
 
 	opts := fhttp.HTTPRunnerOptions{}
@@ -68,8 +67,8 @@ func Test_http_load(t *testing.T) {
 		opts.Payload = fnet.Payload
 		opts.Exactly = state.numCalls
 		results, err := fhttp.RunHTTPTest(&opts)
-		log.Printf("\tReturn Codes: %v\n", results.RetCodes)
-		require.Equal(t, results.RetCodes[200], state.numCalls, stdErr.String(), fortioLog.String())
+		log.Printf("\tResult: %v\n", results)
+		require.Equal(t, state.numCalls, results.RetCodes[200], stdErr.String(), fortioLog.String())
 		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 	}
 }
