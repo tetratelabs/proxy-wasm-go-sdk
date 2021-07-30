@@ -70,6 +70,26 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
+  build-push-example-wasm-image:
+    name: Build/Push Wasm Images of examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Fetch built examples
+        uses: actions/cache@v2
+        with:
+          path: examples
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
+
+      - name: Run e2e test
+        run: make wasm_image.build_push
+
   e2e-tests:
     strategy:
       fail-fast: false
