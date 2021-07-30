@@ -70,6 +70,30 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
+  build-push-example-wasm-image:
+    name: Build/Push Wasm Images of examples
+    runs-on: ubuntu-latest
+    needs: [build-examples]
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch built examples
+        uses: actions/cache@v2
+        with:
+          path: examples
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
+
+      - name: Build/Push
+        run: make wasm_image.build_push
+
   e2e-tests:
     strategy:
       fail-fast: false
@@ -81,7 +105,7 @@ jobs:
           "istio/proxyv2:1.10.0",
         ]
     name: E2E Test (${{ matrix.image }})
-    needs: build-examples
+    needs: [build-examples]
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.image }}
