@@ -81,13 +81,16 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_TOKEN }}
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Fetch built examples
         uses: actions/cache@v2
         with:
           path: examples
           key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
 
-      - name: Run e2e test
+      - name: Build/Push
         run: make wasm_image.build_push
 
   e2e-tests:
