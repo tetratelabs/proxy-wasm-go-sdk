@@ -53,7 +53,7 @@ static_resources:
 
   clusters:
     - name: web_service
-      connect_timeout: 5000s
+      connect_timeout: 0.25s
       type: STATIC
       lb_policy: ROUND_ROBIN
       load_assignment:
