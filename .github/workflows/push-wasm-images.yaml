@@ -1,0 +1,34 @@
+name: push-wasm-images
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push-wasm-images:
+    name: Build and push Wasm images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install TinyGo
+        run: |
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.18.0/tinygo_0.18.0_amd64.deb
+          sudo dpkg -i tinygo_0.18.0_amd64.deb
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build examples
+        run: make build.examples
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build/Push Docker images
+        run: make wasm_image.build_push
+
+      - name: Build/Push OCI images
+        run: make wasm_image.build_push_oci
