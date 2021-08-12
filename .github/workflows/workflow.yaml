@@ -72,6 +72,7 @@ jobs:
 
   build-push-example-wasm-image:
     name: Build/Push Wasm Images of examples
+    if: ${{ github.ref == 'refs/heads/main' }} # Only push on the main branch.
     runs-on: ubuntu-latest
     needs: [build-examples]
     steps:
