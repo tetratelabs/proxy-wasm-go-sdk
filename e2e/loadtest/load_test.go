@@ -56,7 +56,7 @@ func Test_http_load(t *testing.T) {
 	fortioLog := new(bytes.Buffer)
 	opts.Out = fortioLog
 
-	opts.Exactly = 100
+	opts.Exactly = 1
 	_, err := fhttp.RunHTTPTest(&opts) // warm up round
 	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 
