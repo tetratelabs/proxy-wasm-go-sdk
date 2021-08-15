@@ -21,6 +21,7 @@ test.e2e:
 test.e2e.single:
 	go test -v ./e2e -run '${name}' -count=1
 
+.PHONY: test.e2e.loadtest
 test.e2e.loadtest:
 	go test -v ./e2e/loadtest -count=1
 
