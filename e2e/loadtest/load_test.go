@@ -36,7 +36,7 @@ func Test_http_load(t *testing.T) {
 		QPS         int64
 		payloadSize int
 	}{
-		{1000, 256 * fnet.KILOBYTE},
+		{100, 256 * fnet.KILOBYTE},
 		{1, 512 * fnet.KILOBYTE},
 		{1, 1024 * fnet.KILOBYTE},
 		{1, 2048 * fnet.KILOBYTE},
@@ -49,6 +49,7 @@ func Test_http_load(t *testing.T) {
 	opts.URL = "http://localhost:18000"
 	opts.AllowInitialErrors = true
 	opts.NumThreads = runtime.NumCPU()
+	opts.Percentiles = []float64{99.0}
 
 	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
 	opts.Payload = fnet.Payload
@@ -72,8 +73,11 @@ func Test_http_load(t *testing.T) {
 		opts.Exactly = state.QPS
 		opts.QPS = float64(state.QPS)
 		results, err := fhttp.RunHTTPTest(&opts)
+		log.Printf("\ttarget QPS: %v\n", state.QPS)
+		log.Printf("\tactual QPS: %v\n", results.ActualQPS)
 		log.Printf("\tResult: %v\n", results)
-		require.Equal(t, state.QPS, results.RetCodes[200], stdErr.String(), fortioLog.String())
+		require.Equal(t, results.DurationHistogram.Count, results.RetCodes[200], stdErr.String(), fortioLog.String())
+		require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, 100*time.Millisecond, stdErr.String(), fortioLog.String())
 		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 	}
 }
