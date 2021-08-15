@@ -23,7 +23,7 @@ test.e2e.single:
 
 .PHONY: test.e2e.loadtest
 test.e2e.loadtest:
-	go test -v ./e2e/loadtest -count=1
+	@cd ./e2e && go test -v ./loadtest -count=1
 
 .PHONY: run
 run:
