@@ -24,14 +24,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e"
 )
 
 func Test_dispatch_call_on_tick(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 1
 	require.Eventually(t, func() bool {
-		if checkMessage(stdErr.String(), []string{
+		if e2e.CheckMessage(stdErr.String(), []string{
 			fmt.Sprintf("called %d for contextID=1", count),
 			fmt.Sprintf("called %d for contextID=2", count),
 		}, nil) {
@@ -42,7 +43,7 @@ func Test_dispatch_call_on_tick(t *testing.T) {
 }
 
 func Test_foreign_call_on_tick(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 1
 	require.Eventually(t, func() bool {
@@ -54,10 +55,10 @@ func Test_foreign_call_on_tick(t *testing.T) {
 }
 
 func Test_helloworld(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			"proxy_on_vm_start from Go!",
 			"It's",
 		}, nil)
@@ -65,7 +66,7 @@ func Test_helloworld(t *testing.T) {
 }
 
 func Test_http_auth_random(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	key := "this-is-key"
 	value := "this-is-value"
@@ -78,7 +79,7 @@ func Test_http_auth_random(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			"access forbidden",
 			"access granted",
 			"response header from httpbin: :status: 200",
@@ -87,7 +88,7 @@ func Test_http_auth_random(t *testing.T) {
 }
 
 func Test_http_body(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 
 	for _, tc := range []struct {
@@ -113,17 +114,17 @@ func Test_http_body(t *testing.T) {
 				body, err := io.ReadAll(res.Body)
 				require.NoError(t, err)
 				return string(body) == tc.expBody &&
-					checkMessage(stdErr.String(), []string{
+					e2e.CheckMessage(stdErr.String(), []string{
 						`original request body: [original body]`},
 						[]string{"failed to"},
-					) && checkMessage(string(body), []string{tc.expBody}, nil)
+					) && e2e.CheckMessage(string(body), []string{tc.expBody}, nil)
 			}, 5*time.Second, 500*time.Millisecond, stdErr.String())
 		})
 	}
 }
 
 func Test_http_headers(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	req, err := http.NewRequest("GET", "http://localhost:18000/uuid", nil)
 	require.NoError(t, err)
@@ -136,14 +137,14 @@ func Test_http_headers(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			key, value, "server: envoy",
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func Test_http_routing(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	var primary, canary bool
 	require.Eventually(t, func() bool {
@@ -166,7 +167,7 @@ func Test_http_routing(t *testing.T) {
 }
 
 func Test_metrics(t *testing.T) {
-	_, kill := startEnvoy(t, 8001)
+	_, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	var count int
 	require.Eventually(t, func() bool {
@@ -189,12 +190,12 @@ func Test_metrics(t *testing.T) {
 		defer res.Body.Close()
 		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
+		return e2e.CheckMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, "Expected stats not found")
 }
 
 func Test_network(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	key := "This-Is-Key"
 	value := "this-is-value"
@@ -208,7 +209,7 @@ func Test_network(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			key, value,
 			"downstream data received",
 			"new connection!",
@@ -221,7 +222,7 @@ func Test_network(t *testing.T) {
 }
 
 func Test_shared_data(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 10000000
 	require.Eventually(t, func() bool {
@@ -237,12 +238,12 @@ func Test_shared_data(t *testing.T) {
 		return count == 10000010
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)}, nil)
+		return e2e.CheckMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
 
 func Test_shared_queue(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
 		res, err := http.Get("http://localhost:18000")
@@ -259,7 +260,7 @@ func Test_shared_queue(t *testing.T) {
 		return res.StatusCode == http.StatusOK
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			`enqueued data: {"key": ":method","value": "GET"}`,
 			`dequeued data from http_request_headers`,
 			`dequeued data from http_response_headers`,
@@ -269,10 +270,10 @@ func Test_shared_queue(t *testing.T) {
 }
 
 func Test_vm_plugin_configuration(t *testing.T) {
-	stdErr, kill := startEnvoy(t, 8001)
+	stdErr, kill := e2e.StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{
+		return e2e.CheckMessage(stdErr.String(), []string{
 			"name\": \"vm configuration", "name\": \"plugin configuration",
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())

@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func checkMessage(str string, exps, nexps []string) bool {
+func CheckMessage(str string, exps, nexps []string) bool {
 	for _, exp := range exps {
 		if !strings.Contains(str, exp) {
 			return false
@@ -41,7 +41,7 @@ func checkMessage(str string, exps, nexps []string) bool {
 }
 
 // startEnvoyWith is used for invoking the envoy process with a specified example.
-func startEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
+func StartEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	cmd := exec.Command("envoy",
 		"--base-id", strconv.Itoa(adminPort),
 		"--concurrency", "1", "--component-log-level", "wasm:trace",
@@ -63,7 +63,7 @@ func startEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buf
 
 // startEnvoy is used for invoking the envoy process which is used for e2e testing.
 // The target example is selected based on the name of the test case.
-func startEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
+func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	name := strings.TrimPrefix(t.Name(), "Test_")
-	return startEnvoyWith(name, t, adminPort)
+	return StartEnvoyWith(name, t, adminPort)
 }

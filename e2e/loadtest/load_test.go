@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package e2e
+package loadtest
 
 import (
 	"bytes"
@@ -23,17 +23,18 @@ import (
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/fnet"
 	"github.com/stretchr/testify/require"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e"
 )
 
-func Test_http_load_with_high_bandwidth(t *testing.T) {
-	stdErr, kill := startEnvoyWith("network", t, 8001)
+func Test_http_load(t *testing.T) {
+	stdErr, kill := e2e.StartEnvoyWith("network", t, 8001)
 	defer kill()
 
 	states := []struct {
-		numCalls    int64
+		QPS    int64
 		payloadSize int
 	}{
-		{1, 256 * fnet.KILOBYTE},
+		{1000, 256 * fnet.KILOBYTE},
 		{1, 512 * fnet.KILOBYTE},
 		{1, 1024 * fnet.KILOBYTE},
 		{1, 2048 * fnet.KILOBYTE},
@@ -62,13 +63,14 @@ func Test_http_load_with_high_bandwidth(t *testing.T) {
 	for _, state := range states {
 		stdErr.Reset()
 		fortioLog.Reset()
-		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.numCalls, state.payloadSize)
+		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.QPS, state.payloadSize)
 		fnet.ChangeMaxPayloadSize(state.payloadSize)
 		opts.Payload = fnet.Payload
-		opts.Exactly = state.numCalls
+		opts.Exactly = state.QPS
+		opts.QPS = float64(state.QPS)
 		results, err := fhttp.RunHTTPTest(&opts)
 		log.Printf("\tResult: %v\n", results)
-		require.Equal(t, state.numCalls, results.RetCodes[200], stdErr.String(), fortioLog.String())
+		require.Equal(t, state.QPS, results.RetCodes[200], stdErr.String(), fortioLog.String())
 		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 	}
 }
