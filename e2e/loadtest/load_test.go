@@ -23,6 +23,7 @@ import (
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/fnet"
 	"github.com/stretchr/testify/require"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e"
 )
 
@@ -31,7 +32,7 @@ func Test_http_load(t *testing.T) {
 	defer kill()
 
 	states := []struct {
-		QPS    int64
+		QPS         int64
 		payloadSize int
 	}{
 		{1000, 256 * fnet.KILOBYTE},
