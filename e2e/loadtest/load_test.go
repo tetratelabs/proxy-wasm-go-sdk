@@ -17,6 +17,7 @@ package loadtest
 import (
 	"bytes"
 	"log"
+	"runtime"
 	"testing"
 	"time"
 
@@ -47,6 +48,7 @@ func Test_http_load(t *testing.T) {
 	opts := fhttp.HTTPRunnerOptions{}
 	opts.URL = "http://localhost:18000"
 	opts.AllowInitialErrors = true
+	opts.NumThreads = runtime.NumCPU()
 
 	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
 	opts.Payload = fnet.Payload
