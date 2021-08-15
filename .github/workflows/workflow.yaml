@@ -113,3 +113,43 @@ jobs:
         run: make test.e2e
         env:
           CGO_ENABLED: "0"
+
+  load-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [
+          "envoyproxy/envoy-dev:latest",
+        ]
+    name: Load Test (${{ matrix.image }})
+    needs: [build-examples]
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+      options: --privileged
+    steps:
+      steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.5'
+
+      - name: Print Envoy version
+        run: envoy --version
+
+      - name: Install Make
+        run: apt update && apt install make
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch built examples
+        uses: actions/cache@v2
+        with:
+          path: examples
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
+
+      - name: Run load test
+        run: make test.e2e.loadtest
+        env:
+          CGO_ENABLED: "0"
