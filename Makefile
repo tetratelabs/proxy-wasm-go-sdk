@@ -15,11 +15,11 @@ test:
 
 .PHONY: test.e2e
 test.e2e:
-	go test -v ./e2e -count=1
+	@cd ./e2e && go test -v . -count=1
 
 .PHONY: test.e2e.single
 test.e2e.single:
-	go test -v ./e2e -run '${name}' -count=1
+	@cd ./e2e && go test -v . -run '${name}' -count=1
 
 .PHONY: test.e2e.loadtest
 test.e2e.loadtest:
