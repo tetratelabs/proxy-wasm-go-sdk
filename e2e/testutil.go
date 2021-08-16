@@ -24,7 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/procfs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +42,7 @@ func CheckMessage(str string, exps, nexps []string) bool {
 }
 
 // startEnvoyWith is used for invoking the envoy process with a specified example.
-func StartEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func(), pss func() uint64) {
+func StartEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	cmd := exec.Command("envoy",
 		"--base-id", strconv.Itoa(adminPort),
 		"--concurrency", "1", "--component-log-level", "wasm:trace",
@@ -60,18 +59,12 @@ func StartEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buf
 		defer res.Body.Close()
 		return res.StatusCode == http.StatusOK
 	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started")
-	return buf, func() { require.NoError(t, cmd.Process.Kill()) }, func() uint64 {
-		ps, err := procfs.NewProc(cmd.Process.Pid)
-		require.NoError(t, err)
-		smaps, err := ps.ProcSMapsRollup()
-		require.NoError(t, err)
-		return smaps.Pss
-	}
+	return buf, func() { require.NoError(t, cmd.Process.Kill()) }
 }
 
 // startEnvoy is used for invoking the envoy process which is used for e2e testing.
 // The target example is selected based on the name of the test case.
-func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func(), pss func() uint64) {
+func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	name := strings.TrimPrefix(t.Name(), "Test_")
 	return StartEnvoyWith(name, t, adminPort)
 }
