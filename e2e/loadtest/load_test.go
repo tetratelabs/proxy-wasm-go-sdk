@@ -45,6 +45,8 @@ func Test_http_load(t *testing.T) {
 	stdErr, kill := e2e.StartEnvoyWith(*targetExample, t, 8001)
 	defer kill()
 
+	initialMemoryStat := e2e.EnvoyMemoryUsage(t, 8001)
+
 	opts := fhttp.HTTPRunnerOptions{}
 	opts.URL = "http://localhost:18000/uuid"
 	opts.AllowInitialErrors = true
@@ -63,8 +65,13 @@ func Test_http_load(t *testing.T) {
 	opts.QPS = *qps
 	opts.Duration = time.Duration(*duration) * time.Second
 	results, err := fhttp.RunHTTPTest(&opts)
+
+	finalMemoryStat := e2e.EnvoyMemoryUsage(t, 8001)
+
 	log.Printf("\t\ttarget QPS: %v\n", opts.QPS)
 	log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
+	log.Printf("\tinitial memory status(allocated/heapsize): %d/%d\n", initialMemoryStat.Allocated, initialMemoryStat.HeapSize)
+	log.Printf("\tfinal memory status(allocated/heapsize): %d/%d (increased %f%%)\n", finalMemoryStat.Allocated, finalMemoryStat.HeapSize, float64(finalMemoryStat.Allocated-initialMemoryStat.Allocated)/float64(initialMemoryStat.Allocated)*100)
 	fortioLog.WriteTo(log.Writer())
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
