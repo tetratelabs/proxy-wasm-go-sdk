@@ -15,6 +15,7 @@ package e2e
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os/exec"
@@ -66,4 +67,44 @@ func StartEnvoyWith(name string, t *testing.T, adminPort int) (stdErr *bytes.Buf
 func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	name := strings.TrimPrefix(t.Name(), "Test_")
 	return StartEnvoyWith(name, t, adminPort)
+}
+
+// MemoryStat represents the response format of :8081/memory which returns memory stat for envoy process.
+type MemoryStat struct {
+	Allocated memoryBytes `json:"allocated"`
+	HeapSize memoryBytes `json:"heap_size"`
+	PageheapUnmapped memoryBytes `json:"pageheap_unmapped"`
+	PageheapFree memoryBytes `json:"pageheap_free"`
+	TotalThreadCache memoryBytes `json:"total_thread_cache"`
+	TotalPhysicalBytes memoryBytes `json:"total_physical_bytes"`
+}
+
+type memoryBytes int64
+
+func (m *memoryBytes) UnmarshalJSON(b []byte) error {
+	var n json.Number
+	err := json.Unmarshal(b, &n)
+	if err != nil {
+		return err
+	}
+	i, err := n.Int64()
+	if err != nil {
+		return err
+	}
+	*m = memoryBytes(i)
+	return nil
+}
+
+// EnvoyMemoryUsage is used for getting the memory usage of envoy process.
+func EnvoyMemoryUsage(t *testing.T, adminPort int) MemoryStat {
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/memory", adminPort))
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	var memory MemoryStat
+	if err := json.NewDecoder(resp.Body).Decode(&memory); err != nil {
+		require.NoError(t, err)
+	}
+	return memory
 }
