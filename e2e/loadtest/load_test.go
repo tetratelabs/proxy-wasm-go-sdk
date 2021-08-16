@@ -58,7 +58,6 @@ func Test_http_load(t *testing.T) {
 	opts.AllowInitialErrors = true
 	opts.NumThreads = runtime.NumCPU()
 	opts.Percentiles = []float64{99.0}
-	opts.DisableFastClient = true
 
 	fnet.ChangeMaxPayloadSize(*payloadSize * fnet.KILOBYTE)
 	opts.Payload = fnet.Payload
