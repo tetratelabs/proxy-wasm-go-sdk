@@ -118,6 +118,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        qps: [100]
+        payload-size: [256, 16384]
+        duration: [30]
         image: [
           "envoyproxy/envoy-dev:latest",
         ]
@@ -149,6 +152,6 @@ jobs:
           key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}
 
       - name: Run load test
-        run: make test.e2e.loadtest
+        run: make test.e2e.loadtest qps=${{ matrix.qps }} payloadSize=${{ matrix.payload-size }} duration=${{ matrix.duration }}
         env:
           CGO_ENABLED: "0"
