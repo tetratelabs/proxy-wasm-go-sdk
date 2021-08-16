@@ -57,7 +57,7 @@ func Test_http_load(t *testing.T) {
 	opts.URL = "http://localhost:18000/uuid"
 	opts.AllowInitialErrors = true
 	opts.NumThreads = runtime.NumCPU()
-	opts.NumConnections = 1000
+	opts.NumConnections = (int(*qps) * *duration) / 2
 	opts.Percentiles = []float64{99.0}
 
 	fnet.ChangeMaxPayloadSize(*payloadSize * fnet.KILOBYTE)
