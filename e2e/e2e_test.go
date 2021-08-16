@@ -221,7 +221,7 @@ func Test_network(t *testing.T) {
 }
 
 func Test_shared_data(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 10000000
 	require.Eventually(t, func() bool {
