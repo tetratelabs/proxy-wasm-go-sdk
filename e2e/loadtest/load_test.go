@@ -37,8 +37,8 @@ func Test_http_load(t *testing.T) {
 	defer kill()
 
 	states := []struct {
-		numCalls         int64
-		payloadSize int
+		numCalls          int64
+		payloadSize       int
 		upperLimitLatency float64
 	}{
 		{100, 256 * fnet.KILOBYTE, 100},
