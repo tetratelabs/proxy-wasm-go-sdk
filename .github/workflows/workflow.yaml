@@ -124,7 +124,7 @@ jobs:
         image: [
           "envoyproxy/envoy-dev:latest",
         ]
-    name: Load Test (${{ matrix.image }})
+    name: Load Test (${{ matrix.image }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
     needs: [build-examples]
     runs-on: ubuntu-latest
     container:
