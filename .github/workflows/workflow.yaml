@@ -118,8 +118,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        qps: [100]
-        payload-size: [256, 16384]
+        qps: [1,10,100]
+        payload-size: [256, 8192]
         duration: [30]
         image: [
           "envoyproxy/envoy-dev:latest",
