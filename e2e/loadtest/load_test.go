@@ -31,7 +31,7 @@ import (
 
 const (
 	targetNintyninthPercentileLatencyLimit = 200 // ms
-	targetSuccessRate                      = 0.9
+	targetSuccessRate                      = 0.8
 )
 
 var (
