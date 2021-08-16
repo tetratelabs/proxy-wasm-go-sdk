@@ -28,21 +28,21 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e"
 )
 
+const (
+	targetQPS = 100
+)
+
 func Test_http_load(t *testing.T) {
 	stdErr, kill := e2e.StartEnvoyWith("network", t, 8001)
 	defer kill()
 
 	states := []struct {
-		QPS         int64
+		numCalls         int64
 		payloadSize int
+		upperLimitLatency float64
 	}{
-		{100, 256 * fnet.KILOBYTE},
-		{1, 512 * fnet.KILOBYTE},
-		{1, 1024 * fnet.KILOBYTE},
-		{1, 2048 * fnet.KILOBYTE},
-		{1, 4096 * fnet.KILOBYTE},
-		{1, 8192 * fnet.KILOBYTE},
-		{1, 16384 * fnet.KILOBYTE},
+		{100, 256 * fnet.KILOBYTE, 100},
+		{1, 16384 * fnet.KILOBYTE, 150},
 	}
 
 	opts := fhttp.HTTPRunnerOptions{}
@@ -67,17 +67,16 @@ func Test_http_load(t *testing.T) {
 	for _, state := range states {
 		stdErr.Reset()
 		fortioLog.Reset()
-		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.QPS, state.payloadSize)
+		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.numCalls, state.payloadSize)
 		fnet.ChangeMaxPayloadSize(state.payloadSize)
 		opts.Payload = fnet.Payload
-		opts.Exactly = state.QPS
-		opts.QPS = float64(state.QPS)
+		opts.Exactly = state.numCalls
+		opts.QPS = float64(targetQPS)
 		results, err := fhttp.RunHTTPTest(&opts)
-		log.Printf("\ttarget QPS: %v\n", state.QPS)
-		log.Printf("\tactual QPS: %v\n", results.ActualQPS)
-		log.Printf("\tResult: %v\n", results)
+		log.Printf("\t\ttarget QPS: %v\n", targetQPS)
+		log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
 		require.Equal(t, results.DurationHistogram.Count, results.RetCodes[200], stdErr.String(), fortioLog.String())
-		require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, 100*time.Millisecond, stdErr.String(), fortioLog.String())
+		require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, state.upperLimitLatency, stdErr.String(), fortioLog.String())
 		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 	}
 }
