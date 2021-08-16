@@ -72,8 +72,8 @@ func Test_http_load(t *testing.T) {
 
 	log.Printf("\t\ttarget QPS: %v\n", opts.QPS)
 	log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
-	log.Printf("\tinitial memory size (PSS): %d [KB]\n", initialMemorySize)
-	log.Printf("\tfinal memory size (PSS): %d [KB] (increased %f%%)\n", finalMemorySize, float64(finalMemorySize-initialMemorySize)/float64(initialMemorySize)*100)
+	log.Printf("\tinitial memory size (PSS): %d bytes\n", initialMemorySize)
+	log.Printf("\tfinal memory size (PSS): %d bytes (increased %f%%)\n", finalMemorySize, float64(finalMemorySize-initialMemorySize)/float64(initialMemorySize)*100)
 	fortioLog.WriteTo(log.Writer())
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
