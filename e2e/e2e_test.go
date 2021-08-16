@@ -27,7 +27,7 @@ import (
 )
 
 func Test_dispatch_call_on_tick(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 1
 	require.Eventually(t, func() bool {
@@ -42,7 +42,7 @@ func Test_dispatch_call_on_tick(t *testing.T) {
 }
 
 func Test_foreign_call_on_tick(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	var count int = 1
 	require.Eventually(t, func() bool {
@@ -54,7 +54,7 @@ func Test_foreign_call_on_tick(t *testing.T) {
 }
 
 func Test_helloworld(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
 		return CheckMessage(stdErr.String(), []string{
@@ -65,7 +65,7 @@ func Test_helloworld(t *testing.T) {
 }
 
 func Test_http_auth_random(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	key := "this-is-key"
 	value := "this-is-value"
@@ -87,7 +87,7 @@ func Test_http_auth_random(t *testing.T) {
 }
 
 func Test_http_body(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 
 	for _, tc := range []struct {
@@ -123,7 +123,7 @@ func Test_http_body(t *testing.T) {
 }
 
 func Test_http_headers(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	req, err := http.NewRequest("GET", "http://localhost:18000/uuid", nil)
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func Test_http_headers(t *testing.T) {
 }
 
 func Test_http_routing(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	var primary, canary bool
 	require.Eventually(t, func() bool {
@@ -166,7 +166,7 @@ func Test_http_routing(t *testing.T) {
 }
 
 func Test_metrics(t *testing.T) {
-	_, kill := StartEnvoy(t, 8001)
+	_, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	var count int
 	require.Eventually(t, func() bool {
@@ -194,7 +194,7 @@ func Test_metrics(t *testing.T) {
 }
 
 func Test_network(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	key := "This-Is-Key"
 	value := "this-is-value"
@@ -242,7 +242,7 @@ func Test_shared_data(t *testing.T) {
 }
 
 func Test_shared_queue(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
 		res, err := http.Get("http://localhost:18000")
@@ -269,7 +269,7 @@ func Test_shared_queue(t *testing.T) {
 }
 
 func Test_vm_plugin_configuration(t *testing.T) {
-	stdErr, kill := StartEnvoy(t, 8001)
+	stdErr, kill, _ := StartEnvoy(t, 8001)
 	defer kill()
 	require.Eventually(t, func() bool {
 		return CheckMessage(stdErr.String(), []string{
