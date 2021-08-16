@@ -16,6 +16,7 @@ package loadtest
 
 import (
 	"bytes"
+	"flag"
 	"log"
 	"runtime"
 	"testing"
@@ -29,54 +30,50 @@ import (
 )
 
 const (
-	targetQPS = 100
+	targetNintyninthPercentileLatencyLimit = 200 // ms
+	targetSuccessRate                      = 0.9
+)
+
+var (
+	qps         = flag.Float64("qps", 0, "QPS to run load test")
+	duration    = flag.Int("duration", 10, "Duration of test in seconds")
+	payloadSize = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
 )
 
 func Test_http_load(t *testing.T) {
-	stdErr, kill := e2e.StartEnvoyWith("network", t, 8001)
+	stdErr, kill := e2e.StartEnvoyWith("http_headers", t, 8001)
 	defer kill()
 
-	states := []struct {
-		numCalls          int64
-		payloadSize       int
-		upperLimitLatency float64
-	}{
-		{100, 256 * fnet.KILOBYTE, 100},
-		{1, 16384 * fnet.KILOBYTE, 150},
-	}
+	// states := []struct {
+	// 	numCalls          int64
+	// 	payloadSize       int
+	// 	upperLimitLatency float64
+	// }{
+	// 	{100, 256 * fnet.KILOBYTE, 100},
+	// 	{1, 16384 * fnet.KILOBYTE, 150},
+	// }
 
 	opts := fhttp.HTTPRunnerOptions{}
-	opts.URL = "http://localhost:18000"
+	opts.URL = "http://localhost:18000/uuid"
 	opts.AllowInitialErrors = true
 	opts.NumThreads = runtime.NumCPU()
 	opts.Percentiles = []float64{99.0}
 
-	fnet.ChangeMaxPayloadSize(fnet.KILOBYTE)
+	fnet.ChangeMaxPayloadSize(*payloadSize * fnet.KILOBYTE)
 	opts.Payload = fnet.Payload
 
 	fortioLog := new(bytes.Buffer)
 	opts.Out = fortioLog
 
-	opts.Exactly = 1
-	_, err := fhttp.RunHTTPTest(&opts) // warm up round
-	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
-
 	opts.HTTPReqTimeOut = 5000 * time.Second
-	opts.AbortOn = -1
-
-	for _, state := range states {
-		stdErr.Reset()
-		fortioLog.Reset()
-		log.Printf("\tnumCalls = %d, payloadSize = %d [byte]\n", state.numCalls, state.payloadSize)
-		fnet.ChangeMaxPayloadSize(state.payloadSize)
-		opts.Payload = fnet.Payload
-		opts.Exactly = state.numCalls
-		opts.QPS = float64(targetQPS)
-		results, err := fhttp.RunHTTPTest(&opts)
-		log.Printf("\t\ttarget QPS: %v\n", targetQPS)
-		log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
-		require.Equal(t, results.DurationHistogram.Count, results.RetCodes[200], stdErr.String(), fortioLog.String())
-		require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, state.upperLimitLatency, stdErr.String(), fortioLog.String())
-		require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
-	}
+	log.Printf("\tDuration = %d [s], payloadSize = %d [byte]\n", *duration, *payloadSize)
+	opts.QPS = *qps
+	opts.Duration = time.Duration(*duration) * time.Second
+	results, err := fhttp.RunHTTPTest(&opts)
+	log.Printf("\t\ttarget QPS: %v\n", opts.QPS)
+	log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
+	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
+	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String(), fortioLog.String())
+	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String(), fortioLog.String())
+	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
 }
