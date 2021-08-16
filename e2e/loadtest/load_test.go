@@ -35,9 +35,9 @@ const (
 )
 
 var (
-	qps         = flag.Float64("qps", 0, "QPS to run load test")
-	duration    = flag.Int("duration", 10, "Duration of test in seconds")
-	payloadSize = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
+	qps           = flag.Float64("qps", 0, "QPS to run load test")
+	duration      = flag.Int("duration", 10, "Duration of test in seconds")
+	payloadSize   = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
 	targetExample = flag.String("targetExample", "http_headers", "Target example to run load test")
 )
 
