@@ -71,11 +71,11 @@ func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func())
 
 // MemoryStat represents the response format of :8081/memory which returns memory stat for envoy process.
 type MemoryStat struct {
-	Allocated memoryBytes `json:"allocated"`
-	HeapSize memoryBytes `json:"heap_size"`
-	PageheapUnmapped memoryBytes `json:"pageheap_unmapped"`
-	PageheapFree memoryBytes `json:"pageheap_free"`
-	TotalThreadCache memoryBytes `json:"total_thread_cache"`
+	Allocated          memoryBytes `json:"allocated"`
+	HeapSize           memoryBytes `json:"heap_size"`
+	PageheapUnmapped   memoryBytes `json:"pageheap_unmapped"`
+	PageheapFree       memoryBytes `json:"pageheap_free"`
+	TotalThreadCache   memoryBytes `json:"total_thread_cache"`
 	TotalPhysicalBytes memoryBytes `json:"total_physical_bytes"`
 }
 
