@@ -38,20 +38,12 @@ var (
 	qps         = flag.Float64("qps", 0, "QPS to run load test")
 	duration    = flag.Int("duration", 10, "Duration of test in seconds")
 	payloadSize = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
+	targetExample = flag.String("targetExample", "http_headers", "Target example to run load test")
 )
 
 func Test_http_load(t *testing.T) {
-	stdErr, kill := e2e.StartEnvoyWith("http_headers", t, 8001)
+	stdErr, kill := e2e.StartEnvoyWith(*targetExample, t, 8001)
 	defer kill()
-
-	// states := []struct {
-	// 	numCalls          int64
-	// 	payloadSize       int
-	// 	upperLimitLatency float64
-	// }{
-	// 	{100, 256 * fnet.KILOBYTE, 100},
-	// 	{1, 16384 * fnet.KILOBYTE, 150},
-	// }
 
 	opts := fhttp.HTTPRunnerOptions{}
 	opts.URL = "http://localhost:18000/uuid"
@@ -73,8 +65,9 @@ func Test_http_load(t *testing.T) {
 	results, err := fhttp.RunHTTPTest(&opts)
 	log.Printf("\t\ttarget QPS: %v\n", opts.QPS)
 	log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
+	fortioLog.WriteTo(log.Writer())
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
-	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String(), fortioLog.String())
-	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String(), fortioLog.String())
-	require.NoErrorf(t, err, stdErr.String(), fortioLog.String())
+	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
+	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
+	require.NoErrorf(t, err, stdErr.String())
 }

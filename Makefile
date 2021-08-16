@@ -23,7 +23,7 @@ test.e2e.single:
 
 .PHONY: test.e2e.loadtest
 test.e2e.loadtest:
-	@cd ./e2e && go test -v ./loadtest -count=1 -args -qps=${qps} -duration=${duration} -payloadSize=${payloadSize}
+	@cd ./e2e && go test -v ./loadtest -count=1 -args -qps=${qps} -duration=${duration} -payloadSize=${payloadSize} -targetExample=${targetExample}
 
 .PHONY: run
 run:
