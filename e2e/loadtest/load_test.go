@@ -50,10 +50,11 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	initialMemoryStat := e2e.EnvoyMemoryUsage(t, 8001)
 
 	opts := fhttp.HTTPRunnerOptions{}
-	opts.URL = "http://localhost:18000/uuid"
+	opts.URL = "http://localhost:18000"
 	opts.AllowInitialErrors = true
 	opts.NumThreads = runtime.NumCPU()
 	opts.Percentiles = []float64{99.0}
+	opts.AddAndValidateExtraHeader("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M")
 
 	// Set payload (request body) size
 	fnet.ChangeMaxPayloadSize(*payloadSize * fnet.KILOBYTE)
