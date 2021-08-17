@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	// The secret key used to sign the JWT token.
 	secretKey = "secret"
 )
 
@@ -66,7 +67,7 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 }
 
 type httpContext struct {
-	// mbed the default plugin context
+	// Embed the default plugin context
 	// so that you don't need to reimplement all the methods by yourself.
 	types.DefaultHttpContext
 	contextID uint32
@@ -84,8 +85,9 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 	proxywasm.LogInfof("authorization token: %s", authorization)
 
+	// Validate format and verify token.
 	slice := strings.Fields(authorization)
-	if len(slice) != 2 || slice[0] != "Bearer" || !validateToken(slice[1]) {
+	if len(slice) != 2 || slice[0] != "Bearer" || !verifyToken(slice[1]) {
 		if err := proxywasm.SendHttpResponse(401, nil, []byte("invalid token")); err != nil {
 			panic(err)
 		}
@@ -102,8 +104,8 @@ func (ctx *httpContext) OnHttpStreamDone() {
 	proxywasm.LogInfof("%d finished", ctx.contextID)
 }
 
-// validateToken checks if the JWT token is valid.
-func validateToken(token string) bool {
+// verifyToken checks if the JWT token is valid.
+func verifyToken(token string) bool {
 	slice := strings.Split(token, ".")
 	if len(slice) != 3 {
 		return false
