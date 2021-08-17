@@ -118,13 +118,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        qps: [1,10,100]
-        payload-size: [256, 8192]
-        duration: [30]
-        target-example: ["http_headers"]
         image: [
-          "envoyproxy/envoy-dev:latest",
+          "envoyproxy/envoy:v1.19-latest",
         ]
+        include:
+          - payload-size: 256
+            qps: 100
+            duration: 30
+            target-example: "http_headers"
+          - payload-size: 8192
+            qps: 100
+            duration: 30
+            target-example: "http_headers"
     name: Load Test (${{ matrix.image }}, ${{ matrix.target-example }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
     needs: [build-examples]
     runs-on: ubuntu-latest
