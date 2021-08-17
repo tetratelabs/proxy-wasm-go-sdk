@@ -118,15 +118,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [
-          "envoyproxy/envoy:v1.19-latest",
-        ]
         include:
-          - payload-size: 256
+          # payload-size: request body size in KB
+          # qps: target QPS
+          # duration: duration to run load test in seconds
+          # target-example: target example WASM binary (e.g. "http_headers")
+          - image: "envoyproxy/envoy:v1.19-latest"
+            payload-size: 256
             qps: 100
             duration: 30
             target-example: "http_headers"
-          - payload-size: 8192
+          - image: "envoyproxy/envoy:v1.19-latest"
+            payload-size: 8192
             qps: 100
             duration: 30
             target-example: "http_headers"
