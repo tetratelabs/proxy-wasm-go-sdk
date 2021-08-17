@@ -8,8 +8,8 @@
 package main
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 
@@ -78,7 +78,7 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 		// Call OnRequestHeaders.
 		action := host.CallOnRequestHeaders(id, [][2]string{
 			{"Authorization", "invalidtoken"},
-		 }, false)
+		}, false)
 
 		// Must be paused.
 		require.Equal(t, types.ActionPause, action)
