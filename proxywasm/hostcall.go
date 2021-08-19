@@ -477,7 +477,8 @@ func ResumeHttpResponse() error {
 // to override the already sent headers.
 // types.Action.Pause *must* be returned after invoking this function, in order to stop further processing
 // of original http request/response.
-func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error {
+// Note that gRPCStatus can be set to -1 if this is a not gRPC stream.
+func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte, gRPCStatus int32) error {
 	shs := internal.SerializeMap(headers)
 	var bp *byte
 	if len(body) > 0 {
@@ -488,7 +489,7 @@ func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte) error
 	return internal.StatusToError(
 		internal.ProxySendLocalResponse(
 			statusCode, nil, 0,
-			bp, len(body), hp, hl, -1,
+			bp, len(body), hp, hl, gRPCStatus,
 		),
 	)
 }
