@@ -76,7 +76,7 @@ type setBodyContext struct {
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
-		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided")); err != nil {
+		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
 		}
 		return types.ActionPause
@@ -146,7 +146,7 @@ func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) ty
 
 	// Send the request body as the response body.
 	body, _ := proxywasm.GetHttpRequestBody(0, ctx.totalRequestBodySize)
-	if err := proxywasm.SendHttpResponse(200, nil, body); err != nil {
+	if err := proxywasm.SendHttpResponse(200, nil, body, -1); err != nil {
 		panic(err)
 	}
 	return types.ActionPause

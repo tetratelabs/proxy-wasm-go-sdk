@@ -112,7 +112,7 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 	proxywasm.LogInfo(body)
 	if err := proxywasm.SendHttpResponse(403, [][2]string{
 		{"powered-by", "proxy-wasm-go-sdk!!"},
-	}, []byte(body)); err != nil {
+	}, []byte(body), -1); err != nil {
 		proxywasm.LogErrorf("failed to send local response: %v", err)
 		proxywasm.ResumeHttpRequest()
 	}
