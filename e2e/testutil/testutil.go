@@ -30,10 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	memoryProfileRate = 100 // hz
-)
-
 func CheckMessage(str string, exps, nexps []string) bool {
 	for _, exp := range exps {
 		if !strings.Contains(str, exp) {
