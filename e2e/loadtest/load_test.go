@@ -24,9 +24,9 @@ import (
 
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/fnet"
+	"github.com/guptarohit/asciigraph"
 	"github.com/stretchr/testify/require"
 
-	"github.com/guptarohit/asciigraph"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 )
 
@@ -92,7 +92,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	log.Printf("max memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
 	graph := asciigraph.Plot(allocSizes, asciigraph.Height(50))
-	log.Printf("\n%s\n",graph)
+	log.Printf("\n%s\n", graph)
 
 	fortioLog.WriteTo(log.Writer())
 
