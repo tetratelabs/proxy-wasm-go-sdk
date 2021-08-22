@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 )
 

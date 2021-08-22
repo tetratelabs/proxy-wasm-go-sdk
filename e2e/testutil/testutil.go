@@ -76,15 +76,15 @@ func StartEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func())
 // The fields are defined in https://www.envoyproxy.io/docs/envoy/latest/api-v3/admin/v3/memory.proto.html.
 type MemoryStat struct {
 	// The number of bytes allocated by the heap for envoy.
-	Allocated          memoryBytes `json:"allocated"`
+	Allocated memoryBytes `json:"allocated"`
 	// The number of bytes reserved for the heap.
-	HeapSize           memoryBytes `json:"heap_size"`
+	HeapSize memoryBytes `json:"heap_size"`
 	// The number of bytes in free, unmapped pages in the page heap.
-	PageheapUnmapped   memoryBytes `json:"pageheap_unmapped"`
+	PageheapUnmapped memoryBytes `json:"pageheap_unmapped"`
 	// The number of bytes in free, mapped pages in the page heap.
-	PageheapFree       memoryBytes `json:"pageheap_free"`
+	PageheapFree memoryBytes `json:"pageheap_free"`
 	// The amount of memory used by the TCMalloc thread caches.
-	TotalThreadCache   memoryBytes `json:"total_thread_cache"`
+	TotalThreadCache memoryBytes `json:"total_thread_cache"`
 	// The number of bytes of the physical memory usage by the allocator.
 	TotalPhysicalBytes memoryBytes `json:"total_physical_bytes"`
 }
@@ -112,11 +112,11 @@ var memoryStats struct {
 
 // EnvoyMemoryProfile represents a memory profile of envoy process.
 type EnvoyMemoryProfile struct {
-	mu sync.Mutex
+	mu        sync.Mutex
 	profiling bool
-	ctx context.Context
-	cancel func()
-	done chan bool
+	ctx       context.Context
+	cancel    func()
+	done      chan bool
 }
 
 var envoyMemoryProfile EnvoyMemoryProfile
