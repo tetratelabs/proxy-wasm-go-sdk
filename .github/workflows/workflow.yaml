@@ -131,17 +131,7 @@ jobs:
             duration: 30
             target-example: "http_headers"
           - image: "envoyproxy/envoy:v1.19-latest"
-            payload-size: 8192
-            qps: 100
-            duration: 30
-            target-example: "http_headers"
-          - image: "envoyproxy/envoy:v1.19-latest"
             payload-size: 256
-            qps: 100
-            duration: 30
-            target-example: "http_jwt_auth"
-          - image: "envoyproxy/envoy:v1.19-latest"
-            payload-size: 8192
             qps: 100
             duration: 30
             target-example: "http_jwt_auth"
