@@ -149,10 +149,11 @@ func runProfile(ctx context.Context, adminPort int) {
 		m, e := EnvoyMemoryUsage(adminPort)
 		if e != nil {
 			err = e
+		} else {
+			memoryStats.Lock()
+			memoryStats.memstats = append(memoryStats.memstats, *m)
+			memoryStats.Unlock()
 		}
-		memoryStats.Lock()
-		memoryStats.memstats = append(memoryStats.memstats, *m)
-		memoryStats.Unlock()
 		select {
 		case <-ctx.Done():
 			if err != nil {
