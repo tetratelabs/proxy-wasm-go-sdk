@@ -61,7 +61,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	opts.Out = fortioLog
 
 	opts.HTTPReqTimeOut = 5000 * time.Second // Avoid timeouts on huge payloads
-	log.Printf("\tDuration = %d [s], payloadSize = %d [byte]\n", *duration, *payloadSize)
+	log.Printf("\tDuration = %d [s], payloadSize = %d [KB]\n", *duration, *payloadSize)
 	opts.QPS = *qps * 1.5 // In order to reach the target QPS, we need to set a little bit higer target QPS.
 	opts.Duration = time.Duration(*duration) * time.Second
 
