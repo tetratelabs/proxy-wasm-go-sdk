@@ -69,27 +69,37 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	err := testutil.StartEnvoyMemoryProfile(8001)
 	require.NoError(t, err)
 
+	// Start generating load
 	results, err := fhttp.RunHTTPTest(&opts)
 	require.NoError(t, err)
+
+	// Stop memory profiling
 	memstats, err := testutil.StopEnvoyMemoryProfile()
 	require.NoError(t, err)
+
 	require.GreaterOrEqualf(t, results.ActualQPS, *qps, "Actual QPS should be higher than target QPS")
 
+	// Summarizing memory profile
 	heapUsages := []float64{}
 	allocSizes := []float64{}
 	maxUsage := float64(0)
+	maxAllocSize := float64(0)
 	maxIndex := 0
 	for i, m := range memstats {
 		heapUsage := float64(m.Allocated) / float64(m.HeapSize)
 		heapUsages = append(heapUsages, heapUsage)
-		allocSizes = append(allocSizes, float64(m.Allocated))
+		allocSize := float64(m.Allocated)
+		allocSizes = append(allocSizes, allocSize)
 		if maxUsage < heapUsage {
 			maxUsage = heapUsage
 			maxIndex = i
 		}
+		if maxAllocSize < allocSize {
+			maxAllocSize = allocSize
+		}
 	}
-
-	log.Printf("max memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
+	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
+	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
 
 	fortioLog.WriteTo(log.Writer())
 
