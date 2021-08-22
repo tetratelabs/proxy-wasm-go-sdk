@@ -101,6 +101,8 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
 	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
 
+	// TODO(musaprg): Draw a graph of memory usage and save to file
+
 	fortioLog.WriteTo(log.Writer())
 
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
