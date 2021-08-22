@@ -186,10 +186,10 @@ func StopEnvoyMemoryProfile() ([]MemoryStat, error) {
 // EnvoyMemoryUsage is used for getting the memory usage of envoy process.
 func EnvoyMemoryUsage(adminPort int) (*MemoryStat, error) {
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/memory", adminPort))
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	var memory MemoryStat
 	err = json.NewDecoder(resp.Body).Decode(&memory)
