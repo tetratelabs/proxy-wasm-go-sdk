@@ -77,7 +77,7 @@ type httpContext struct {
 func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	authorization, err := proxywasm.GetHttpRequestHeader("Authorization")
 	if err != nil {
-		if err := proxywasm.SendHttpResponse(400, nil, []byte("authorization header must be provided")); err != nil {
+		if err := proxywasm.SendHttpResponse(400, nil, []byte("authorization header must be provided"), -1); err != nil {
 			panic(err)
 		}
 		return types.ActionPause
@@ -88,7 +88,7 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	// Validate format and verify token.
 	slice := strings.Fields(authorization)
 	if len(slice) != 2 || slice[0] != "Bearer" || !verifyToken(slice[1]) {
-		if err := proxywasm.SendHttpResponse(401, nil, []byte("invalid token")); err != nil {
+		if err := proxywasm.SendHttpResponse(401, nil, []byte("invalid token"), -1); err != nil {
 			panic(err)
 		}
 		return types.ActionPause
