@@ -26,7 +26,8 @@ import (
 	"fortio.org/fortio/fnet"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e"
+	"github.com/guptarohit/asciigraph"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 )
 
 const (
@@ -43,11 +44,8 @@ var (
 
 // TestAvailabilityAgainstHighHTTPLoad tests the availability of the proxy with wasm filter against a high HTTP load
 func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
-	stdErr, kill := e2e.StartEnvoyWith(*targetExample, t, 8001)
+	stdErr, kill := testutil.StartEnvoyWith(*targetExample, t, 8001)
 	defer kill()
-
-	// Profile initial memory usage of the envoy process
-	initialMemoryStat := e2e.EnvoyMemoryUsage(t, 8001)
 
 	opts := fhttp.HTTPRunnerOptions{}
 	opts.URL = "http://localhost:18000"
@@ -65,18 +63,37 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	opts.HTTPReqTimeOut = 5000 * time.Second // Avoid timeouts on huge payloads
 	log.Printf("\tDuration = %d [s], payloadSize = %d [byte]\n", *duration, *payloadSize)
-	opts.QPS = *qps * 1.1 // In order to reach the target QPS, we need to set a little bit higer target QPS.
+	opts.QPS = *qps * 1.5 // In order to reach the target QPS, we need to set a little bit higer target QPS.
 	opts.Duration = time.Duration(*duration) * time.Second
 
+	// Run memory profiling to find out memory stability of SDK
+	err := testutil.StartEnvoyMemoryProfile(8001)
+	require.NoError(t, err)
+
 	results, err := fhttp.RunHTTPTest(&opts)
+	require.NoError(t, err)
+	memstats, err := testutil.StopEnvoyMemoryProfile()
+	require.NoError(t, err)
+	require.GreaterOrEqualf(t, results.ActualQPS, *qps, "Actual QPS should be higher than target QPS")
 
-	// Profile final memory usage of the envoy process after executing load testing scenario
-	finalMemoryStat := e2e.EnvoyMemoryUsage(t, 8001)
+	heapUsages := []float64{}
+	allocSizes := []float64{}
+	maxUsage := float64(0)
+	maxIndex := 0
+	for i, m := range memstats {
+		heapUsage := float64(m.Allocated) / float64(m.HeapSize)
+		heapUsages = append(heapUsages, heapUsage)
+		allocSizes = append(allocSizes, float64(m.Allocated))
+		if maxUsage < heapUsage {
+			maxUsage = heapUsage
+			maxIndex = i
+		}
+	}
 
-	log.Printf("\t\ttarget QPS: %v\n", opts.QPS)
-	log.Printf("\t\tactual QPS: %v\n", results.ActualQPS)
-	log.Printf("\tinitial memory status(allocated/heapsize): %d/%d\n", initialMemoryStat.Allocated, initialMemoryStat.HeapSize)
-	log.Printf("\tfinal memory status(allocated/heapsize): %d/%d (increased %f%%)\n", finalMemoryStat.Allocated, finalMemoryStat.HeapSize, float64(finalMemoryStat.Allocated-initialMemoryStat.Allocated)/float64(initialMemoryStat.Allocated)*100)
+	log.Printf("max memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
+	graph := asciigraph.Plot(allocSizes, asciigraph.Height(50))
+	log.Printf("\n%s\n",graph)
+
 	fortioLog.WriteTo(log.Writer())
 
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
