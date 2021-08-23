@@ -26,13 +26,13 @@ import (
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/fnet"
 	"github.com/stretchr/testify/require"
-
-	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/font"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
+
+	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
 )
 
 const (
@@ -133,7 +133,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	require.NoError(t, err)
 
 	// Save the plot to a PNG file.
-	err = p.Save(font.Length(len(heapSizes)) * vg.Millimeter, 8 * vg.Inch, "/tmp/memstat.png")
+	err = p.Save(font.Length(len(heapSizes))*vg.Millimeter, 8*vg.Inch, "/tmp/memstat.png")
 
 	fortioLog.WriteTo(log.Writer())
 
