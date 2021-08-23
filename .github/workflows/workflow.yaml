@@ -166,3 +166,9 @@ jobs:
         run: make test.e2e.loadtest qps=${{ matrix.qps }} payloadSize=${{ matrix.payload-size }} duration=${{ matrix.duration }} targetExample=${{ matrix.target-example }}
         env:
           CGO_ENABLED: "0"
+      
+      # TODO(musaprg): Post as a GitHub comment.
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Memory profile graph
+          path: /tmp/memstat.png
