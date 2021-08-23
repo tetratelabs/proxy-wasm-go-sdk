@@ -85,6 +85,12 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	require.GreaterOrEqualf(t, results.ActualQPS, *qps, "Actual QPS should be higher than target QPS")
 
+	// TODO(musaprg): Currently, we're observing memory usage of envoy for checking memory stability,
+	// but we need to use customized tinygo which enable to hook the timing of GC execution for finding
+	// a best latency-friendly timing to invoke GC. Currently, tinygo invokes GC when memory allocations
+	// attempts. It might affect the response latency. Basically, we don't need to invoke GC manually,
+	// but it's better to do it out of the request-processing time.
+
 	// Summarizing memory profile
 	heapSizes := []float64{}
 	allocSizes := []float64{}
@@ -108,25 +114,21 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
 	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
 
-	// TODO(musaprg): Draw a graph of memory usage and save to file
+	// Plotting memory profile
 	p := plot.New()
-
 	p.Title.Text = fmt.Sprintf("Heap profiling of envoy process (%f QPS, %s)", *qps, *targetExample)
 	p.X.Label.Text = "elapsed time [ms]"
 	p.Y.Label.Text = "memory size [KB]"
-
 	heapSizePlot := make(plotter.XYs, len(heapSizes))
 	for i, v := range heapSizes {
 		heapSizePlot[i].X = float64(i * 100)
 		heapSizePlot[i].Y = v / 1024 // Convert to KB
 	}
-
 	allocSizePlot := make(plotter.XYs, len(allocSizes))
 	for i, v := range allocSizes {
 		allocSizePlot[i].X = float64(i * 100)
 		allocSizePlot[i].Y = v / 1024 // Convert to KB
 	}
-
 	err = plotutil.AddLinePoints(p,
 		"heap_size", heapSizePlot,
 		"allocated", allocSizePlot)
