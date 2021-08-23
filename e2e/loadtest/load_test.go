@@ -17,6 +17,7 @@ package loadtest
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"log"
 	"runtime"
 	"testing"
@@ -27,6 +28,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/e2e/testutil"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/font"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 )
 
 const (
@@ -80,16 +86,17 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	require.GreaterOrEqualf(t, results.ActualQPS, *qps, "Actual QPS should be higher than target QPS")
 
 	// Summarizing memory profile
-	heapUsages := []float64{}
+	heapSizes := []float64{}
 	allocSizes := []float64{}
 	maxUsage := float64(0)
 	maxAllocSize := float64(0)
 	maxIndex := 0
 	for i, m := range memstats {
 		heapUsage := float64(m.Allocated) / float64(m.HeapSize)
-		heapUsages = append(heapUsages, heapUsage)
 		allocSize := float64(m.Allocated)
+		heapSize := float64(m.HeapSize)
 		allocSizes = append(allocSizes, allocSize)
+		heapSizes = append(heapSizes, heapSize)
 		if maxUsage < heapUsage {
 			maxUsage = heapUsage
 			maxIndex = i
@@ -102,6 +109,31 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
 
 	// TODO(musaprg): Draw a graph of memory usage and save to file
+	p := plot.New()
+
+	p.Title.Text = fmt.Sprintf("Heap profiling of envoy process (%f QPS, %s)", *qps, *targetExample)
+	p.X.Label.Text = "elapsed time [ms]"
+	p.Y.Label.Text = "memory size [KB]"
+
+	heapSizePlot := make(plotter.XYs, len(heapSizes))
+	for i, v := range heapSizes {
+		heapSizePlot[i].X = float64(i * 100)
+		heapSizePlot[i].Y = v / 1024 // Convert to KB
+	}
+
+	allocSizePlot := make(plotter.XYs, len(allocSizes))
+	for i, v := range allocSizes {
+		allocSizePlot[i].X = float64(i * 100)
+		allocSizePlot[i].Y = v / 1024 // Convert to KB
+	}
+
+	err = plotutil.AddLinePoints(p,
+		"heap_size", heapSizePlot,
+		"allocated", allocSizePlot)
+	require.NoError(t, err)
+
+	// Save the plot to a PNG file.
+	err = p.Save(font.Length(len(heapSizes)) * vg.Millimeter, 8 * vg.Inch, "/tmp/memstat.png")
 
 	fortioLog.WriteTo(log.Writer())
 
