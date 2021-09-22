@@ -78,8 +78,8 @@ jobs:
       matrix:
         image: [ 
           "envoyproxy/envoy-dev:latest",
-          "envoyproxy/envoy:v1.18.3",
-          "envoyproxy/envoy:v1.19.0",
+          "envoyproxy/envoy:v1.18-latest",
+          "envoyproxy/envoy:v1.19-latest",
           "istio/proxyv2:1.9.7",
           "istio/proxyv2:1.10.3",
           "istio/proxyv2:1.11.0",

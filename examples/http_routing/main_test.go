@@ -22,7 +22,7 @@ func TestHttpRouting_OnHttpRequestHeaders(t *testing.T) {
 	defer reset()
 
 	t.Run("canary", func(t *testing.T) {
-		now = func() int { return 0 }
+		dice = func() uint32 { return 0 }
 		// Initialize http context.
 		id := host.InitializeHttpContext()
 		hs := [][2]string{{":authority", "my-host.com"}}
@@ -37,7 +37,7 @@ func TestHttpRouting_OnHttpRequestHeaders(t *testing.T) {
 	})
 
 	t.Run("non-canary", func(t *testing.T) {
-		now = func() int { return 1 }
+		dice = func() uint32 { return 1 }
 		// Initialize http context.
 		id := host.InitializeHttpContext()
 		hs := [][2]string{{":authority", "my-host.com"}}
