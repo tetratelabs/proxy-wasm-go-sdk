@@ -15,7 +15,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.5'
+          go-version: '1.17.1'
 
       - name: checkout
         uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.5'
+          go-version: '1.17.1'
 
       - name: checkout
         uses: actions/checkout@v2
@@ -45,7 +45,7 @@ jobs:
     name: Build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.18.0
+      image: tinygo/tinygo:0.20.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.5'
+          go-version: '1.17.1'
 
       # TinyGo's release container does not have Make command.
       - name: Install Make
@@ -78,8 +78,8 @@ jobs:
       matrix:
         image: [ 
           "envoyproxy/envoy-dev:latest",
-          "envoyproxy/envoy:v1.18.3",
-          "envoyproxy/envoy:v1.19.0",
+          "envoyproxy/envoy:v1.18-latest",
+          "envoyproxy/envoy:v1.19-latest",
           "istio/proxyv2:1.9.7",
           "istio/proxyv2:1.10.3",
           "istio/proxyv2:1.11.0",
@@ -94,7 +94,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.5'
+          go-version: '1.17.1'
 
       - name: Print Envoy version
         run: envoy --version

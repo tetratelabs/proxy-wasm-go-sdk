@@ -15,8 +15,8 @@
 package main
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"encoding/binary"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -55,17 +55,18 @@ type httpRouting struct {
 }
 
 // Unittest purpose.
-var now = func() int {
-	rand.Seed(time.Now().UnixNano())
-	return rand.Int()
+var dice = func() uint32 {
+	buf := make([]byte, 4)
+	_, _ = rand.Read(buf)
+	return binary.LittleEndian.Uint32(buf)
 }
 
 // Override types.DefaultHttpContext.
 func (ctx *httpRouting) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	// Randomly routing to the canary cluster.
-	dice := now()
-	proxywasm.LogInfof("dice: %d\n", dice)
-	if dice%2 == 0 {
+	value := dice()
+	proxywasm.LogInfof("value: %d\n", value)
+	if value%2 == 0 {
 		const authorityKey = ":authority"
 		value, err := proxywasm.GetHttpRequestHeader(authorityKey)
 		if err != nil {
