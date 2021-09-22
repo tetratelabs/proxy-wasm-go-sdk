@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build proxytest
+//go:build proxytest
 
 // With "proxytest" build tag, you can insert mock host environment that emulates the host environment during unittests.
 // TODO: Auto generate this file from abi_hostcalls.go.

@@ -3,7 +3,7 @@
 // the standard Go CLI. To run tests, simply run
 // go test -tags=proxytest ./...
 
-//+build proxytest
+//go:build proxytest
 
 package main
 
