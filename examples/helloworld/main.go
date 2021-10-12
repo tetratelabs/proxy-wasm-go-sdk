@@ -50,7 +50,7 @@ type helloWorld struct {
 func (ctx *helloWorld) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
-	proxywasm.LogInfo("proxy_on_vm_start from Go!")
+	proxywasm.LogInfo("proxy_on_configure from Go!")
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
 	}
