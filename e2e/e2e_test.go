@@ -182,14 +182,14 @@ func Test_metrics(t *testing.T) {
 		return count == 10
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:8001/stats")
+		res, err := http.Get("http://localhost:8001/stats/prometheus")
 		if err != nil {
 			return false
 		}
 		defer res.Body.Close()
 		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
+		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go_request_counter{} %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, "Expected stats not found")
 }
 

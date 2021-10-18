@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !proxytest
+//go:build !proxytest
 
 // Since the difference of the types in SliceHeader.{Len, Cap} between tinygo and go,
 // we have to have separated functions for converting bytes

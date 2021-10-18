@@ -451,7 +451,7 @@ Here's what users should know when writing plugins with Proxy-Wasm Go SDK and Pr
 ## Some of existing libraries not available
 
 Some of existing libraries are not available (importable but runtime panic / non-importable). There are several reasons for this:
-1. TinyGo's WASI target does not support some of syscall: For example, we cannot import `crypto/rand` package.
+1. TinyGo's WASI target does not support some of syscall.
 2. TinyGo does not implement all of reflect package.
 3. [Proxy-Wasm C++ host](https://github.com/proxy-wasm/proxy-wasm-cpp-host) has not supported some of WASI APIs yet 
 4. Some language features are not available in TinyGo or Proxy-Wasm: examples include `recover` and `goroutine`.

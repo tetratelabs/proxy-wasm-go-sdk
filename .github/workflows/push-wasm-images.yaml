@@ -9,10 +9,15 @@ jobs:
     name: Build and push Wasm images
     runs-on: ubuntu-latest
     steps:
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17.1'
+
       - name: Install TinyGo
         run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/v0.18.0/tinygo_0.18.0_amd64.deb
-          sudo dpkg -i tinygo_0.18.0_amd64.deb
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.20.0/tinygo_0.20.0_amd64.deb
+          sudo dpkg -i tinygo_0.20.0_amd64.deb
 
       - name: Checkout
         uses: actions/checkout@v2
