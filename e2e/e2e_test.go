@@ -184,7 +184,7 @@ func Test_metrics(t *testing.T) {
 		return count == 10
 	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:8001/stats")
+		res, err := http.Get("http://localhost:8001/stats/prometheus")
 		if err != nil {
 			return false
 		}

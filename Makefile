@@ -1,5 +1,5 @@
-# bingo manages go binaries needed for building the project
-include .bingo/Variables.mk
+goimports := golang.org/x/tools/cmd/goimports@v0.1.5
+golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.0
 
 .PHONY: build.example
 build.example:
@@ -30,17 +30,17 @@ run:
 	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) run --build-tags proxytest
+lint:
+	@go run $(golangci_lint) run --build-tags proxytest
 
 .PHONY: format
-format: $(GOIMPORTS)
+format:
 	@find . -type f -name '*.go' | xargs gofmt -s -w
 	@for f in `find . -name '*.go'`; do \
 	    awk '/^import \($$/,/^\)$$/{if($$0=="")next}{print}' $$f > /tmp/fmt; \
 	    mv /tmp/fmt $$f; \
-	    $(GOIMPORTS) -w -local github.com/tetratelabs/proxy-wasm-go-sdk $$f; \
 	done
+	@go run $(goimports) -w -local github.com/tetratelabs/proxy-wasm-go-sdk `find . -name '*.go'`
 
 .PHONY: check
 check:
