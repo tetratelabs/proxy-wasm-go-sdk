@@ -147,9 +147,6 @@ jobs:
         with:
           go-version: "1.16.5"
 
-      - name: Print Envoy version
-        run: envoy --version
-
       - name: Install Make
         run: apt update && apt install make
 
