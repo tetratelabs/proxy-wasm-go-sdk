@@ -191,7 +191,7 @@ func Test_metrics(t *testing.T) {
 		defer res.Body.Close()
 		raw, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		return testutil.CheckMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go.request_counter: %d", count)}, nil)
+		return testutil.CheckMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go_request_counter{} %d", count)}, nil)
 	}, 5*time.Second, time.Millisecond, "Expected stats not found")
 }
 
