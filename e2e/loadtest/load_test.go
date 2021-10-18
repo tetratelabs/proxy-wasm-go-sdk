@@ -41,10 +41,11 @@ const (
 )
 
 var (
-	qps           = flag.Float64("qps", 0, "QPS to run load test")
-	duration      = flag.Int("duration", 10, "Duration of test in seconds")
-	payloadSize   = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
-	targetExample = flag.String("targetExample", "http_headers", "Target example to run load test")
+	qps                 = flag.Float64("qps", 0, "QPS to run load test")
+	duration            = flag.Int("duration", 10, "Duration of test in seconds")
+	payloadSize         = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
+	targetExample       = flag.String("targetExample", "http_headers", "Target example to run load test")
+	memoryUsageGraphDst = flag.String("memoryUsageGraphDst", "", "Destination path for saving the memory usage graph")
 )
 
 // TestAvailabilityAgainstHighHTTPLoad tests the availability of the proxy with wasm filter against a high HTTP load
@@ -114,6 +115,24 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
 	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
 
+	// Save the plot
+	if *memoryUsageGraphDst != "" {
+		saveMemoryUsageGraph(heapSizes, allocSizes, *memoryUsageGraphDst)
+	}
+
+	fortioLog.WriteTo(log.Writer())
+
+	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
+	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
+	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
+	require.NoErrorf(t, err, stdErr.String())
+}
+
+func saveMemoryUsageGraph(heapSizes []float64, allocSizes []float64, dst string) error {
+	if dst == "" {
+		return nil
+	}
+
 	// Plotting memory profile
 	p := plot.New()
 	p.Title.Text = fmt.Sprintf("Heap profiling of envoy process (%f QPS, %s)", *qps, *targetExample)
@@ -129,18 +148,15 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 		allocSizePlot[i].X = float64(i * 100)
 		allocSizePlot[i].Y = v / 1024 // Convert to KB
 	}
-	err = plotutil.AddLinePoints(p,
+	if err := plotutil.AddLinePoints(p,
 		"heap_size", heapSizePlot,
-		"allocated", allocSizePlot)
-	require.NoError(t, err)
+		"allocated", allocSizePlot); err != nil {
+		return err
+	}
 
-	// Save the plot to a PNG file.
-	err = p.Save(font.Length(len(heapSizes))*vg.Millimeter, 8*vg.Inch, "/tmp/memstat.png")
+	if err := p.Save(font.Length(len(heapSizes))*vg.Millimeter, 8*vg.Inch, dst); err != nil {
+		return err
+	}
 
-	fortioLog.WriteTo(log.Writer())
-
-	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
-	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
-	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
-	require.NoErrorf(t, err, stdErr.String())
+	return nil
 }
