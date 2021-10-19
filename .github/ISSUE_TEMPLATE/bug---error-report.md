@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-PLEASE FILL IN THE FOLLOWINGS for EVERY ISSUE you make.
+<!-- PLEASE FILL IN THE FOLLOWINGS for EVERY ISSUE you make. -->
 
 ## Describe the bug / error
 
