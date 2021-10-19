@@ -55,6 +55,6 @@ func proxyOnDelete(contextID uint32) {
 	} else if _, ok = currentState.pluginContexts[contextID]; ok {
 		delete(currentState.pluginContexts, contextID)
 	} else {
-		panic("invalid context on proxy_on_done")
+		panic("invalid context on proxy_on_delete")
 	}
 }

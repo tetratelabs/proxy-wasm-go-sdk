@@ -43,6 +43,6 @@ func TestHelloWorld_OnPluginStart(t *testing.T) {
 
 	// Check Envoy logs.
 	logs := host.GetInfoLogs()
-	require.Contains(t, logs, "proxy_on_vm_start from Go!")
+	require.Contains(t, logs, "OnPluginStart from Go!")
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 }
