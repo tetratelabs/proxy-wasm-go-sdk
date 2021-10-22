@@ -127,6 +127,9 @@ jobs:
           # duration: duration to run load test in seconds
           # target-example: target example WASM binary (e.g. "http_headers")
           - image: "envoyproxy/envoy:v1.19-latest"
+            # TODO(musaprg): Huge request body (>8MB) causes "connection by reset by peer" error.
+            # It seems to originate fortio library itself (See https://github.com/tetratelabs/proxy-wasm-go-sdk/pull/196#issuecomment-889987482).
+            # For now, obtaining the target QPS is more important, the payload-size is set to 256KB.
             payload-size: 256
             qps: 100
             duration: 360
@@ -143,7 +146,7 @@ jobs:
       image: ${{ matrix.image }}
       options: --privileged
     env:
-      MEMORY_USAGE_GRAPH_IMAGE_PATH: ${{ github.workspace }}/memstat.png
+      MEMORY_USAGE_GRAPH_IMAGE_PATH: /tmp/memstat.png
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
