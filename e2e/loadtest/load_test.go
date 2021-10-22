@@ -117,7 +117,8 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	// Save the plot
 	if *memoryUsageGraphDst != "" {
-		saveMemoryUsageGraph(heapSizes, allocSizes, *memoryUsageGraphDst)
+		err := saveMemoryUsageGraph(heapSizes, allocSizes, *memoryUsageGraphDst)
+		require.NoErrorf(t, err, "failed to save memory usage graph to %s", *memoryUsageGraphDst)
 	}
 
 	fortioLog.WriteTo(log.Writer())
