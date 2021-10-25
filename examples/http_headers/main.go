@@ -46,6 +46,7 @@ type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
+	contextID uint32
 }
 
 // Override types.DefaultPluginContext.
