@@ -180,5 +180,5 @@ jobs:
       # TODO(musaprg): Post as a GitHub comment.
       - uses: actions/upload-artifact@v2
         with:
-          name: Memory profile graph (${{ matrix.image }}, ${{ matrix.target-example }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
+          name: Memory profile graph (${{ matrix.target-example }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
           path: ${{ env.MEMORY_USAGE_GRAPH_IMAGE_PATH }}
