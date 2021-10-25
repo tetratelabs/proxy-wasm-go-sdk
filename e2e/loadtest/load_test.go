@@ -19,7 +19,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"regexp"
 	"runtime"
+	"sort"
+	"strconv"
 	"testing"
 	"time"
 
@@ -46,6 +49,10 @@ var (
 	payloadSize         = flag.Int("payloadSize", 256, "Payload size in kilo bytes")
 	targetExample       = flag.String("targetExample", "http_headers", "Target example to run load test")
 	memoryUsageGraphDst = flag.String("memoryUsageGraphDst", "", "Destination path for saving the memory usage graph")
+)
+
+var (
+	gcStatLogFormat = regexp.MustCompile(`\[memstat\]\[contextID=(\d+)\]\[unixnanotime=(\d+)\] heap size: in-use \/ reserved = (\d+) \/ (\d+) bytes`)
 )
 
 // TestAvailabilityAgainstHighHTTPLoad tests the availability of the proxy with wasm filter against a high HTTP load
@@ -117,7 +124,10 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	// Save the plot
 	if *memoryUsageGraphDst != "" {
-		err := saveMemoryUsageGraph(heapSizes, allocSizes, *memoryUsageGraphDst)
+		envoyLog := stdErr.String()
+		memStats, err := parseRuntimeMemStat(envoyLog)
+		require.NoError(t, err, "Failed to parse memory stats", envoyLog)
+		err = saveMemoryUsageGraph(memStats, *memoryUsageGraphDst)
 		require.NoErrorf(t, err, "failed to save memory usage graph to %s", *memoryUsageGraphDst)
 	}
 
@@ -129,7 +139,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	require.NoErrorf(t, err, stdErr.String())
 }
 
-func saveMemoryUsageGraph(heapSizes []float64, allocSizes []float64, dst string) error {
+func saveMemoryUsageGraph(memStats runtimeMemStats, dst string) error {
 	if dst == "" {
 		return nil
 	}
@@ -139,15 +149,14 @@ func saveMemoryUsageGraph(heapSizes []float64, allocSizes []float64, dst string)
 	p.Title.Text = fmt.Sprintf("Heap profiling of envoy process (%f QPS, %s)", *qps, *targetExample)
 	p.X.Label.Text = "elapsed time [ms]"
 	p.Y.Label.Text = "memory size [KB]"
-	heapSizePlot := make(plotter.XYs, len(heapSizes))
-	for i, v := range heapSizes {
-		heapSizePlot[i].X = float64(i * 100)
-		heapSizePlot[i].Y = v / 1024 // Convert to KB
-	}
-	allocSizePlot := make(plotter.XYs, len(allocSizes))
-	for i, v := range allocSizes {
-		allocSizePlot[i].X = float64(i * 100)
-		allocSizePlot[i].Y = v / 1024 // Convert to KB
+	heapSizePlot := make(plotter.XYs, len(memStats))
+	allocSizePlot := make(plotter.XYs, len(memStats))
+	for i, v := range memStats {
+		t := (v.UnixNanoTime - memStats[0].UnixNanoTime) / 1000 // Convert to ms
+		heapSizePlot[i].X = float64(t)
+		heapSizePlot[i].Y = float64(v.HeapSize) / 1024 // Convert to KB
+		allocSizePlot[i].X = float64(t)
+		allocSizePlot[i].Y = float64(v.ReservedSize) / 1024 // Convert to KB
 	}
 	if err := plotutil.AddLinePoints(p,
 		"heap_size", heapSizePlot,
@@ -155,9 +164,43 @@ func saveMemoryUsageGraph(heapSizes []float64, allocSizes []float64, dst string)
 		return err
 	}
 
-	if err := p.Save(font.Length(len(heapSizes))*vg.Millimeter, 8*vg.Inch, dst); err != nil {
+	if err := p.Save(font.Length(len(memStats))*vg.Millimeter, 8*vg.Inch, dst); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+type runtimeMemStat struct {
+	UnixNanoTime int64  // ns
+	HeapSize     uint64 // bytes
+	ReservedSize uint64 // bytes
+}
+
+type runtimeMemStats []runtimeMemStat
+
+func (s runtimeMemStats) Len() int {
+	return len(s)
+}
+func (s runtimeMemStats) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s runtimeMemStats) Less(i, j int) bool {
+	return s[i].UnixNanoTime < s[j].UnixNanoTime
+}
+
+/// parseRuntimeMemStat parses the log of envoy and returns the tinygo's runtime GC stats.
+func parseRuntimeMemStat(logs string) (runtimeMemStats, error) {
+	var gcStats runtimeMemStats
+	for _, result := range gcStatLogFormat.FindAllSubmatch([]byte(logs), -1) {
+		if len(result) != 5 {
+			return nil, fmt.Errorf("invalid memstat log format")
+		}
+		unixNanoTime, _ := strconv.ParseInt(string(result[2]), 10, 64)
+		heapSize, _ := strconv.ParseUint(string(result[3]), 10, 64)
+		reservedSize, _ := strconv.ParseUint(string(result[4]), 10, 64)
+		gcStats = append(gcStats, runtimeMemStat{unixNanoTime, heapSize, reservedSize})
+	}
+	sort.Sort(gcStats)
+	return gcStats, nil
 }
