@@ -79,16 +79,8 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	opts.QPS = *qps * 1.5 // In order to reach the target QPS, we need to set a little bit higer target QPS.
 	opts.Duration = time.Duration(*duration) * time.Second
 
-	// Run memory profiling to find out memory stability of SDK
-	err := testutil.StartEnvoyMemoryProfile(8001)
-	require.NoError(t, err)
-
 	// Start generating load
 	results, err := fhttp.RunHTTPTest(&opts)
-	require.NoError(t, err)
-
-	// Stop memory profiling
-	memstats, err := testutil.StopEnvoyMemoryProfile()
 	require.NoError(t, err)
 
 	require.GreaterOrEqualf(t, results.ActualQPS, *qps, "Actual QPS should be higher than target QPS")
@@ -99,33 +91,26 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	// attempts. It might affect the response latency. Basically, we don't need to invoke GC manually,
 	// but it's better to do it out of the request-processing time.
 
-	// Summarizing memory profile
-	heapSizes := []float64{}
-	allocSizes := []float64{}
-	maxUsage := float64(0)
-	maxAllocSize := float64(0)
-	maxIndex := 0
-	for i, m := range memstats {
-		heapUsage := float64(m.Allocated) / float64(m.HeapSize)
-		allocSize := float64(m.Allocated)
-		heapSize := float64(m.HeapSize)
-		allocSizes = append(allocSizes, allocSize)
-		heapSizes = append(heapSizes, heapSize)
-		if maxUsage < heapUsage {
-			maxUsage = heapUsage
-			maxIndex = i
+	envoyLog := stdErr.String()
+	memStats, err := parseRuntimeMemStat(envoyLog)
+
+	var maxUsage uint64
+	var maxUsageUnixNanoTime int64
+	var maxAllocSize uint64
+	for _, memStat := range memStats {
+		if memStat.HeapSize > maxUsage {
+			maxUsage = memStat.HeapSize
+			maxUsageUnixNanoTime = memStat.UnixNanoTime
 		}
-		if maxAllocSize < allocSize {
-			maxAllocSize = allocSize
+		if memStat.ReservedSize > maxAllocSize {
+			maxAllocSize = memStat.ReservedSize
 		}
 	}
-	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxIndex*100)/1000)
-	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-allocSizes[0]))
+	log.Printf("peak memory usage: %v (elapsed %f sec after invoking load test)", maxUsage, float64(maxUsageUnixNanoTime-memStats[0].UnixNanoTime)/1000000)
+	log.Printf("peak memory: %d bytes (+%d bytes increased from beginning)", int64(maxAllocSize), int64(maxAllocSize-memStats[0].ReservedSize))
 
 	// Save the plot
 	if *memoryUsageGraphDst != "" {
-		envoyLog := stdErr.String()
-		memStats, err := parseRuntimeMemStat(envoyLog)
 		require.NoError(t, err, "Failed to parse memory stats", envoyLog)
 		err = saveMemoryUsageGraph(memStats, *memoryUsageGraphDst)
 		require.NoErrorf(t, err, "failed to save memory usage graph to %s", *memoryUsageGraphDst)
