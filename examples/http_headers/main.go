@@ -15,8 +15,16 @@
 package main
 
 import (
+	"runtime"
+	"time"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+)
+
+const (
+	// tick period in milliseconds.
+	tickMilliseconds uint32 = 100
 )
 
 func main() {
@@ -41,8 +49,29 @@ type pluginContext struct {
 }
 
 // Override types.DefaultPluginContext.
-func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpHeaders{contextID: contextID}
+}
+
+// Override types.DefaultPluginContext.
+func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	// Set tick period. OnTick is called every tick period.
+	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
+		proxywasm.LogCriticalf("failed to set tick period: %v", err)
+	}
+
+	return types.OnPluginStartStatusOK
+}
+
+// Override types.DefaultPluginContext.
+func (ctx *pluginContext) OnTick() {
+	// These lines are used for observing the memory stability during the e2e test.
+	// TODO(musaprg): split this into another package and import it.
+	// 				  These lines are only used for testing, which should be separated from example code.
+	t := time.Now().UnixNano()
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	proxywasm.LogInfof("[memstat][contextID=%d][unixnanotime=%d] heap size: in-use / reserved = %d / %d bytes", ctx.contextID, t, mem.HeapInuse, mem.HeapSys)
 }
 
 type httpHeaders struct {
