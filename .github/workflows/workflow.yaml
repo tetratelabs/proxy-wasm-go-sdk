@@ -133,12 +133,12 @@ jobs:
             # For now, obtaining the target QPS is more important, the payload-size is set to 256KB.
             payload-size: 256
             qps: 100
-            duration: 360
+            duration: 60
             target-example: "http_headers"
           - image: "envoyproxy/envoy:v1.19-latest"
             payload-size: 256
             qps: 100
-            duration: 360
+            duration: 60
             target-example: "http_jwt_auth"
     name: Load Test (${{ matrix.image }}, ${{ matrix.target-example }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
     needs: [build-examples]
