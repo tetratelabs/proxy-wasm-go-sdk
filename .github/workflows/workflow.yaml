@@ -76,15 +76,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [ 
-          "envoyproxy/envoy-dev:latest",
-          "envoyproxy/envoy:v1.18-latest",
-          "envoyproxy/envoy:v1.19-latest",
-          "envoyproxy/envoy:v1.20-latest",
-          "istio/proxyv2:1.9.8",
-          "istio/proxyv2:1.10.4",
-          "istio/proxyv2:1.11.4",
-        ]
+        image:
+          [
+            "envoyproxy/envoy-dev:latest",
+            "envoyproxy/envoy:v1.18-latest",
+            "envoyproxy/envoy:v1.19-latest",
+            "envoyproxy/envoy:v1.20-latest",
+            "istio/proxyv2:1.9.8",
+            "istio/proxyv2:1.10.4",
+            "istio/proxyv2:1.11.4",
+          ]
     name: E2E Test (${{ matrix.image }})
     needs: [build-examples]
     runs-on: ubuntu-latest
@@ -179,5 +180,5 @@ jobs:
       # TODO(musaprg): Post as a GitHub comment.
       - uses: actions/upload-artifact@v2
         with:
-          name: Memory profile graph
+          name: Memory profile graph (${{ matrix.image }}, ${{ matrix.target-example }}, ${{ matrix.qps }} QPS, ${{ matrix.payload-size }} KB, ${{ matrix.duration }} s)
           path: ${{ env.MEMORY_USAGE_GRAPH_IMAGE_PATH }}
