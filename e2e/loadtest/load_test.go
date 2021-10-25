@@ -146,13 +146,13 @@ func saveMemoryUsageGraph(memStats runtimeMemStats, dst string) error {
 
 	// Plotting memory profile
 	p := plot.New()
-	p.Title.Text = fmt.Sprintf("Heap profiling of envoy process (%f QPS, %s)", *qps, *targetExample)
+	p.Title.Text = fmt.Sprintf("Heap profiling of proxy-wasm-go-sdk runtime (%f QPS, %s)", *qps, *targetExample)
 	p.X.Label.Text = "elapsed time [ms]"
 	p.Y.Label.Text = "memory size [KB]"
 	heapSizePlot := make(plotter.XYs, len(memStats))
 	allocSizePlot := make(plotter.XYs, len(memStats))
 	for i, v := range memStats {
-		t := (v.UnixNanoTime - memStats[0].UnixNanoTime) / 1000 // Convert to ms
+		t := (v.UnixNanoTime - memStats[0].UnixNanoTime) / 1000000 // Convert to ms
 		heapSizePlot[i].X = float64(t)
 		heapSizePlot[i].Y = float64(v.HeapSize) / 1024 // Convert to KB
 		allocSizePlot[i].X = float64(t)
