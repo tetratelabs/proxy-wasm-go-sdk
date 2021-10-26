@@ -52,8 +52,7 @@ type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
-	contextID           uint32
-	isAuthorizationMode bool
+	contextID uint32
 }
 
 // Override types.DefaultPluginContext.
@@ -63,12 +62,6 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 
 // Override types.DefaultPluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	data, err := proxywasm.GetPluginConfiguration()
-	if err != nil {
-		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
-	}
-	ctx.isAuthorizationMode = string(data) == "authorization"
-
 	// Set tick period. OnTick is called every tick period.
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
