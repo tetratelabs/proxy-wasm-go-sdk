@@ -39,8 +39,8 @@ import (
 )
 
 const (
-	targetMaxLatencyLimit                  = 200 // ms
-	targetNintyninthPercentileLatencyLimit = 200 // ms
+	targetMaxLatencyLimit                  = 0.2 // sec
+	targetNintyninthPercentileLatencyLimit = 0.2 // sec
 	targetSuccessRate                      = 1.0
 )
 
@@ -123,6 +123,8 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
 	require.LessOrEqual(t, results.DurationHistogram.Max, float64(targetMaxLatencyLimit), stdErr.String())
 	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
+	log.Printf("max latency: %f sec", results.DurationHistogram.Max)
+	log.Printf("99th percentile latency: %f sec", results.DurationHistogram.Percentiles[0].Value)
 	require.NoErrorf(t, err, stdErr.String())
 }
 
