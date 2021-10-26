@@ -93,6 +93,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	envoyLog := stdErr.String()
 	memStats, err := parseRuntimeMemStat(envoyLog)
+	require.NoError(t, err, "Failed to parse memory stats", envoyLog)
 
 	var maxUsage uint64
 	var maxUsageUnixNanoTime int64
@@ -111,7 +112,6 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	// Save the plot
 	if *memoryUsageGraphDst != "" {
-		require.NoError(t, err, "Failed to parse memory stats", envoyLog)
 		err = saveMemoryUsageGraph(memStats, *memoryUsageGraphDst)
 		require.NoErrorf(t, err, "failed to save memory usage graph to %s", *memoryUsageGraphDst)
 	}
@@ -120,6 +120,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
+	// FIXME(musaprg): we have to also check not only 99%, but also max - this is how we can see the impacts of GC.
 	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
 	require.NoErrorf(t, err, stdErr.String())
 }
