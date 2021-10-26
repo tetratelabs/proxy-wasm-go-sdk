@@ -39,7 +39,6 @@ import (
 )
 
 const (
-	targetMaxLatencyLimit                  = 0.2 // sec
 	targetNintyninthPercentileLatencyLimit = 0.2 // sec
 	targetSuccessRate                      = 1.0
 )
@@ -121,7 +120,9 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
-	require.LessOrEqual(t, results.DurationHistogram.Max, float64(targetMaxLatencyLimit), stdErr.String())
+	// TODO(musaprg): need to check the maximum latency as well, but it depends on the testing environment.
+	//                to check it, we need to figure out the best way to define the target maximum latency.
+	//                for more details, see the discussion: https://github.com/tetratelabs/proxy-wasm-go-sdk/pull/196#issuecomment-951507417
 	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
 	log.Printf("max latency: %f sec", results.DurationHistogram.Max)
 	log.Printf("99th percentile latency: %f sec", results.DurationHistogram.Percentiles[0].Value)
