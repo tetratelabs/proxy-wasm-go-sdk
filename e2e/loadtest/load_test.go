@@ -39,6 +39,7 @@ import (
 )
 
 const (
+	targetMaxLatencyLimit                  = 200 // ms
 	targetNintyninthPercentileLatencyLimit = 200 // ms
 	targetSuccessRate                      = 1.0
 )
@@ -120,7 +121,7 @@ func TestAvailabilityAgainstHighHTTPLoad(t *testing.T) {
 
 	successRate := float64(results.RetCodes[200]) / float64(results.DurationHistogram.Count)
 	require.GreaterOrEqual(t, successRate, targetSuccessRate, stdErr.String())
-	// FIXME(musaprg): we have to also check not only 99%, but also max - this is how we can see the impacts of GC.
+	require.LessOrEqual(t, results.DurationHistogram.Max, float64(targetMaxLatencyLimit), stdErr.String())
 	require.LessOrEqual(t, results.DurationHistogram.Percentiles[0].Value, float64(targetNintyninthPercentileLatencyLimit), stdErr.String())
 	require.NoErrorf(t, err, stdErr.String())
 }
