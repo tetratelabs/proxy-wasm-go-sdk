@@ -15,7 +15,7 @@
 package main
 
 import (
-	"time"
+	"crypto/rand"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -80,7 +80,10 @@ func (ctx *pluginContext) OnTick() {
 	headers := [][2]string{
 		{":method", "GET"}, {":authority", "some_authority"}, {"accept", "*/*"},
 	}
-	if time.Now().Nanosecond()%2 == 0 {
+	// Pick random value to select the request path.
+	buf := make([]byte, 1)
+	_, _ = rand.Read(buf)
+	if buf[0]%2 == 0 {
 		headers = append(headers, [2]string{":path", "/ok"})
 	} else {
 		headers = append(headers, [2]string{":path", "/fail"})
