@@ -272,6 +272,14 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType intern
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
 
+	if len(m) == 0 {
+		// The host might reutrn OK without setting the data pointer,
+		// if there's nothing to pass to Wasm VM.
+		*returnValueData = nil
+		*returnValueSize = 0
+		return internal.StatusOK
+	}
+
 	*returnValueData = &m[0]
 	*returnValueSize = len(m)
 	return internal.StatusOK
