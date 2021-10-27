@@ -781,6 +781,8 @@ func getMap(mapType internal.MapType) ([][2]string, error) {
 	st := internal.ProxyGetHeaderMapPairs(mapType, &raw, &rvs)
 	if st != internal.StatusOK {
 		return nil, internal.StatusToError(st)
+	} else if raw == nil {
+		return nil, types.ErrorStatusNotFound
 	}
 
 	bs := internal.RawBytePtrToByteSlice(raw, rvs)
