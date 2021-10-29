@@ -42,10 +42,6 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 
 		// Call OnHttpStreamDone
 		host.CompleteHttpContext(id)
-
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 	})
 
 	t.Run("400 response", func(t *testing.T) {
@@ -66,10 +62,6 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 
 		// Call OnHttpStreamDone
 		host.CompleteHttpContext(id)
-
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 	})
 
 	t.Run("401 response for invalid token", func(t *testing.T) {
@@ -92,9 +84,5 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 
 		// Call OnHttpStreamDone
 		host.CompleteHttpContext(id)
-
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 	})
 }

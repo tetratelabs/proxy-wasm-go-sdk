@@ -56,11 +56,6 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpContext{contextID: contextID}
 }
 
-// Override types.DefaultPluginContext.
-func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	return types.OnPluginStartStatusOK
-}
-
 type httpContext struct {
 	// Embed the default plugin context
 	// so that you don't need to reimplement all the methods by yourself.
@@ -92,11 +87,6 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	proxywasm.LogInfof("request authorized!")
 
 	return types.ActionContinue
-}
-
-// Override types.DefaultHttpContext.
-func (ctx *httpContext) OnHttpStreamDone() {
-	proxywasm.LogInfof("%d finished", ctx.contextID)
 }
 
 // verifyToken checks if the JWT token is valid.
