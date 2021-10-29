@@ -100,9 +100,21 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 	proxywasm.LogInfof("authorization token: %s", authorization)
 
-	// Validate format and verify token.
+	// Validate header format
 	slice := strings.Fields(authorization)
-	if len(slice) != 2 || slice[0] != "Bearer" || !verifyToken(slice[1]) {
+	if len(slice) != 2 || slice[0] != "Bearer" {
+		if err := proxywasm.SendHttpResponse(400, nil, []byte("invalid authorization header"), -1); err != nil {
+			panic(err)
+		}
+		return types.ActionPause
+	}
+
+	// Verify token
+	ok, err := verifyToken(slice[1])
+	if err != nil {
+		proxywasm.LogWarnf("failed to verify token with an error: %s", err)
+	}
+	if !ok {
 		if err := proxywasm.SendHttpResponse(401, nil, []byte("invalid token"), -1); err != nil {
 			panic(err)
 		}
@@ -114,24 +126,19 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
-func (ctx *httpContext) OnHttpStreamDone() {
-	proxywasm.LogInfof("%d finished", ctx.contextID)
-}
-
 // verifyToken checks if the JWT token is valid.
-func verifyToken(token string) bool {
-	slice := strings.Split(token, ".")
-	if len(slice) != 3 {
-		return false
+func verifyToken(token string) (bool, error) {
+	sepIdx := strings.LastIndex(token, ".")
+	if sepIdx == -1 {
+		return false, nil
 	}
-	unsignedToken := strings.Join(slice[:2], ".")
-	signature, err := base64.RawURLEncoding.DecodeString(slice[2])
-	if err != nil {
-		return false
+	unsignedToken := token[:sepIdx]
+	signature, err := base64.RawURLEncoding.DecodeString(token[sepIdx+1:])
+	if err != nil { // invalid base64 data
+		return false, err
 	}
 	mac := hmac.New(sha256.New, []byte(secretKey))
 	mac.Write([]byte(unsignedToken))
 	expectedSignature := mac.Sum(nil)
-	return hmac.Equal(signature, expectedSignature)
+	return hmac.Equal(signature, expectedSignature), nil
 }

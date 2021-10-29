@@ -1,4 +1,4 @@
-## http_authz
+## http_jwt_auth
 
 This example demonstrates how to authorize the incoming request depending on jwt token.
 
