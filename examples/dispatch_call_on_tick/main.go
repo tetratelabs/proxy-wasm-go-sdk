@@ -15,6 +15,8 @@
 package main
 
 import (
+	"crypto/rand"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
@@ -55,16 +57,38 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 	ctx.callBack = func(numHeaders, bodySize, numTrailers int) {
 		ctx.cnt++
 		proxywasm.LogInfof("called %d for contextID=%d", ctx.cnt, ctx.contextID)
+		headers, err := proxywasm.GetHttpCallResponseHeaders()
+		if err != nil && err != types.ErrorStatusNotFound {
+			panic(err)
+		}
+		for _, h := range headers {
+			proxywasm.LogInfof("response header for the dispatched call: %s: %s", h[0], h[1])
+		}
+		headers, err = proxywasm.GetHttpCallResponseTrailers()
+		if err != nil && err != types.ErrorStatusNotFound {
+			panic(err)
+		}
+		for _, h := range headers {
+			proxywasm.LogInfof("response trailer for the dispatched call: %s: %s", h[0], h[1])
+		}
 	}
 	return types.OnPluginStartStatusOK
 }
 
 // Override types.DefaultPluginContext.
 func (ctx *pluginContext) OnTick() {
-	hs := [][2]string{
-		{":method", "GET"}, {":authority", "some_authority"}, {":path", "/path/to/service"}, {"accept", "*/*"},
+	headers := [][2]string{
+		{":method", "GET"}, {":authority", "some_authority"}, {"accept", "*/*"},
 	}
-	if _, err := proxywasm.DispatchHttpCall("web_service", hs, nil, nil, 5000, ctx.callBack); err != nil {
+	// Pick random value to select the request path.
+	buf := make([]byte, 1)
+	_, _ = rand.Read(buf)
+	if buf[0]%2 == 0 {
+		headers = append(headers, [2]string{":path", "/ok"})
+	} else {
+		headers = append(headers, [2]string{":path", "/fail"})
+	}
+	if _, err := proxywasm.DispatchHttpCall("web_service", headers, nil, nil, 5000, ctx.callBack); err != nil {
 		proxywasm.LogCriticalf("dispatch httpcall failed: %v", err)
 	}
 }

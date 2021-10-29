@@ -36,6 +36,7 @@ func Test_dispatch_call_on_tick(t *testing.T) {
 		if testutil.CheckMessage(stdErr.String(), []string{
 			fmt.Sprintf("called %d for contextID=1", count),
 			fmt.Sprintf("called %d for contextID=2", count),
+			":status: 200", ":status: 503",
 		}, nil) {
 			count++
 		}
