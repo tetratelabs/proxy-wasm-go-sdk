@@ -44,7 +44,7 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 		host.CompleteHttpContext(id)
 	})
 
-	t.Run("400 response", func(t *testing.T) {
+	t.Run("400 response when the authorization header isn't provided", func(t *testing.T) {
 		// Create http context.
 		id := host.InitializeHttpContext()
 
@@ -64,25 +64,76 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 		host.CompleteHttpContext(id)
 	})
 
+	t.Run("400 response when the authorization header is invalid", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			value string
+		}{
+			{"basic auth", "Basic dXNlcjpwYXNzCg=="},
+			{"typo header value", "Bearer: hogehoge"},
+			{"invalid header value", "hogehoge"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+
+				// Create http context.
+				id := host.InitializeHttpContext()
+
+				// Call OnRequestHeaders.
+				action := host.CallOnRequestHeaders(id, [][2]string{
+					{"Authorization", tc.value},
+				}, false)
+
+				// Must be paused.
+				require.Equal(t, types.ActionPause, action)
+
+				// Check the local response.
+				localResponse := host.GetSentLocalResponse(id)
+				require.NotNil(t, localResponse)
+				require.Equal(t, uint32(400), localResponse.StatusCode)
+				require.Equal(t, "invalid authorization header", string(localResponse.Data))
+
+				// Call OnHttpStreamDone
+				host.CompleteHttpContext(id)
+			})
+		}
+	})
+
 	t.Run("401 response for invalid token", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		testCases := []struct {
+			name  string
+			token string
+		}{
+			{"invalid token with no dot", "invalidtoken"},
+			{"invalid token with one dot", "invalid.token"},
+			{"invalid token with two dot", "invalid.token.hoge"},
+			{"invalid token with non-base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.hogefugafoo"},
+			{"invalid token with base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.aG9nZWZ1Z2Fmb28K"},
+		}
 
-		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, [][2]string{
-			{"Authorization", "invalidtoken"},
-		}, false)
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Create http context.
+				id := host.InitializeHttpContext()
 
-		// Must be paused.
-		require.Equal(t, types.ActionPause, action)
+				// Call OnRequestHeaders.
+				action := host.CallOnRequestHeaders(id, [][2]string{
+					{"Authorization", fmt.Sprintf("Bearer %s", tc.token)},
+				}, false)
 
-		// Check the local response.
-		localResponse := host.GetSentLocalResponse(id)
-		require.NotNil(t, localResponse)
-		require.Equal(t, uint32(401), localResponse.StatusCode)
-		require.Equal(t, "invalid token", string(localResponse.Data))
+				// Must be paused.
+				require.Equal(t, types.ActionPause, action)
 
-		// Call OnHttpStreamDone
-		host.CompleteHttpContext(id)
+				// Check the local response.
+				localResponse := host.GetSentLocalResponse(id)
+				require.NotNil(t, localResponse)
+				require.Equal(t, uint32(401), localResponse.StatusCode)
+				require.Equal(t, "invalid token", string(localResponse.Data))
+
+				// Call OnHttpStreamDone
+				host.CompleteHttpContext(id)
+			})
+		}
 	})
 }
