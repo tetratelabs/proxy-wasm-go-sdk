@@ -91,12 +91,9 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 // verifyToken checks if the JWT token is valid.
 func verifyToken(token string) bool {
-	slice := strings.Split(token, ".")
-	if len(slice) != 3 {
-		return false
-	}
-	unsignedToken := strings.Join(slice[:2], ".")
-	signature, err := base64.RawURLEncoding.DecodeString(slice[2])
+	sepIdx := strings.LastIndex(token, ".")
+	unsignedToken := token[:sepIdx]
+	signature, err := base64.RawURLEncoding.DecodeString(token[sepIdx+1:])
 	if err != nil {
 		return false
 	}
