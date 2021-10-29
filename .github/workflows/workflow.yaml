@@ -15,7 +15,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.1"
+          go-version: '1.17.1'
 
       - name: checkout
         uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.1"
+          go-version: '1.17.1'
 
       - name: checkout
         uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.1"
+          go-version: '1.17.1'
 
       # TinyGo's release container does not have Make command.
       - name: Install Make
@@ -76,16 +76,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          [
-            "envoyproxy/envoy-dev:latest",
-            "envoyproxy/envoy:v1.18-latest",
-            "envoyproxy/envoy:v1.19-latest",
-            "envoyproxy/envoy:v1.20-latest",
-            "istio/proxyv2:1.9.8",
-            "istio/proxyv2:1.10.4",
-            "istio/proxyv2:1.11.4",
-          ]
+        image: [ 
+          "envoyproxy/envoy-dev:latest",
+          "envoyproxy/envoy:v1.18-latest",
+          "envoyproxy/envoy:v1.19-latest",
+          "istio/proxyv2:1.9.8",
+          "istio/proxyv2:1.10.4",
+          "istio/proxyv2:1.11.3",
+        ]
     name: E2E Test (${{ matrix.image }})
     needs: [build-examples]
     runs-on: ubuntu-latest
@@ -96,7 +94,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.1"
+          go-version: '1.17.1'
 
       - name: Print Envoy version
         run: envoy --version
@@ -128,9 +126,6 @@ jobs:
           # duration: duration to run load test in seconds
           # target-example: target example WASM binary (e.g. "http_headers")
           - image: "envoyproxy/envoy:v1.19-latest"
-            # TODO(musaprg): Huge request body (>8MB) causes "connection by reset by peer" error.
-            # It seems to originate fortio library itself (See https://github.com/tetratelabs/proxy-wasm-go-sdk/pull/196#issuecomment-889987482).
-            # For now, obtaining the target QPS is more important, the payload-size is set to 256KB.
             payload-size: 256
             qps: 100
             duration: 60
@@ -152,7 +147,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.16.5"
+          go-version: '1.16.5'
 
       - name: Install Make
         run: apt update && apt install make
@@ -176,7 +171,7 @@ jobs:
             memoryUsageGraphDst=${{ env.MEMORY_USAGE_GRAPH_IMAGE_PATH }}
         env:
           CGO_ENABLED: "0"
-
+      
       # TODO(musaprg): Post as a GitHub comment.
       - uses: actions/upload-artifact@v2
         with:
