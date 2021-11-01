@@ -16,6 +16,7 @@ package proxytest
 
 import (
 	"log"
+	"strings"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -137,7 +138,14 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType intern
 
 	for _, h := range headers {
 		if h[0] == key {
-			value := []byte(h[1])
+			// Leading LWS doesn't affect header values,
+			// and often ignored in HTTP parsers.
+			value := []byte(strings.TrimSpace(h[1]))
+			// If the value is empty,
+			// Envoy ignores scuh headers and return NotFound.
+			if len(value) == 0 {
+				return internal.StatusNotFound
+			}
 			*returnValueData = &value[0]
 			*returnValueSize = len(value)
 			return internal.StatusOK
