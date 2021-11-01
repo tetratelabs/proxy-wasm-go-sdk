@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	// sampleJwtToken is a sample JWT token which is already signed with secret key "secret".
+	// A sample JWT token which is already signed with secret key "secret".
 	sampleJwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M`
 )
 
