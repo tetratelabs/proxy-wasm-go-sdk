@@ -109,7 +109,7 @@ func verifyToken(token string) (bool, error) {
 	}
 	unsignedToken := token[:sepIdx]
 	signature, err := base64.RawURLEncoding.DecodeString(token[sepIdx+1:])
-	if err != nil { // invalid base64 data
+	if err != nil {
 		return false, err
 	}
 	mac := hmac.New(sha256.New, []byte(secretKey))
