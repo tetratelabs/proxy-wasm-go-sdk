@@ -142,7 +142,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType intern
 			// and often ignored in HTTP parsers.
 			value := []byte(strings.TrimSpace(h[1]))
 			// If the value is empty,
-			// Envoy ignores scuh headers and return NotFound.
+			// Envoy ignores such headers and return NotFound.
 			if len(value) == 0 {
 				return internal.StatusNotFound
 			}
