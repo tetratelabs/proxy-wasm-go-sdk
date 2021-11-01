@@ -75,7 +75,7 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 	proxywasm.LogInfof("authorization token: %s", authorization)
 
-	// Validate header format
+	// Validate header format.
 	slice := strings.Fields(authorization)
 	if len(slice) != 2 || slice[0] != "Bearer" {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("invalid authorization header"), -1); err != nil {
