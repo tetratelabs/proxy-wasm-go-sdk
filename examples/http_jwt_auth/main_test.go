@@ -105,11 +105,11 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 			name  string
 			token string
 		}{
-			{"invalid token with no dot", "invalidtoken"},
-			{"invalid token with one dot", "invalid.token"},
-			{"invalid token with two dot", "invalid.token.hoge"},
-			{"invalid token with non-base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.hogefugafoo"},
-			{"invalid token with base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.aG9nZWZ1Z2Fmb28K"},
+			{"no dot", "invalidtoken"},
+			{"one dot", "invalid.token"},
+			{"two dot", "invalid.token.hoge"},
+			{"non-base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.hogefugafoo"},
+			{"base64 encoded signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.aG9nZWZ1Z2Fmb28K"},
 		}
 
 		for _, tc := range testCases {
