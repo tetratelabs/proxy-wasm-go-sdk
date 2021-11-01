@@ -131,7 +131,7 @@ func TestHttpJwtAuth_OnHttpRequestHeaders(t *testing.T) {
 				require.Equal(t, uint32(401), localResponse.StatusCode)
 				require.Equal(t, "invalid token", string(localResponse.Data))
 
-				// Call OnHttpStreamDone
+				// Call OnHttpStreamDone.
 				host.CompleteHttpContext(id)
 			})
 		}
