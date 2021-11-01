@@ -84,7 +84,7 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 		return types.ActionPause
 	}
 
-	// Verify token
+	// Verify token.
 	ok, err := verifyToken(slice[1])
 	if err != nil {
 		proxywasm.LogWarnf("failed to verify token with an error: %s", err)
