@@ -15,6 +15,7 @@
 package proxywasm
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -531,6 +532,9 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 // Available path and properties depend on the host implementations.
 // For Envoy, prefer refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
 func GetProperty(path []string) ([]byte, error) {
+	if len(path) == 0 {
+		return nil, errors.New("path must not be empty")
+	}
 	var ret *byte
 	var retSize int
 	raw := internal.SerializePropertyPath(path)
@@ -549,6 +553,11 @@ func GetProperty(path []string) ([]byte, error) {
 // Available path and properties depend on the host implementations.
 // For Envoy, prefer refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
 func SetProperty(path []string, data []byte) error {
+	if len(path) == 0 {
+		return errors.New("path must not be empty")
+	} else if len(data) == 0 {
+		return errors.New("data must not be empty")
+	}
 	raw := internal.SerializePropertyPath(path)
 	return internal.StatusToError(internal.ProxySetProperty(
 		&raw[0], len(path), &data[0], len(data),
