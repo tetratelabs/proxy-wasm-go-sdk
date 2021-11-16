@@ -7,5 +7,5 @@ spec:
   selector:
     matchLabels:
       app: httpbin
-  # TODO(incfly): replace this with an ECR once ready.
-  url: oci://ghcr.io/mathetake/wasm-extension-demo:v1
+  # TODO(incfly): replace this with an ECR image once ready.
+  url: oci://ghcr.io/incfly/proxy-wasm-go-sdk:v1
