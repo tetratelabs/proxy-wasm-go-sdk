@@ -1,0 +1,11 @@
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: header-injection
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: httpbin
+  # TODO(incfly): replace this with an ECR once ready.
+  url: oci://ghcr.io/mathetake/wasm-extension-demo:v1
