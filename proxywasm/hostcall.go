@@ -646,6 +646,12 @@ func LogCriticalf(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
 }
 
+// GetCurrentTimeNanoseconds returns the current time nanoseconds
+func GetCurrentTimeNanoseconds() (uint64, error) {
+	var t uint64
+	return t, internal.StatusToError(internal.ProxyGetCurrentTimeNanoseconds(&t))
+}
+
 type (
 	// MetricCounter represents a counter metric.
 	// Use DefineCounterMetric for initialization.

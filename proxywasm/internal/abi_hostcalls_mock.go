@@ -66,6 +66,7 @@ type ProxyWasmHost interface {
 	ProxyIncrementMetric(metricID uint32, offset int64) Status
 	ProxyRecordMetric(metricID uint32, value uint64) Status
 	ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status
+	ProxyGetCurrentTimeNanoseconds(t *uint64) Status
 }
 
 type DefaultProxyWAMSHost struct{}
@@ -145,6 +146,10 @@ func (d DefaultProxyWAMSHost) ProxyIncrementMetric(metricID uint32, offset int64
 }
 func (d DefaultProxyWAMSHost) ProxyRecordMetric(metricID uint32, value uint64) Status { return 0 }
 func (d DefaultProxyWAMSHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status {
+	return 0
+}
+
+func (d DefaultProxyWAMSHost) ProxyGetCurrentTimeNanoseconds(t *uint64) Status {
 	return 0
 }
 
@@ -266,4 +271,8 @@ func ProxyRecordMetric(metricID uint32, value uint64) Status {
 
 func ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status {
 	return currentHost.ProxyGetMetric(metricID, returnMetricValue)
+}
+
+func ProxyGetCurrentTimeNanoseconds(t *uint64) Status {
+	return currentHost.ProxyGetCurrentTimeNanoseconds(t)
 }

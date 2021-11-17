@@ -17,6 +17,7 @@ package proxytest
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -281,6 +282,12 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 	*returnData = &ret[0]
 	*returnSize = len(ret)
 
+	return internal.StatusOK
+}
+
+func (r *rootHostEmulator) ProxyGetCurrentTimeNanoseconds(t *uint64) internal.Status {
+	now := time.Now().Nanosecond()
+	*t = uint64(now)
 	return internal.StatusOK
 }
 
