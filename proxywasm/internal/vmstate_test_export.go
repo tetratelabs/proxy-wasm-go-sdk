@@ -31,3 +31,7 @@ func VMStateReset() {
 func VMStateGetActiveContextID() uint32 {
 	return currentState.activeContextID
 }
+
+func VMStateSetActiveContextID(contextID uint32) {
+	currentState.activeContextID = contextID
+}

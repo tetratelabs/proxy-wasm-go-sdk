@@ -97,7 +97,7 @@ func Test_http_body(t *testing.T) {
 		{op: "append", expBody: `[original body][this is appended body]`},
 		{op: "prepend", expBody: `[this is prepended body][original body]`},
 		{op: "replace", expBody: `[this is replaced body]`},
-		// Shoud fall back to to the replace.
+		// Should fall back to to the replace.
 		{op: "invalid", expBody: `[this is replaced body]`},
 	} {
 		t.Run(tc.op, func(t *testing.T) {
@@ -219,6 +219,22 @@ func Test_network(t *testing.T) {
 			"remote address: 127.0.0.1:",
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
+}
+
+func Test_postpone_requests(t *testing.T) {
+	stdErr, kill := startEnvoy(t, 8001)
+	defer kill()
+	require.Eventually(t, func() bool {
+		res, err := http.Get("http://localhost:18000")
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+		return checkMessage(stdErr.String(), []string{
+			"postpone request with contextID=2",
+			"resume request with contextID=2",
+		}, nil)
+	}, 6*time.Second, time.Millisecond, stdErr.String())
 }
 
 func Test_shared_data(t *testing.T) {

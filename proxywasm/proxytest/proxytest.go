@@ -169,6 +169,10 @@ func (h *hostEmulator) ProxyGetHeaderMapPairs(mapType internal.MapType, returnVa
 // impl internal.ProxyWasmHost
 func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Status {
 	h.effectiveContextID = contextID
+	// TODO(ikeeip): This is a workaround. Originally host uses both true context and
+	// effective context every time. We should implement this behavior hostEmulator too.
+	// see: https://github.com/proxy-wasm/proxy-wasm-cpp-host/blob/f38347360feaaf5b2a733f219c4d8c9660d626f0/src/exports.cc#L23
+	internal.VMStateSetActiveContextID(contextID)
 	return internal.StatusOK
 }
 
