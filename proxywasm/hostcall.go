@@ -41,6 +41,13 @@ func SetTickPeriodMilliSeconds(millSec uint32) error {
 	return internal.StatusToError(internal.ProxySetTickPeriodMilliseconds(millSec))
 }
 
+// SetEffectiveContext the effective context to context_id.
+// This hostcall is usually used to change the context after receiving
+// types.PluginContext.OnQueueReady or types.PluginContext.OnTick
+func SetEffectiveContext(contextID uint32) error {
+	return internal.StatusToError(internal.ProxySetEffectiveContext(contextID))
+}
+
 // RegisterSharedQueue registers the shared queue on this plugin context.
 // "Register" means that OnQueueReady is called for this plugin context whenever a new item is enqueued on that queueID.
 // Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
