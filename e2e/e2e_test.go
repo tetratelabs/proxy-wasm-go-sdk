@@ -224,10 +224,12 @@ func Test_network(t *testing.T) {
 func Test_postpone_requests(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()
-	res, err := http.Get("http://localhost:18000")
-	require.NoError(t, err)
-	defer res.Body.Close()
 	require.Eventually(t, func() bool {
+		res, err := http.Get("http://localhost:18000")
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
 		return checkMessage(stdErr.String(), []string{
 			"postpone request with contextID=2",
 			"resume request with contextID=2",
