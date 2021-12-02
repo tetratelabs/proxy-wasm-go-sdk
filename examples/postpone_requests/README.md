@@ -1,6 +1,6 @@
 ## postpone_requests
 
-this example postpone http request for 0.0...5.0 seconds.
+this example postpones http requests for 0.0...1.0 seconds.
 
 ```
 wasm log: postpone request with contextID=2
