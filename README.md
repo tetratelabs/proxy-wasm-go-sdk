@@ -13,6 +13,7 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 
 ## Requirements
 
+- [Go](https://go.dev/dl/) 1.17 or higher.
 - [TinyGo](https://tinygo.org/) - This SDK depends on TinyGo and leverages its [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target. Please follow the official instruction [here](https://tinygo.org/getting-started/) for installing TinyGo.
 - [Envoy](https://www.envoyproxy.io) - To run compiled examples, you need to have Envoy binary. We recommend using [func-c](https://func-e.io) as the easiest way to get started with Envoy. Alternatively, you can follow [the official instruction](https://www.envoyproxy.io/docs/envoy/latest/start/install).
 
