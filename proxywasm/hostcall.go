@@ -567,7 +567,7 @@ func SetProperty(path []string, data []byte) error {
 	}
 	raw := internal.SerializePropertyPath(path)
 	return internal.StatusToError(internal.ProxySetProperty(
-		&raw[0], len(path), &data[0], len(data),
+		&raw[0], len(raw), &data[0], len(data),
 	))
 }
 
