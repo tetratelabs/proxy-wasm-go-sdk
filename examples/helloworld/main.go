@@ -64,3 +64,6 @@ func (ctx *helloWorld) OnTick() {
 	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
 	proxywasm.LogInfof("OnTick called")
 }
+
+// Override types.DefaultPluginContext.
+func (*helloWorld) NewHttpContext(uint32) types.HttpContext { return &types.DefaultHttpContext{} }
