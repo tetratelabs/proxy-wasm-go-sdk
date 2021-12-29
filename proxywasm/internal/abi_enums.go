@@ -89,6 +89,7 @@ const (
 	StatusEmpty           Status = 7
 	StatusCasMismatch     Status = 8
 	StatusInternalFailure Status = 10
+	StatusUnimplemented   Status = 12
 )
 
 //go:inline
@@ -106,6 +107,8 @@ func StatusToError(status Status) error {
 		return types.ErrorStatusCasMismatch
 	case StatusInternalFailure:
 		return types.ErrorInternalFailure
+	case StatusUnimplemented:
+		return types.ErrorUnimplemented
 	}
 	return errors.New("unknown status code: " + strconv.Itoa(int(status)))
 }

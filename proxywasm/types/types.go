@@ -77,4 +77,6 @@ var (
 	// In the face of this error, there's nothing we could do in the Wasm VM.
 	// Recommend simply abort or panic then.
 	ErrorInternalFailure = errors.New("error status returned by host: internal failure")
+	// ErrorUnimplemented indicates the API is not implemented in the host yet.
+	ErrorUnimplemented = errors.New("error status returned by host: unimplemented")
 )
