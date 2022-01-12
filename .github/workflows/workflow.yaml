@@ -81,10 +81,11 @@ jobs:
           "envoyproxy/envoy:v1.18-latest",
           "envoyproxy/envoy:v1.19-latest",
           "envoyproxy/envoy:v1.20-latest",
+          "envoyproxy/envoy:v1.21-latest",
           "istio/proxyv2:1.9.8",
           "istio/proxyv2:1.10.4",
-          "istio/proxyv2:1.11.4",
-          "istio/proxyv2:1.12.0",
+          "istio/proxyv2:1.11.5",
+          "istio/proxyv2:1.12.1",
         ]
     name: E2E Test (${{ matrix.image }})
     needs: [build-examples]
