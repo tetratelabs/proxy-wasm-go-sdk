@@ -36,6 +36,14 @@ func (l logHost) ProxyLog(logLevel internal.LogLevel, messageData *byte, message
 	return internal.StatusOK
 }
 
+func TestHostCall_ForeignFunction(t *testing.T) {
+	defer internal.RegisterMockWasmHost(internal.DefaultProxyWAMSHost{})()
+
+	ret, err := CallForeignFunction("testFunc", []byte(""))
+	require.NoError(t, err)
+	require.Equal(t, []byte(nil), ret)
+}
+
 func TestHostCall_Logging(t *testing.T) {
 	t.Run("trace", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
