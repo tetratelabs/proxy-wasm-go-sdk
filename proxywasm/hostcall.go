@@ -579,7 +579,12 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	var returnData *byte
 	var returnSize int
 
-	switch st := internal.ProxyCallForeignFunction(f, len(funcName), &param[0], len(param), &returnData, &returnSize); st {
+	var paramPtr *byte
+	if len(param) != 0 {
+		paramPtr = &param[0]
+	}
+
+	switch st := internal.ProxyCallForeignFunction(f, len(funcName), paramPtr, len(param), &returnData, &returnSize); st {
 	case internal.StatusOK:
 		return internal.RawBytePtrToByteSlice(returnData, returnSize), nil
 	default:
