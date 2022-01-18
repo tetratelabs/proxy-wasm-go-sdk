@@ -27,7 +27,7 @@ type (
 		activeCalloutID  uint32
 		logs             [internal.LogLevelMax][]string
 		tickPeriod       uint32
-		foreignFunctions map[string]func([]byte) []byte
+		foreignFunctions map[string]func([]byte) ([]byte, types.WasmResult)
 
 		queues        map[uint32][][]byte
 		queueNameID   map[string]uint32
@@ -64,7 +64,7 @@ type (
 
 func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostEmulator {
 	host := &rootHostEmulator{
-		foreignFunctions:            map[string]func([]byte) []byte{},
+		foreignFunctions:            map[string]func([]byte) ([]byte, types.WasmResult){},
 		queues:                      map[uint32][][]byte{},
 		queueNameID:                 map[string]uint32{},
 		sharedDataKVS:               map[string]*sharedData{},
@@ -261,7 +261,7 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 }
 
 // impl internal.ProxyWasmHost
-func (r *rootHostEmulator) RegisterForeignFunction(name string, f func([]byte) []byte) {
+func (r *rootHostEmulator) RegisterForeignFunction(name string, f func([]byte) ([]byte, types.WasmResult)) {
 	r.foreignFunctions[name] = f
 }
 
@@ -276,12 +276,17 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 	f, ok := r.foreignFunctions[funcName]
 	if !ok {
 		log.Fatalf("%s not registered as a foreign function", funcName)
+		return internal.StatusNotFound
 	}
-	ret := f(param)
-	*returnData = &ret[0]
+
+	ret, retval := f(param)
+
+	if len(ret) > 0 {
+		*returnData = &ret[0]
+	}
 	*returnSize = len(ret)
 
-	return internal.StatusOK
+	return internal.Status(retval)
 }
 
 // // impl internal.ProxyWasmHost: delegated from hostEmulator

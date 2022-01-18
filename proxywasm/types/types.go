@@ -80,3 +80,21 @@ var (
 	// ErrorUnimplemented indicates the API is not implemented in the host yet.
 	ErrorUnimplemented = errors.New("error status returned by host: unimplemented")
 )
+
+type WasmResult uint32
+
+const (
+	WasmResultOk                   WasmResult = 0
+	WasmResultNotFound             WasmResult = 1
+	WasmResultBadArgument          WasmResult = 2
+	WasmResultSerializationFailure WasmResult = 3
+	WasmResultParseFailure         WasmResult = 4
+	WasmResultBadExpression        WasmResult = 5
+	WasmResultInvalidMemoryAccess  WasmResult = 6
+	WasmResultEmpty                WasmResult = 7
+	WasmResultCasMismatch          WasmResult = 8
+	WasmResultResultMismatch       WasmResult = 9
+	WasmResultInternalFailure      WasmResult = 10
+	WasmResultBrokenConnection     WasmResult = 11
+	WasmResultUnimplemented        WasmResult = 12
+)

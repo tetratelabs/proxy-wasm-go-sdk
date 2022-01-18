@@ -27,7 +27,7 @@ func TestPluginContext_OnTick(t *testing.T) {
 	require.Equal(t, tickMilliseconds, host.GetTickPeriod())
 
 	// Register foreign function named "compress".
-	host.RegisterForeignFunction("compress", func(b []byte) []byte { return b })
+	host.RegisterForeignFunction("compress", func(b []byte) ([]byte, types.WasmResult) { return b, types.WasmResultOk })
 
 	for i := 1; i < 10; i++ {
 		host.Tick()
