@@ -117,4 +117,7 @@ jobs:
       - name: Run e2e test
         run: make test.e2e
         env:
+          # Explicitly disable CGO even though we don't use it anywhere. 
+          # That is because envoy containers do not have GCC installed
+          # plus CGO is enbaled by default, which results in build error.
           CGO_ENABLED: "0"
