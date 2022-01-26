@@ -362,7 +362,7 @@ Here's the shared data related API of this Go SDK in [hostcall.go](../proxywasm/
 // thread-safe updates.
 func GetSharedData(key string) (value []byte, cas uint32, err error)
 
-// SetSharedData is used for seting key-value pairs in the shared data storage
+// SetSharedData is used for setting key-value pairs in the shared data storage
 // which is defined per "vm_config.vm_id" in the hosts.
 //
 // ErrorStatusCasMismatch will be returned when a given CAS value is mismatched
