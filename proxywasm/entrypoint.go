@@ -19,9 +19,9 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-// SetVMContext is the entrypoint for setting up this entire Wasm VM.
-// Please make sure that this entrypoint be called during "main()" function, otherwise
-// this VM would fail.
+// SetVMContext is the entrypoint for setting up the entire Wasm VM.
+// Please make sure to call this entrypoint during "main()" function;
+// otherwise, the VM fails.
 func SetVMContext(ctx types.VMContext) {
 	internal.SetVMContext(ctx)
 }
