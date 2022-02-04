@@ -25,20 +25,17 @@ func TestMetric(t *testing.T) {
 	require.Equal(t, types.OnVMStartStatusOK, host.StartVM())
 
 	// Initialize http context.
+	headers := [][2]string{{"my-custom-header", "foo"}}
 	contextID := host.InitializeHttpContext()
 	exp := uint64(3)
 	for i := uint64(0); i < exp; i++ {
 		// Call OnRequestHeaders
-		action := host.CallOnRequestHeaders(contextID, nil, false)
+		action := host.CallOnRequestHeaders(contextID, headers, false)
 		require.Equal(t, types.ActionContinue, action)
 	}
 
-	// Check Envoy logs.
-	logs := host.GetInfoLogs()
-	require.Contains(t, logs, "incremented")
-
 	// Check metrics.
-	value, err := host.GetCounterMetric("proxy_wasm_go.request_counter")
+	value, err := host.GetCounterMetric("custom_header_value_counts_value=foo_reporter=wasmgosdk")
 	require.NoError(t, err)
 	require.Equal(t, uint64(3), value)
 }

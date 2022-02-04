@@ -169,29 +169,44 @@ func Test_http_routing(t *testing.T) {
 func Test_metrics(t *testing.T) {
 	_, kill := startEnvoy(t, 8001)
 	defer kill()
-	var count int
-	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:18000")
-		if err != nil {
-			return false
-		}
-		defer res.Body.Close()
-		if res.StatusCode != http.StatusOK {
-			return false
-		}
-		count++
-		return count == 10
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
-	require.Eventually(t, func() bool {
-		res, err := http.Get("http://localhost:8001/stats/prometheus")
-		if err != nil {
-			return false
-		}
-		defer res.Body.Close()
-		raw, err := io.ReadAll(res.Body)
-		require.NoError(t, err)
-		return checkMessage(string(raw), []string{fmt.Sprintf("proxy_wasm_go_request_counter{} %d", count)}, nil)
-	}, 5*time.Second, time.Millisecond, "Expected stats not found")
+
+	const customHeaderKey = "my-custom-header"
+	customHeaderToExpectedCounts := map[string]int{
+		"foo": 3,
+		"bar": 5,
+	}
+	for headerValue, expCount := range customHeaderToExpectedCounts {
+		var actualCount int
+		require.Eventually(t, func() bool {
+			req, err := http.NewRequest("GET", "http://localhost:18000", nil)
+			require.NoError(t, err)
+			req.Header.Add(customHeaderKey, headerValue)
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return false
+			}
+			defer res.Body.Close()
+			if res.StatusCode != http.StatusOK {
+				return false
+			}
+			actualCount++
+			return actualCount == expCount
+		}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	}
+
+	for headerValue, expCount := range customHeaderToExpectedCounts {
+		expectedMetric := fmt.Sprintf("custom_header_value_counts{value=\"%s\",reporter=\"wasmgosdk\"} %d", headerValue, expCount)
+		require.Eventually(t, func() bool {
+			res, err := http.Get("http://localhost:8001/stats/prometheus")
+			if err != nil {
+				return false
+			}
+			defer res.Body.Close()
+			raw, err := io.ReadAll(res.Body)
+			require.NoError(t, err)
+			return checkMessage(string(raw), []string{expectedMetric}, nil)
+		}, 5*time.Second, time.Millisecond, "Expected stats not found")
+	}
 }
 
 func Test_network(t *testing.T) {
