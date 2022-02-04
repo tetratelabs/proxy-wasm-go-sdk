@@ -2,6 +2,7 @@ stats_config:
   stats_tags:
     # Envoy extracs the first matching group as a value.
     # This case, the part ([a-zA-Z]+) is extracted as a value for "value" tag.
+    # See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/metrics/v3/stats.proto#config-metrics-v3-statsconfig.
     - tag_name: value
       regex: '(_value=([a-zA-Z]+))'
     - tag_name: reporter
