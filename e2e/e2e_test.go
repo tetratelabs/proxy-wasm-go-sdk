@@ -204,7 +204,6 @@ func Test_metrics(t *testing.T) {
 			defer res.Body.Close()
 			raw, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
-			last = string(raw)
 			return checkMessage(string(raw), []string{expectedMetric}, nil)
 		}, 5*time.Second, time.Millisecond, "Expected stats not found")
 	}
