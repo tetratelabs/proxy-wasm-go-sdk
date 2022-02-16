@@ -29,6 +29,17 @@ func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) t
 	return ctx.OnHttpRequestHeaders(numHeaders, endOfStream)
 }
 
+//export proxy_on_request_metadata
+func proxyOnRequestMetadata(contextID uint32, numMetadata int) types.Action {
+	ctx, ok := currentState.httpContexts[contextID]
+	if !ok {
+		panic("invalid context on proxy_on_request_metadata")
+	}
+
+	currentState.setActiveContextID(contextID)
+	return ctx.OnHttpRequestMetadata(numMetadata)
+}
+
 //export proxy_on_request_body
 func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
 	ctx, ok := currentState.httpContexts[contextID]
@@ -57,6 +68,17 @@ func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) 
 	}
 	currentState.setActiveContextID(contextID)
 	return ctx.OnHttpResponseHeaders(numHeaders, endOfStream)
+}
+
+//export proxy_on_response_metadata
+func proxyOnResponseMetadata(contextID uint32, numMetadata int) types.Action {
+	ctx, ok := currentState.httpContexts[contextID]
+	if !ok {
+		panic("invalid context on proxy_on_response_metadata")
+	}
+
+	currentState.setActiveContextID(contextID)
+	return ctx.OnHttpResponseMetadata(numMetadata)
 }
 
 //export proxy_on_response_body

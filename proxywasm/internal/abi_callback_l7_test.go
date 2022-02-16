@@ -25,9 +25,11 @@ import (
 type l7Context struct {
 	types.DefaultHttpContext
 	onHttpRequestHeaders,
+	onHttpRequestMetadata,
 	onHttpRequestBody,
 	onHttpRequestTrailers,
 	onHttpResponseHeaders,
+	onHttpResponseMetadata,
 	onHttpResponseBody,
 	onHttpResponseTrailers,
 	onHttpCallResponse bool
@@ -35,6 +37,11 @@ type l7Context struct {
 
 func (ctx *l7Context) OnHttpRequestHeaders(int, bool) types.Action {
 	ctx.onHttpRequestHeaders = true
+	return types.ActionContinue
+}
+
+func (ctx *l7Context) OnHttpRequestMetadata(int) types.Action {
+	ctx.onHttpRequestMetadata = true
 	return types.ActionContinue
 }
 
@@ -50,6 +57,11 @@ func (ctx *l7Context) OnHttpRequestTrailers(int) types.Action {
 
 func (ctx *l7Context) OnHttpResponseHeaders(int, bool) types.Action {
 	ctx.onHttpResponseHeaders = true
+	return types.ActionContinue
+}
+
+func (ctx *l7Context) OnHttpResponseMetadata(int) types.Action {
+	ctx.onHttpResponseMetadata = true
 	return types.ActionContinue
 }
 
@@ -78,12 +90,16 @@ func Test_l7(t *testing.T) {
 
 	proxyOnRequestHeaders(cID, 0, false)
 	require.True(t, ctx.onHttpRequestHeaders)
+	proxyOnRequestMetadata(cID, 0)
+	require.True(t, ctx.onHttpRequestMetadata)
 	proxyOnRequestBody(cID, 0, false)
 	require.True(t, ctx.onHttpRequestBody)
 	proxyOnRequestTrailers(cID, 0)
 	require.True(t, ctx.onHttpRequestTrailers)
 	proxyOnResponseHeaders(cID, 0, false)
 	require.True(t, ctx.onHttpResponseHeaders)
+	proxyOnResponseMetadata(cID, 0)
+	require.True(t, ctx.onHttpResponseMetadata)
 	proxyOnResponseBody(cID, 0, false)
 	require.True(t, ctx.onHttpResponseBody)
 	proxyOnResponseTrailers(cID, 0)

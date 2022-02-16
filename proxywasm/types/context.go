@@ -131,6 +131,10 @@ type HttpContext interface {
 	// Return types.ActionPause if you want to stop sending headers to the upstream.
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) Action
 
+	// OnHttpRequestMetadata is called when request metadata arrive.
+	// Return types.ActionPause if you want to stop sending metadata to the upstream.
+	OnHttpRequestMetadata(numMetadata int) Action
+
 	// OnHttpRequestBody is called when a request body *frame* arrives.
 	// Note that this is potentially called multiple times until we see end_of_stream = true.
 	// Return types.ActionPause if you want to buffer the body and stop sending body to the upstream.
@@ -144,6 +148,10 @@ type HttpContext interface {
 	// OnHttpResponseHeaders is called when response headers arrive.
 	// Return types.ActionPause if you want to stop sending headers to downstream.
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) Action
+
+	// OnHttpResponseMetadata is called when response metadata arrive.
+	// Return types.ActionPause if you want to stop sending metadata to the downstream.
+	OnHttpResponseMetadata(numMetadata int) Action
 
 	// OnHttpResponseBody is called when a response body *frame* arrives.
 	// Note that this is potentially called multiple times until we see end_of_stream = true.
@@ -204,9 +212,11 @@ func (*DefaultTcpContext) OnStreamDone()                     {}
 
 // impl HttpContext
 func (*DefaultHttpContext) OnHttpRequestHeaders(int, bool) Action  { return ActionContinue }
+func (*DefaultHttpContext) OnHttpRequestMetadata(int) Action       { return ActionContinue }
 func (*DefaultHttpContext) OnHttpRequestBody(int, bool) Action     { return ActionContinue }
 func (*DefaultHttpContext) OnHttpRequestTrailers(int) Action       { return ActionContinue }
 func (*DefaultHttpContext) OnHttpResponseHeaders(int, bool) Action { return ActionContinue }
+func (*DefaultHttpContext) OnHttpResponseMetadata(int) Action      { return ActionContinue }
 func (*DefaultHttpContext) OnHttpResponseBody(int, bool) Action    { return ActionContinue }
 func (*DefaultHttpContext) OnHttpResponseTrailers(int) Action      { return ActionContinue }
 func (*DefaultHttpContext) OnHttpStreamDone()                      {}
