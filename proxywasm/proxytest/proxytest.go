@@ -55,9 +55,11 @@ type HostEmulator interface {
 	// http
 	InitializeHttpContext() (contextID uint32)
 	CallOnResponseHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
+	CallOnResponseMetadata(contextID uint32, metadata [][2]string) types.Action
 	CallOnResponseBody(contextID uint32, body []byte, endOfStream bool) types.Action
 	CallOnResponseTrailers(contextID uint32, trailers [][2]string) types.Action
 	CallOnRequestHeaders(contextID uint32, headers [][2]string, endOfStream bool) types.Action
+	CallOnRequestMetadata(contextID uint32, metadata [][2]string) types.Action
 	CallOnRequestTrailers(contextID uint32, trailers [][2]string) types.Action
 	CallOnRequestBody(contextID uint32, body []byte, endOfStream bool) types.Action
 	CompleteHttpContext(contextID uint32)

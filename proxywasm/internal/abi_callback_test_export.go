@@ -49,6 +49,10 @@ func ProxyOnUpstreamConnectionClose(contextID uint32, pType types.PeerType) {
 	proxyOnUpstreamConnectionClose(contextID, pType)
 }
 
+func ProxyOnRequestMetadata(contextID uint32, numHeaders int) types.Action {
+	return proxyOnRequestMetadata(contextID, numHeaders)
+}
+
 func ProxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
 	return proxyOnRequestHeaders(contextID, numHeaders, endOfStream)
 }
@@ -59,6 +63,10 @@ func ProxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.
 
 func ProxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 	return proxyOnRequestTrailers(contextID, numTrailers)
+}
+
+func ProxyOnResponseMetadata(contextID uint32, numHeaders int) types.Action {
+	return proxyOnResponseMetadata(contextID, numHeaders)
 }
 
 func ProxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {

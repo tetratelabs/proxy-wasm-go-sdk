@@ -27,6 +27,7 @@ type (
 		httpStreams map[uint32]*httpStreamState
 	}
 	httpStreamState struct {
+		requestMetadata, responseMetadata [][2]string
 		requestHeaders, responseHeaders   [][2]string
 		requestTrailers, responseTrailers [][2]string
 		requestBody, responseBody         []byte
@@ -368,6 +369,30 @@ func (h *httpHostEmulator) CallOnResponseHeaders(contextID uint32, headers [][2]
 
 	cs.responseHeaders = headers
 	cs.action = internal.ProxyOnResponseHeaders(contextID, len(headers), endOfStream)
+	return cs.action
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) CallOnRequestMetadata(contextID uint32, metadata [][2]string) types.Action {
+	cs, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+
+	cs.requestMetadata = metadata
+	cs.action = internal.ProxyOnRequestMetadata(contextID, len(metadata))
+	return cs.action
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) CallOnResponseMetadata(contextID uint32, metadata [][2]string) types.Action {
+	cs, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+
+	cs.responseMetadata = metadata
+	cs.action = internal.ProxyOnResponseMetadata(contextID, len(metadata))
 	return cs.action
 }
 
