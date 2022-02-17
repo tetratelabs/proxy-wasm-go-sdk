@@ -63,26 +63,3 @@ func (ctx *httpMetadata) OnHttpResponseMetadata(numMetadata int) types.Action {
 	proxywasm.LogInfof("response metadata <-- %d", numMetadata)
 	return types.ActionContinue
 }
-
-// Override types.DefaultHttpContext.
-func (ctx *httpMetadata) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	err := proxywasm.ReplaceHttpRequestHeader("test", "best")
-	if err != nil {
-		proxywasm.LogCritical("failed to set request header: test")
-	}
-
-	hs, err := proxywasm.GetHttpRequestHeaders()
-	if err != nil {
-		proxywasm.LogCriticalf("failed to get request headers: %v", err)
-	}
-
-	for _, h := range hs {
-		proxywasm.LogInfof("request header --> %s: %s", h[0], h[1])
-	}
-	return types.ActionContinue
-}
-
-// Override types.DefaultHttpContext.
-func (ctx *httpMetadata) OnHttpStreamDone() {
-	proxywasm.LogInfof("%d finished", ctx.contextID)
-}
