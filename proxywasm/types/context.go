@@ -131,7 +131,7 @@ type HttpContext interface {
 	// Return types.ActionPause if you want to stop sending headers to the upstream.
 	OnHttpRequestHeaders(numHeaders int, endOfStream bool) Action
 
-	// OnHttpRequestMetadata is called when request metadata arrive.
+	// OnHttpRequestMetadata is called when request metadata arrives.
 	// Return types.ActionPause if you want to stop sending metadata to the upstream.
 	OnHttpRequestMetadata(numMetadata int) Action
 
@@ -149,7 +149,7 @@ type HttpContext interface {
 	// Return types.ActionPause if you want to stop sending headers to downstream.
 	OnHttpResponseHeaders(numHeaders int, endOfStream bool) Action
 
-	// OnHttpResponseMetadata is called when response metadata arrive.
+	// OnHttpResponseMetadata is called when response metadata arrives.
 	// Return types.ActionPause if you want to stop sending metadata to the downstream.
 	OnHttpResponseMetadata(numMetadata int) Action
 
