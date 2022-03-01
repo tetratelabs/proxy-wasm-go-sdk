@@ -502,6 +502,11 @@ func SendHttpResponse(statusCode uint32, headers [][2]string, body []byte, gRPCS
 	)
 }
 
+// ClearRouteCache clears the envoy route cache
+func ClearRouteCache() (err error) {
+	return internal.StatusToError(internal.ProxyClearRouteCache())
+}
+
 // GetSharedData is used for retrieving the value for given "key".
 // For thread-safe updates you must use the returned "cas" value
 // when calling SetSharedData for the same key.

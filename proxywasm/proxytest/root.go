@@ -147,6 +147,11 @@ func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *by
 }
 
 // impl internal.ProxyWasmHost
+func (r *rootHostEmulator) ProxyClearRouteCache() internal.Status {
+	return internal.StatusOK
+}
+
+// impl internal.ProxyWasmHost
 func (r *rootHostEmulator) ProxyGetSharedData(keyData *byte, keySize int,
 	returnValueData **byte, returnValueSize *int, returnCas *uint32) internal.Status {
 	key := internal.RawBytePtrToString(keyData, keySize)

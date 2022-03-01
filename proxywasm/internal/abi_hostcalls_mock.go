@@ -41,6 +41,7 @@ type ProxyWasmHost interface {
 	ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) Status
 	ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) Status
 	ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status
+	ProxyClearRouteCache() Status
 	ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status
 	ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) Status
 	ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) Status
@@ -82,6 +83,9 @@ func (d DefaultProxyWAMSHost) ProxyGetProperty(pathData *byte, pathSize int, ret
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status {
+	return 0
+}
+func (d DefaultProxyWAMSHost) ProxyClearRouteCache() Status {
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status {
@@ -164,6 +168,10 @@ func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte,
 	statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status {
 	return currentHost.ProxySendLocalResponse(statusCode,
 		statusCodeDetailData, statusCodeDetailsSize, bodyData, bodySize, headersData, headersSize, grpcStatus)
+}
+
+func ProxyClearRouteCache() Status {
+	return currentHost.ProxyClearRouteCache()
 }
 
 func ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status {

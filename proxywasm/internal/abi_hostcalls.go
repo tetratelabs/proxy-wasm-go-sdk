@@ -23,6 +23,9 @@ func ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status
 func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int,
 	bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status
 
+//export proxy_clear_route_cache
+func ProxyClearRouteCache() Status
+
 //export proxy_get_shared_data
 func ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status
 
