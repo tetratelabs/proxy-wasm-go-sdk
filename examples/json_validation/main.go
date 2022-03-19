@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 
+	"github.com/tidwall/gjson"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
-	"github.com/tidwall/gjson"
 )
 
 func main() {
