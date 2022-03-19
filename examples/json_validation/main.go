@@ -45,7 +45,7 @@ type pluginConfiguration struct {
 // Override types.DefaultPluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration()
-	if err != nil {
+	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 		return types.OnPluginStartStatusFailed
 	}
@@ -62,9 +62,13 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 // Note that this parses the json data by gjson, since TinyGo doesn't support encoding/json.
 // You can also try https://github.com/mailru/easyjson, which supports decoding to a struct.
 func parsePluginConfiguration(data []byte) (pluginConfiguration, error) {
+	if len(data) == 0 {
+		return pluginConfiguration{}, nil
+	}
+
 	config := &pluginConfiguration{}
 	if !gjson.ValidBytes(data) {
-		return pluginConfiguration{}, fmt.Errorf("the plugin configuration is not a valid json: %v", data)
+		return pluginConfiguration{}, fmt.Errorf("the plugin configuration is not a valid json: %q", string(data))
 	}
 
 	jsonData := gjson.ParseBytes(data)
@@ -122,7 +126,6 @@ func (ctx *payloadValidationContext) OnHttpRequestBody(bodySize int, endOfStream
 		proxywasm.LogErrorf("failed to get request body: %v", err)
 		return types.ActionContinue
 	}
-
 	if !ctx.validatePayload(body) {
 		// If the validation fails, send the 403 response,
 		if err := proxywasm.SendHttpResponse(403, nil, []byte("invalid payload"), -1); err != nil {
@@ -139,7 +142,7 @@ func (ctx *payloadValidationContext) OnHttpRequestBody(bodySize int, endOfStream
 // Note that this function parses the json data by gjson, since TinyGo doesn't support encoding/json.
 func (ctx *payloadValidationContext) validatePayload(body []byte) bool {
 	if !gjson.ValidBytes(body) {
-		proxywasm.LogErrorf("body is not a valid json: %v", body)
+		proxywasm.LogErrorf("body is not a valid json: %q", string(body))
 		return false
 	}
 	jsonData := gjson.ParseBytes(body)
