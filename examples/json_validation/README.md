@@ -9,10 +9,6 @@ If not, the wasm plugin ceases the further process of the request and returns 40
 with standalone Envoy.
 The following make rule will run the wasm plugin in the version of Envoy used in the Istio 1.9 sidecar.
 
-```sh
-make run-envoy
-```
-
 Envoy listens on `localhost:18000`, responding to any requests with static content "hello from server".
 However, the wasm plugin also runs to validate the requests' payload.
 The plugin intercepts the request and makes Envoy return 403 instead of the static content
