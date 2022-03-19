@@ -23,7 +23,7 @@ import (
 )
 
 type logHost struct {
-	internal.DefaultProxyWAMSHost
+	internal.DefaultProxyWasmHost
 	t           *testing.T
 	expMessage  string
 	expLogLevel internal.LogLevel
@@ -37,7 +37,7 @@ func (l logHost) ProxyLog(logLevel internal.LogLevel, messageData *byte, message
 }
 
 func TestHostCall_ForeignFunction(t *testing.T) {
-	defer internal.RegisterMockWasmHost(internal.DefaultProxyWAMSHost{})()
+	defer internal.RegisterMockWasmHost(internal.DefaultProxyWasmHost{})()
 
 	ret, err := CallForeignFunction("testFunc", []byte(""))
 	require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestHostCall_ForeignFunction(t *testing.T) {
 func TestHostCall_Logging(t *testing.T) {
 	t.Run("trace", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "trace",
 			expLogLevel:          internal.LogLevelTrace,
@@ -58,7 +58,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("tracef", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "trace: log",
 			expLogLevel:          internal.LogLevelTrace,
@@ -69,7 +69,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("debug", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "abc",
 			expLogLevel:          internal.LogLevelDebug,
@@ -80,7 +80,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("debugf", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "debug: log",
 			expLogLevel:          internal.LogLevelDebug,
@@ -91,7 +91,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("info", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "info",
 			expLogLevel:          internal.LogLevelInfo,
@@ -102,7 +102,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("infof", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "info: log: 10",
 			expLogLevel:          internal.LogLevelInfo,
@@ -113,7 +113,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("warn", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "warn",
 			expLogLevel:          internal.LogLevelWarn,
@@ -124,7 +124,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("warnf", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "warn: log: 10",
 			expLogLevel:          internal.LogLevelWarn,
@@ -135,7 +135,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "error",
 			expLogLevel:          internal.LogLevelError,
@@ -146,7 +146,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("warnf", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "warn: log: 10",
 			expLogLevel:          internal.LogLevelWarn,
@@ -157,7 +157,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("critical", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "critical error",
 			expLogLevel:          internal.LogLevelCritical,
@@ -168,7 +168,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 	t.Run("criticalf", func(t *testing.T) {
 		release := internal.RegisterMockWasmHost(logHost{
-			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
+			DefaultProxyWasmHost: internal.DefaultProxyWasmHost{},
 			t:                    t,
 			expMessage:           "critical: log: 10",
 			expLogLevel:          internal.LogLevelCritical,
@@ -179,7 +179,7 @@ func TestHostCall_Logging(t *testing.T) {
 }
 
 type metricProxyWasmHost struct {
-	internal.DefaultProxyWAMSHost
+	internal.DefaultProxyWasmHost
 	idToValue map[uint32]uint64
 	idToType  map[uint32]internal.MetricType
 	nameToID  map[string]uint32
@@ -229,7 +229,7 @@ func (m metricProxyWasmHost) ProxyGetMetric(metricID uint32, returnMetricValue *
 
 func TestHostCall_Metric(t *testing.T) {
 	host := metricProxyWasmHost{
-		internal.DefaultProxyWAMSHost{},
+		internal.DefaultProxyWasmHost{},
 		map[uint32]uint64{},
 		map[uint32]internal.MetricType{},
 		map[string]uint32{},
