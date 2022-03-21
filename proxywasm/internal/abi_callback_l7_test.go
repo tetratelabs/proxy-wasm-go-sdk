@@ -91,7 +91,7 @@ func Test_l7(t *testing.T) {
 }
 
 func Test_proxyOnHttpCallResponse(t *testing.T) {
-	release := RegisterMockWasmHost(DefaultProxyWasmHost{})
+	release := RegisterMockWasmHost(DefaultProxyWAMSHost{})
 	defer release()
 
 	var (

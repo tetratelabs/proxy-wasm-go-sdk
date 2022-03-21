@@ -68,83 +68,83 @@ type ProxyWasmHost interface {
 	ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status
 }
 
-type DefaultProxyWasmHost struct{}
+type DefaultProxyWAMSHost struct{}
 
-var _ ProxyWasmHost = DefaultProxyWasmHost{}
+var _ ProxyWasmHost = DefaultProxyWAMSHost{}
 
-func (d DefaultProxyWasmHost) ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status {
+func (d DefaultProxyWAMSHost) ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) Status {
+func (d DefaultProxyWAMSHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status {
+func (d DefaultProxyWAMSHost) ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status {
+func (d DefaultProxyWAMSHost) ProxyGetSharedData(keyData *byte, keySize int, returnValueData **byte, returnValueSize *int, returnCas *uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) Status {
+func (d DefaultProxyWAMSHost) ProxySetSharedData(keyData *byte, keySize int, valueData *byte, valueSize int, cas uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) Status {
+func (d DefaultProxyWAMSHost) ProxyRegisterSharedQueue(nameData *byte, nameSize int, returnID *uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) Status {
+func (d DefaultProxyWAMSHost) ProxyResolveSharedQueue(vmIDData *byte, vmIDSize int, nameData *byte, nameSize int, returnID *uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) Status {
+func (d DefaultProxyWAMSHost) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyGetHeaderMapValue(mapType MapType, keyData *byte, keySize int, returnValueData **byte, returnValueSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyGetHeaderMapValue(mapType MapType, keyData *byte, keySize int, returnValueData **byte, returnValueSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyAddHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueData *byte, valueSize int) Status {
+func (d DefaultProxyWAMSHost) ProxyAddHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueData *byte, valueSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyReplaceHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueData *byte, valueSize int) Status {
+func (d DefaultProxyWAMSHost) ProxyReplaceHeaderMapValue(mapType MapType, keyData *byte, keySize int, valueData *byte, valueSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyContinueStream(streamType StreamType) Status { return 0 }
-func (d DefaultProxyWasmHost) ProxyCloseStream(streamType StreamType) Status    { return 0 }
-func (d DefaultProxyWasmHost) ProxyRemoveHeaderMapValue(mapType MapType, keyData *byte, keySize int) Status {
+func (d DefaultProxyWAMSHost) ProxyContinueStream(streamType StreamType) Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyCloseStream(streamType StreamType) Status    { return 0 }
+func (d DefaultProxyWAMSHost) ProxyRemoveHeaderMapValue(mapType MapType, keyData *byte, keySize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyGetHeaderMapPairs(mapType MapType, returnValueData **byte, returnValueSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyGetHeaderMapPairs(mapType MapType, returnValueData **byte, returnValueSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySetHeaderMapPairs(mapType MapType, mapData *byte, mapSize int) Status {
+func (d DefaultProxyWAMSHost) ProxySetHeaderMapPairs(mapType MapType, mapData *byte, mapSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyGetBufferBytes(bufferType BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyGetBufferBytes(bufferType BufferType, start int, maxSize int, returnBufferData **byte, returnBufferSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySetBufferBytes(bufferType BufferType, start int, maxSize int, bufferData *byte, bufferSize int) Status {
+func (d DefaultProxyWAMSHost) ProxySetBufferBytes(bufferType BufferType, start int, maxSize int, bufferData *byte, bufferSize int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) Status {
+func (d DefaultProxyWAMSHost) ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, headerSize int, bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) Status {
+func (d DefaultProxyWAMSHost) ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxySetTickPeriodMilliseconds(period uint32) Status { return 0 }
-func (d DefaultProxyWasmHost) ProxySetEffectiveContext(contextID uint32) Status    { return 0 }
-func (d DefaultProxyWasmHost) ProxyDone() Status                                   { return 0 }
-func (d DefaultProxyWasmHost) ProxyDefineMetric(metricType MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) Status {
+func (d DefaultProxyWAMSHost) ProxySetTickPeriodMilliseconds(period uint32) Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxySetEffectiveContext(contextID uint32) Status    { return 0 }
+func (d DefaultProxyWAMSHost) ProxyDone() Status                                   { return 0 }
+func (d DefaultProxyWAMSHost) ProxyDefineMetric(metricType MetricType, metricNameData *byte, metricNameSize int, returnMetricIDPtr *uint32) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyIncrementMetric(metricID uint32, offset int64) Status {
+func (d DefaultProxyWAMSHost) ProxyIncrementMetric(metricID uint32, offset int64) Status {
 	return 0
 }
-func (d DefaultProxyWasmHost) ProxyRecordMetric(metricID uint32, value uint64) Status { return 0 }
-func (d DefaultProxyWasmHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status {
+func (d DefaultProxyWAMSHost) ProxyRecordMetric(metricID uint32, value uint64) Status { return 0 }
+func (d DefaultProxyWAMSHost) ProxyGetMetric(metricID uint32, returnMetricValue *uint64) Status {
 	return 0
 }
 
