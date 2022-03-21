@@ -55,7 +55,7 @@ func TestOnHTTPRequestBody(t *testing.T) {
 			expectedAction: types.ActionPause,
 		},
 		"pauses due to unknown keys": {
-			body:           "{\"unknown_key\":\"unknown_value\"}",
+			body:           `{"unknown_key":"unknown_value"}`,
 			expectedAction: types.ActionPause,
 		},
 		"success": {
