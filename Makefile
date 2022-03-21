@@ -73,3 +73,10 @@ wasm_image.build_push_oci:
 		buildah bud -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$f.wasm -t $$ref .; \
 		buildah push $$ref; \
 	done
+
+.PHONY: tidy
+tidy:
+	@find . -name "go.mod" \
+	| grep go.mod \
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'echo "=> {}"; cd {}; go mod tidy -v; '
