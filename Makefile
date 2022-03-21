@@ -83,7 +83,7 @@ wasm_image.build_push_oci:
 	done
 
 .PHONY: tidy
-tidy:
+tidy: ## Runs go mod tidy on every module
 	@find . -name "go.mod" \
 	| grep go.mod \
 	| xargs -I {} bash -c 'dirname {}' \
