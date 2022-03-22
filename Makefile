@@ -3,15 +3,27 @@ golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.0
 
 .PHONY: build.example
 build.example:
-	@find ./examples -type f -name "main.go" | grep ${name} | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
+	@find ./examples -type f -name "main.go" | grep ${name}\
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'cd {} && tinygo build -o main.wasm -scheduler=none -target=wasi ./main.go'
 
 .PHONY: build.examples
 build.examples:
-	@find ./examples -type f -name "main.go" | xargs -Ip tinygo build -o p.wasm -scheduler=none -target=wasi p
+	@find ./examples -mindepth 1 -type f -name "main.go" \
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'cd {} && tinygo build -o main.wasm -scheduler=none -target=wasi ./main.go'
 
 .PHONY: test
 test:
+	# First we test the main module because the iteration through the modules
+	# in the lines above is very inconvenient when the folder is ".".
 	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
+
+	# Now we go through the examples.
+	@find . -name "go.mod" \
+	| grep -v "\.\/go\.mod" \
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'cd {}; go test -tags=proxytest ./...'
 
 .PHONY: test.e2e
 test.e2e:
@@ -73,3 +85,10 @@ wasm_image.build_push_oci:
 		buildah bud -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$f.wasm -t $$ref .; \
 		buildah push $$ref; \
 	done
+
+.PHONY: tidy
+tidy: ## Runs go mod tidy on every module
+	@find . -name "go.mod" \
+	| grep go.mod \
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'echo "=> {}"; cd {}; go mod tidy -v; '

@@ -36,7 +36,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/shared_data/main.go.wasm"
+                                filename: "./examples/shared_data/main.wasm"
                   - name: envoy.filters.http.router
 
 admin:
