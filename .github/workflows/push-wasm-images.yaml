@@ -2,7 +2,7 @@ name: push-wasm-images
 on:
   push:
     branches:
-      - fiximage
+      - main
 
 jobs:
   build-and-push-wasm-images:
