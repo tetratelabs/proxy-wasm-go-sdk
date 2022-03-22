@@ -36,7 +36,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/foreign_call_on_tick/main.go.wasm"
+                                filename: "./examples/foreign_call_on_tick/main.wasm"
                   - name: envoy.filters.http.router
 
 admin:

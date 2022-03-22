@@ -14,7 +14,7 @@ bootstrap_extensions:
         runtime: "envoy.wasm.runtime.v8"
         code:
           local:
-            filename: "./examples/shared_queue/receiver/main.go.wasm"
+            filename: "./examples/shared_queue/receiver/main.wasm"
 
 - name: envoy.bootstrap.wasm
   typed_config:
@@ -31,7 +31,7 @@ bootstrap_extensions:
         runtime: "envoy.wasm.runtime.v8"
         code:
           local:
-            filename: "./examples/shared_queue/receiver/main.go.wasm"
+            filename: "./examples/shared_queue/receiver/main.wasm"
 
 - name: envoy.bootstrap.wasm
   typed_config:
@@ -48,7 +48,7 @@ bootstrap_extensions:
         runtime: "envoy.wasm.runtime.v8"
         code:
           local:
-            filename: "./examples/shared_queue/receiver/main.go.wasm"
+            filename: "./examples/shared_queue/receiver/main.wasm"
 
 static_resources:
   listeners:
@@ -92,7 +92,7 @@ static_resources:
                           runtime: "envoy.wasm.runtime.v8"
                           code:
                             local:
-                              filename: "./examples/shared_queue/sender/main.go.wasm"
+                              filename: "./examples/shared_queue/sender/main.wasm"
                   - name: envoy.filters.http.router
     - name: tcp
       address:
@@ -115,7 +115,7 @@ static_resources:
                     runtime: "envoy.wasm.runtime.v8"
                     code:
                       local:
-                        filename: "./examples/shared_queue/sender/main.go.wasm"
+                        filename: "./examples/shared_queue/sender/main.wasm"
 
             - name: envoy.tcp_proxy
               typed_config:

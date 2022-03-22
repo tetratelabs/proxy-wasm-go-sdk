@@ -37,7 +37,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/dispatch_call_on_tick/main.go.wasm"
+                                filename: "./examples/dispatch_call_on_tick/main.wasm"
                   - name: envoy.filters.http.wasm
                     typed_config:
                       "@type": type.googleapis.com/udpa.type.v1.TypedStruct
@@ -51,7 +51,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/dispatch_call_on_tick/main.go.wasm"
+                                filename: "./examples/dispatch_call_on_tick/main.wasm"
                   - name: envoy.filters.http.router
 
     - name: staticreply
