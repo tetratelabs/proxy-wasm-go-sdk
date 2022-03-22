@@ -15,7 +15,7 @@ static_resources:
                     runtime: "envoy.wasm.runtime.v8"
                     code:
                       local:
-                        filename: "./examples/network/main.go.wasm"
+                        filename: "./examples/network/main.wasm"
 
             - name: envoy.tcp_proxy
               typed_config:

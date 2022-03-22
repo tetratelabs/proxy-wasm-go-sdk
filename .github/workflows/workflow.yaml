@@ -55,7 +55,7 @@ jobs:
         id: cache-built-examples
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}-tinygo-0.22.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.22.0
 
       - name: Install Go
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
@@ -111,7 +111,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**') }}-tinygo-0.22.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.22.0
 
       - name: Run e2e test
         run: make test.e2e

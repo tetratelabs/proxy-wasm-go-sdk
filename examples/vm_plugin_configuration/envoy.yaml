@@ -46,7 +46,7 @@ static_resources:
                               }
                           code:
                             local:
-                              filename: "./examples/vm_plugin_configuration/main.go.wasm"
+                              filename: "./examples/vm_plugin_configuration/main.wasm"
                   - name: envoy.filters.http.router
 
 admin:

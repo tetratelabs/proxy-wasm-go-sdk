@@ -37,7 +37,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/http_body/main.go.wasm"
+                                filename: "./examples/http_body/main.wasm"
                   - name: envoy.filters.http.router
 
     - name: echo
@@ -77,7 +77,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/http_body/main.go.wasm"
+                                filename: "./examples/http_body/main.wasm"
                   - name: envoy.filters.http.router
 
   clusters:
