@@ -1,0 +1,14 @@
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: json-validation
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  url: oci://YOUR_CONTAINER_REGISTRY/json-validation:v1
+  imagePullPolicy: IfNotPresent
+  phase: AUTHN
+  pluginConfig:
+    requiredKeys: ["id", "token"]

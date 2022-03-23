@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: json-validation
+  namespace: istio-system
+spec:
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: GATEWAY
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: json-validation
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+            config:
+              configuration:
+                "@type": type.googleapis.com/google.protobuf.StringValue
+                value: |
+                  { "requiredKeys": ["id", "token"] }
+              vm_config:
+                code:
+                  local:
+                    filename: /var/local/lib/wasm-plugins/main.wasm
+                runtime: envoy.wasm.runtime.v8
+                vm_id: json-validation

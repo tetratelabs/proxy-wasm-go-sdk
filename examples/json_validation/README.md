@@ -7,20 +7,24 @@ If not, the wasm plugin ceases the further process of the request and returns 40
 
 `envoy.yaml` is the example envoy config file that you can use for running the wasm plugin
 with standalone Envoy.
-The following make rule will run the wasm plugin in the version of Envoy used in the Istio 1.9 sidecar.
 
 Envoy listens on `localhost:18000`, responding to any requests with static content "hello from server".
 However, the wasm plugin also runs to validate the requests' payload.
+
+```bash
+make run name=json_validation
+```
+
 The plugin intercepts the request and makes Envoy return 403 instead of the static content
 if the request has no JSON payload or the payload JSON doesn't have "id" or "token" keys.
 
 ```console
 # Returns the normal response when the request has the required keys, id and token.
-$ curl -X POST localhost:18000 -H 'Content-Type: application/json' --data '{"id": "xxx", "token": "xxx"}'
+curl -X POST localhost:18000 -H 'Content-Type: application/json' --data '{"id": "xxx", "token": "xxx"}'
 hello from the server
 
 # Returns 403 when the request has missing required keys.
-$ curl -v -X POST localhost:18000 -H 'Content-Type: application/json' --data '"required_keys_missing"'
+curl -v -X POST localhost:18000 -H 'Content-Type: application/json' --data '"required_keys_missing"'
 Note: Unnecessary use of -X or --request, POST is already inferred.
 *   Trying 127.0.0.1:18000...
 * TCP_NODELAY set
@@ -42,7 +46,6 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 <
 * Connection #0 to host localhost left intact
 invalid payload
-
 ```
 
 ### Run it via Istio
@@ -54,6 +57,7 @@ This example details deploying to a kind cluster running the Istio httpbin sampl
 kind create cluster
 
 # Install Istio and the httpbin sample app
+
 istioctl install --set profile=demo -y
 kubectl label namespace default istio-injection=enabled
 kubectl apply -f samples/httpbin/httpbin.yaml
@@ -69,7 +73,8 @@ Build and push the wasm module to your container registry, then apply the WasmPl
 
 ```console
 export HUB=your_registry # e.g. docker.io/tetrate
-make docker-build-and-push
+docker build . -t ${HUB}/json-validation:v1
+docker push ${HUB}/json-validation:v1
 
 sed "s|YOUR_CONTAINER_REGISTRY|$HUB|" wasmplugin.yaml | kubectl apply -f -
 ```
@@ -82,7 +87,7 @@ a local file.
 
 ```console
 # Create the config map
-kubectl -n istio-system create configmap wasm-plugins --from-file=plugin.wasm
+kubectl -n istio-system create configmap wasm-plugins --from-file=main.wasm
 
 # Patch the gateway deployment to mount the config map
 kubectl -n istio-system patch deployment istio-ingressgateway --patch-file=gatewaydeploymentpatch.yaml
