@@ -96,33 +96,47 @@ func Test_proxyOnHttpCallResponse(t *testing.T) {
 
 	var (
 		pluginContextID uint32 = 1
+		callerContextID uint32 = 100
 		callOutID       uint32 = 10
 	)
 
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
-	ctx := &l7Context{}
-	currentState = &state{
-		pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
-			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
-		}},
-	}
+	t.Run("normal", func(t *testing.T) {
+		ctx := &l7Context{}
+		currentState = &state{
+			pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
+				httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse, callerContextID: callerContextID}},
+			}},
+			contextIDToRootID: map[uint32]uint32{callerContextID: pluginContextID},
+		}
 
-	proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
-	_, ok := currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
-	require.False(t, ok)
-	require.True(t, ctx.onHttpCallResponse)
+		proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
+		_, ok := currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
+		require.False(t, ok)
+		require.True(t, ctx.onHttpCallResponse)
+	})
 
-	ctx = &l7Context{}
-	currentState = &state{
-		pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
-			httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse}},
-		}},
-	}
+	t.Run("delete before callback", func(t *testing.T) {
+		ctx := &l7Context{}
+		currentState = &state{
+			pluginContexts: map[uint32]*pluginContextState{pluginContextID: {
+				httpCallbacks: map[uint32]*httpCallbackAttribute{callOutID: {callback: ctx.OnHttpCallResponse, callerContextID: callerContextID}},
+			}},
+			httpContexts:      map[uint32]types.HttpContext{callerContextID: nil},
+			contextIDToRootID: map[uint32]uint32{callerContextID: pluginContextID},
+		}
 
-	proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
-	_, ok = currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
-	require.False(t, ok)
-	require.True(t, ctx.onHttpCallResponse)
+		proxyOnDelete(callerContextID)
+
+		proxyOnHttpCallResponse(pluginContextID, callOutID, 0, 0, 0)
+		_, ok := currentState.pluginContexts[pluginContextID].httpCallbacks[callOutID]
+		require.False(t, ok)
+
+		// If the caller context is deleted before callback is called, then
+		// the callback shouldn't be called.
+		require.False(t, ctx.onHttpCallResponse)
+	})
+
 }
