@@ -1,3 +1,7 @@
+# This config has Envoy listen on localhost:18000, responding to any requests with static content "hello from server".
+# In addition, the example wasm plugin to validate the requests payload runs.
+# The plugin intercepts the request and makes Envoy return 403 instead of the static content
+# if the request has no JSON payload or the payload JSON doesn't have "id" or "token" keys.
 static_resources:
   listeners:
     - name: main
@@ -23,6 +27,7 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: web_service
+
                 http_filters:
                   - name: envoy.filters.http.wasm
                     typed_config:
@@ -32,26 +37,13 @@ static_resources:
                         config:
                           configuration:
                             "@type": type.googleapis.com/google.protobuf.StringValue
-                            value: "plugin1"
+                            value: |
+                              { "requiredKeys": ["id", "token"] }
                           vm_config:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/dispatch_call_on_tick/main.wasm"
-                  - name: envoy.filters.http.wasm
-                    typed_config:
-                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
-                      value:
-                        config:
-                          configuration:
-                            "@type": type.googleapis.com/google.protobuf.StringValue
-                            value: "plugin2"
-                          vm_config:
-                            runtime: "envoy.wasm.runtime.v8"
-                            code:
-                              local:
-                                filename: "./examples/dispatch_call_on_tick/main.wasm"
+                                filename: "./examples/json_validation/main.go.wasm"
                   - name: envoy.filters.http.router
 
     - name: staticreply
@@ -74,16 +66,11 @@ static_resources:
                         - "*"
                       routes:
                         - match:
-                            prefix: "/ok"
+                            prefix: "/"
                           direct_response:
                             status: 200
                             body:
-                              inline_string: "example body\n"
-                        - match:
-                            prefix: "/fail"
-                          direct_response:
-                            status: 503
-
+                              inline_string: "hello from the server\n"
                 http_filters:
                   - name: envoy.filters.http.router
                     typed_config: {}

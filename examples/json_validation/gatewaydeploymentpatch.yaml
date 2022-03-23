@@ -1,0 +1,13 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: istio-proxy
+          volumeMounts:
+            - name: wasm-plugins
+              mountPath: /var/local/lib/wasm-plugins
+              readOnly: true
+      volumes:
+        - name: wasm-plugins
+          configMap:
+            name: wasm-plugins

@@ -36,7 +36,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/postpone_requests/main.go.wasm"
+                                filename: "./examples/postpone_requests/main.wasm"
                   - name: envoy.filters.http.router
 
 admin:
