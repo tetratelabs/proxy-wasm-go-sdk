@@ -73,8 +73,8 @@ Build and push the wasm module to your container registry, then apply the WasmPl
 
 ```console
 export HUB=your_registry # e.g. docker.io/tetrate
-docker build . -t ${HUB}/json-validation:v1
-docker push ${HUB}/json-validation:v1
+docker build . -t ${HUB}/json-validation:dev
+docker push ${HUB}/json-validation:dev
 
 sed "s|YOUR_CONTAINER_REGISTRY|$HUB|" wasmplugin.yaml | kubectl apply -f -
 ```
