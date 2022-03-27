@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -307,5 +308,39 @@ func Test_vm_plugin_configuration(t *testing.T) {
 		return checkMessage(stdErr.String(), []string{
 			"name\": \"vm configuration", "name\": \"plugin configuration",
 		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
+}
+
+func Test_json_validation(t *testing.T) {
+	stdErr, kill := startEnvoy(t, 8001)
+	defer kill()
+
+	require.Eventually(t, func() bool {
+		req, _ := http.NewRequest("GET", "http://localhost:18000", nil)
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+
+		_, err = io.Copy(ioutil.Discard, res.Body)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		jsonBody := `{"id": "abc123", "token": "xyz456"}`
+
+		req, _ = http.NewRequest("POST", "http://localhost:18000", strings.NewReader(jsonBody))
+		req.Header.Add("Content-Type", "application/json")
+		res, err = http.DefaultClient.Do(req)
+		if err != nil {
+			return false
+		}
+		defer res.Body.Close()
+
+		_, err = io.Copy(ioutil.Discard, res.Body)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, res.StatusCode)
+
+		return true
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }

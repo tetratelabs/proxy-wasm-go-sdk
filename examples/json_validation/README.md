@@ -12,7 +12,7 @@ Envoy listens on `localhost:18000`, responding to any requests with static conte
 However, the wasm plugin also runs to validate the requests' payload.
 
 ```bash
-make run name=json_validation
+make -C ../.. run name=json_validation
 ```
 
 The plugin intercepts the request and makes Envoy return 403 instead of the static content
@@ -73,8 +73,9 @@ Build and push the wasm module to your container registry, then apply the WasmPl
 
 ```console
 export HUB=your_registry # e.g. docker.io/tetrate
-docker build . -t ${HUB}/json-validation:dev
-docker push ${HUB}/json-validation:dev
+make -C ../.. build.example name=json_validation
+docker build . -t ${HUB}/json-validation:v1
+docker push ${HUB}/json-validation:v1
 
 sed "s|YOUR_CONTAINER_REGISTRY|$HUB|" wasmplugin.yaml | kubectl apply -f -
 ```
