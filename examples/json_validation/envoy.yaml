@@ -43,7 +43,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/json_validation/main.go.wasm"
+                                filename: "./examples/json_validation/main.wasm"
                   - name: envoy.filters.http.router
 
     - name: staticreply
