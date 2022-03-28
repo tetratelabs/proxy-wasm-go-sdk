@@ -1,3 +1,3 @@
 FROM scratch
 
-COPY main.wasm ./
+COPY main.wasm ./plugin.wasm
