@@ -60,8 +60,8 @@ kind create cluster
 
 istioctl install --set profile=demo -y
 kubectl label namespace default istio-injection=enabled
-kubectl apply -f https://github.com/istio/istio/blob/48cdd8/samples/httpbin/httpbin.yaml
-kubectl apply -f https://github.com/istio/istio/blob/48cdd8/samples/httpbin/httpbin-gateway.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.12/samples/httpbin/httpbin.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.12/samples/httpbin/httpbin-gateway.yaml
 ```
 
 For Istio 1.12 and later the easiest way is to use a WasmPlugin resource. For older Istio
