@@ -1,49 +1,52 @@
 ## http_auth_random
-
 this example authorize requests depending on the hash values of a response from http://httpbin.org/uuid.
 
+这里是在envoy中调用一个远程服务（`httpbin uuid接口`）的例子，主要是使用 wasm 的`proxywasm.DispatchHttpCall`方法
+
 ### message on clients
-```
-$ curl localhost:18000/uuid -v
-*   Trying ::1...
+```shell
+$ curl -v localhost:18000/uuid
+*   Trying 127.0.0.1:18000...
 * TCP_NODELAY set
-* Connected to localhost (::1) port 18000 (#0)
+* Connected to localhost (127.0.0.1) port 18000 (#0)
 > GET /uuid HTTP/1.1
 > Host: localhost:18000
-> User-Agent: curl/7.54.0
+> User-Agent: curl/7.68.0
 > Accept: */*
->
+> 
+* Mark bundle as not supporting multiuse
 < HTTP/1.1 200 OK
-< date: Wed, 25 Mar 2020 09:06:33 GMT
+< date: Sat, 02 Apr 2022 08:22:50 GMT
 < content-type: application/json
 < content-length: 53
 < server: envoy
 < access-control-allow-origin: *
 < access-control-allow-credentials: true
-< x-envoy-upstream-service-time: 1056
-<
+< x-envoy-upstream-service-time: 2396
+< 
 {
-  "uuid": "e1020f65-f97a-47cd-9b31-368ba2063b6a"
+  "uuid": "cc33b3eb-290b-4131-8a8e-a2117f383f0e"
 }
-
-
-
-# curl localhost:18000/uuid -v
-*   Trying ::1...
+* Connection #0 to host localhost left intact
+```
+```shell
+$ curl -v localhost:18000/uuid
+*   Trying 127.0.0.1:18000...
 * TCP_NODELAY set
-* Connected to localhost (::1) port 18000 (#0)
+* Connected to localhost (127.0.0.1) port 18000 (#0)
 > GET /uuid HTTP/1.1
 > Host: localhost:18000
-> User-Agent: curl/7.54.0
+> User-Agent: curl/7.68.0
 > Accept: */*
->
+> 
+* Mark bundle as not supporting multiuse
 < HTTP/1.1 403 Forbidden
+< powered-by: proxy-wasm-go-sdk!!
 < content-length: 16
 < content-type: text/plain
-< powered-by: proxy-wasm-go-sdk!!
-< date: Wed, 25 Mar 2020 09:07:36 GMT
+< date: Sat, 02 Apr 2022 08:34:13 GMT
 < server: envoy
-<
+< 
 * Connection #0 to host localhost left intact
 access forbidden
 
@@ -51,43 +54,27 @@ access forbidden
 
 ### message on Envoy
 
-```
-wasm log: request header from: :authority: localhost:18000
-wasm log: request header from: :path: /uuid
-wasm log: request header from: :method: GET
-wasm log: request header from: user-agent: curl/7.68.0
-wasm log: request header from: accept: */*
-wasm log: request header from: x-forwarded-proto: http
-wasm log: request header from: x-request-id: fddeac7b-db59-453c-9956-7f1050dbf6d5
+```shell
+wasm log: <---- pluginCx NewHttpContext ---->
+wasm log: <---- OnHttpRequestHeaders ---->
+wasm log: request header: :authority: localhost:18000
+wasm log: request header: :path: /uuid
+wasm log: request header: :method: GET
+wasm log: request header: :scheme: http
+wasm log: request header: user-agent: curl/7.68.0
+wasm log: request header: accept: */*
+wasm log: request header: x-forwarded-proto: http
+wasm log: request header: x-request-id: 2d364422-5c29-4707-9b86-5864a372e501
 wasm log: http call dispatched to httpbin
+wasm log: <---- httpCallResponseCallBack ---->
 wasm log: response header from httpbin: :status: 200
-wasm log: response header from httpbin: date: Thu, 01 Oct 2020 09:07:32 GMT
+wasm log: response header from httpbin: date: Sat, 02 Apr 2022 08:22:47 GMT
 wasm log: response header from httpbin: content-type: application/json
 wasm log: response header from httpbin: content-length: 53
 wasm log: response header from httpbin: connection: keep-alive
 wasm log: response header from httpbin: server: gunicorn/19.9.0
 wasm log: response header from httpbin: access-control-allow-origin: *
 wasm log: response header from httpbin: access-control-allow-credentials: true
-wasm log: response header from httpbin: x-envoy-upstream-service-time: 340
+wasm log: response header from httpbin: x-envoy-upstream-service-time: 1403
 wasm log: access granted
-wasm log: 2 finished
-wasm log: request header from: :authority: localhost:18000
-wasm log: request header from: :path: /uuid
-wasm log: request header from: :method: GET
-wasm log: request header from: user-agent: curl/7.68.0
-wasm log: request header from: accept: */*
-wasm log: request header from: x-forwarded-proto: http
-wasm log: request header from: x-request-id: 02628dd2-b985-4c4f-a2d2-164589c16f53
-wasm log: http call dispatched to httpbin
-wasm log: response header from httpbin: :status: 200
-wasm log: response header from httpbin: date: Thu, 01 Oct 2020 09:07:34 GMT
-wasm log: response header from httpbin: content-type: application/json
-wasm log: response header from httpbin: content-length: 53
-wasm log: response header from httpbin: connection: keep-alive
-wasm log: response header from httpbin: server: gunicorn/19.9.0
-wasm log: response header from httpbin: access-control-allow-origin: *
-wasm log: response header from httpbin: access-control-allow-credentials: true
-wasm log: response header from httpbin: x-envoy-upstream-service-time: 350
-wasm log: access forbidden
-wasm log: 3 finished
 ```

@@ -34,7 +34,7 @@ static_resources:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
                               local:
-                                filename: "./examples/http_auth_random/main.wasm"
+                                filename: "main.wasm"
                   - name: envoy.filters.http.router
 
   clusters:

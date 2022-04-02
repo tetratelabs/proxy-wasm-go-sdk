@@ -24,6 +24,7 @@ import (
 const clusterName = "httpbin"
 
 func main() {
+	proxywasm.LogInfo("<---- main ---->")
 	proxywasm.SetVMContext(&vmContext{})
 }
 
@@ -35,6 +36,7 @@ type vmContext struct {
 
 // Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	proxywasm.LogInfo("<---- vmCx NewPluginContext ---->")
 	return &pluginContext{}
 }
 
@@ -46,6 +48,7 @@ type pluginContext struct {
 
 // Override types.DefaultPluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	proxywasm.LogInfo("<---- pluginCx NewHttpContext ---->")
 	return &httpAuthRandom{contextID: contextID}
 }
 
@@ -58,6 +61,7 @@ type httpAuthRandom struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	proxywasm.LogInfo("<---- OnHttpRequestHeaders ---->")
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get request headers: %v", err)
@@ -78,6 +82,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 }
 
 func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
+	proxywasm.LogInfo("<---- httpCallResponseCallBack ---->")
 	hs, err := proxywasm.GetHttpCallResponseHeaders()
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get response body: %v", err)

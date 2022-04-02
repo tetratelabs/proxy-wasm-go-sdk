@@ -26,6 +26,7 @@ const (
 )
 
 func main() {
+	proxywasm.LogInfo("<---- main ---->")
 	proxywasm.SetVMContext(&vmContext{})
 }
 
@@ -37,6 +38,7 @@ type vmContext struct {
 
 // Override types.DefaultVMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
+	proxywasm.LogInfo("<---- NewPluginContext ----> ")
 	return &pluginContext{}
 }
 
@@ -49,6 +51,7 @@ type pluginContext struct {
 
 // Override types.DefaultPluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	proxywasm.LogInfo("<---- NewHttpContext ----> ")
 	if ctx.shouldEchoBody {
 		return &echoBodyContext{}
 	}
@@ -57,6 +60,7 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 
 // Override types.DefaultPluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	proxywasm.LogInfo("<---- OnPluginStart ----> ")
 	data, err := proxywasm.GetPluginConfiguration()
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
@@ -75,6 +79,7 @@ type setBodyContext struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	proxywasm.LogInfo("<---- OnHttpRequestHeaders ---->")
 	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
@@ -101,6 +106,7 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+	proxywasm.LogInfo("<---- setBodyContest OnHttpRequestBody ---->")
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
@@ -138,6 +144,7 @@ type echoBodyContext struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+	proxywasm.LogInfo("<---- echoBodyContest OnHttpRequestBody ---->")
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
