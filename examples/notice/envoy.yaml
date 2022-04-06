@@ -1,0 +1,63 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  annotations:
+    solarmesh/app: productpage
+    solarmesh/description: 版本更新公告
+    solarmesh/name: notice
+    solarmesh/nickname: 通知公告
+    solarmesh/type: "0"
+    solarmesh/uri: http://release.solarmesh.cn/wasm/notice.wasm
+  labels:
+    app: productpage
+    solarmesh: wasm-plugin
+  name: notice-productpage
+  namespace: default
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+      proxy:
+        proxyVersion: ^1\.13.*
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        config_discovery:
+          config_source:
+            ads: {}
+            initial_fetch_timeout: 0s
+          type_urls:
+          - type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+        name: notice-productpage
+  - applyTo: EXTENSION_CONFIG
+    match: {}
+    patch:
+      operation: ADD
+      value:
+        name: notice-productpage
+        typed_config:
+          '@type': type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+          value:
+            config:
+              configuration:
+                '@type': type.googleapis.com/google.protobuf.StringValue
+                value: |
+                  {
+                    "logging_service": "grpc-logging.istio-system.svc.cluster.local:7575",
+                  }
+              vm_config:
+                code:
+                  remote:
+                    http_uri:
+                      uri: http://release.solarmesh.cn/wasm/notice.wasm
+                runtime: envoy.wasm.runtime.v8
+                vm_id: notice-productpage
+  workloadSelector:
+    labels:
+      app: productpage
+
