@@ -52,7 +52,7 @@ func checkMessage(str string, exps, nexps []string) bool {
 
 func startEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func()) {
 	name := strings.TrimPrefix(t.Name(), "Test_")
-	cmd := exec.Command("envoy",
+	cmd := exec.Command("./envoy",
 		"--base-id", strconv.Itoa(adminPort),
 		"--concurrency", "1", "--component-log-level", "wasm:trace",
 		"-c", fmt.Sprintf("./examples/%s/envoy.yaml", name))

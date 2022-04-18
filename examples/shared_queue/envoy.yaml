@@ -94,6 +94,9 @@ static_resources:
                             local:
                               filename: "./examples/shared_queue/sender/main.wasm"
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
     - name: tcp
       address:
         socket_address:
