@@ -53,6 +53,8 @@ static_resources:
                               local:
                                 filename: "./examples/dispatch_call_on_tick/main.wasm"
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
     - name: staticreply
       address:
@@ -86,7 +88,8 @@ static_resources:
 
                 http_filters:
                   - name: envoy.filters.http.router
-                    typed_config: {}
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
     - name: web_service

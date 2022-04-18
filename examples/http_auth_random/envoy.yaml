@@ -36,6 +36,8 @@ static_resources:
                               local:
                                 filename: "./examples/http_auth_random/main.wasm"
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
     - name: httpbin
