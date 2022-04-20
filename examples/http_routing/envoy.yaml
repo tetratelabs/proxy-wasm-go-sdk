@@ -44,6 +44,8 @@ static_resources:
                               local:
                                 filename: "main.wasm"
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
     - name: staticreply
       address:
@@ -72,6 +74,8 @@ static_resources:
                               inline_string: "hello from primary!\n"
                 http_filters:
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
     - name: staticreply_canary
       address:
@@ -100,6 +104,8 @@ static_resources:
                               inline_string: "hello from canary!\n"
                 http_filters:
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
     - name: primary

@@ -38,6 +38,8 @@ static_resources:
                               local:
                                 filename: "./examples/shared_data/main.wasm"
                   - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
 admin:
   access_log_path: "/dev/null"
