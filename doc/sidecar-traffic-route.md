@@ -63,7 +63,7 @@ kubectl exec productpage-v1-6d8bc58dd7-ts8kw -c istio-proxy cat /etc/istio/proxy
 
 Envoy 完整配置的生成流程如下图所示：
 
-![Envoy 配置生成流程](../images/envoy-config-init.png)
+![Envoy 配置生成流程](./images/envoy-config-init.png)
 
 1. Pilot-agent 根据启动参数生成 Envoy 的初始配置文件 envoy-rev0.json，该文件告诉 Envoy 从指定的 xDS server 中获取动态配置信息，并配置了 xDS server 的地址信息，即控制平面的 Pilot 服务器地址。
 2. Pilot-agent 使用 envoy-rev0.json 启动 Envoy 进程。
@@ -774,7 +774,7 @@ Envoy 为网格中的外部服务按端口创建多个 Outbound listener，以�
 
 下图描述了 bookinfo 示例程序中 productpage 服务调用 reviews 服务的请求流程：
 
-![Bookinfo 服务调用请求流程](../images/envoy-traffic-route.jpg)
+![Bookinfo 服务调用请求流程](./images/envoy-traffic-route.jpg)
 
 1. Productpage 发起对 reviews 服务的调用：`http://reviews:9080/reviews/0` 。
 2. 请求被 productpage Pod 的 iptable 规则拦截，重定向到本地的 15001 端口。

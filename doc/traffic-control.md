@@ -9,7 +9,7 @@ reviewers: ["rootsongjc"]
 
 而使用 Istio 就可以轻松的实现各种维度的流量控制。下图是典型的金丝雀发布策略：根据权重把 5% 的流量路由给新版本，如果服务正常，再逐渐转移更多的流量到新版本。
 
-![金丝雀发布示意图（图片来自 Istio 官方网站）](../images/concept-trafficcontrol-canary.png)
+![金丝雀发布示意图（图片来自 Istio 官方网站）](./images/concept-trafficcontrol-canary.png)
 
 Istio 中的流量控制功能主要分为三个方面：
 
