@@ -25,11 +25,11 @@ Istio 为了控制服务请求，引入了服务版本（version）的概念，�
 
 下图展示了使用服务版本实现路由分配的例子。服务版本定义了版本号（v1.5、v2.0-alpha）和环境（us-prod、us-staging）两种信息。服务 B 包含了 4 个 Pod，其中 3 个是部署在生产环境的 v1.5 版本，而 Pod4 是部署在预生产环境的 v2.0-alpha 版本。运维人员可以根据服务版本来指定路由规则，使 99% 的流量流向 v1.5 版本，而 1% 的流量进入 v2.0-alpha 版本。
 
-<img src="../images/concept-feature-routing.png" alt="路由示意图（图片来自 Istio 官方网站）" style="zoom:33%;" />
+<img src="./images/concept-feature-routing.png" alt="路由示意图（图片来自 Istio 官方网站）" style="zoom:33%;" />
 
 除了上面介绍的服务间流量控制外，还能控制与网格边界交互的流量。可以在系统的入口和出口处部署 Sidecar 代理，让所有流入和流出的流量都由代理进行转发。负责入和出的代理就叫做入口网关和出口网关，它们把守着进入和流出网格的流量。下图展示了 Ingress 和 Egress 在请求流中的位置，有了他们俩，也就可以控制出入网格的流量了。
 
-<img src="../images/concept-feature-gateway.png" alt="入口和出口网关（图片来自 Istio 官方网站）" style="zoom:33%;" />
+<img src="./images/concept-feature-gateway.png" alt="入口和出口网关（图片来自 Istio 官方网站）" style="zoom:33%;" />
 
 Istio 还能设置流量策略。比如可以对连接池相关的属性进行设置，通过修改最大连接等参数，实现对请求负载的控制。还可以对负载均衡策略进行设置，在轮询、随机、最少访问等方式之间进行切换。还能设置异常探测策略，将满足异常条件的实例从负载均衡池中摘除，以保证服务的稳定性。
 
@@ -65,7 +65,7 @@ Istio 里用于实现流量控制的 CRD 主要有以下几个：
 
 Istio 通过这些自定义资源，实现了对网格内部、网格外部、进出网格边界的流量的全面的控制。也就是说所有和网格产生交互的流量都可以被 Istio 所控制，其设计思路堪称完美。下图是这几种资源的示意图。
 
-<img src="../images/concept-trafficcontrol-crd.png" alt="流量 CRD" style="zoom:50%;" />
+<img src="./images/concept-trafficcontrol-crd.png" alt="流量 CRD" style="zoom:50%;" />
 
 ## 小结
 
