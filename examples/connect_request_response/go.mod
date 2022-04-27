@@ -1,4 +1,4 @@
-module response_body
+module connect_request_response
 
 go 1.17
 

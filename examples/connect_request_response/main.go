@@ -1,15 +1,19 @@
 package main
 
 import (
+	"encoding/binary"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
-	"regexp"
-	"strings"
+	"math/rand"
 )
 
 func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
+
+const (
+	sharedDataKey = "shared_data_key"
+)
 
 type vmContext struct {
 	// Embed the default VM context here,
@@ -39,8 +43,39 @@ type responseContext struct {
 	types.DefaultHttpContext
 }
 
+// Override types.DefaultHttpContext.
+func (r *responseContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	/*headers, err := proxywasm.GetHttpRequestHeaders()
+	if err != nil {
+		return 0
+	}
+	for i := 0; i < len(headers); i++ {
+		for j := 0; j < len(headers[i]); j++ {
+			proxywasm.LogInfof("请求头中headers arr[%v][%v] = %v", i, j, headers[i][j])
+		}
+	}*/
+
+	initialValueBuf := make([]byte, 8)
+	rand := rand.Uint64() * 100000000
+	binary.LittleEndian.PutUint64(initialValueBuf, rand)
+	proxywasm.SetSharedData(sharedDataKey, initialValueBuf, 0)
+	proxywasm.LogInfof("请求头中的share data: %d", rand)
+
+	return types.ActionContinue
+}
+
 func (r *responseContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
-	proxywasm.LogInfof("endOfStream: %t , body大小: %d ", endOfStream, bodySize)
+	data, _, err := proxywasm.GetSharedData(sharedDataKey)
+	if err != nil {
+		return 0
+	}
+
+	buf := make([]byte, 8)
+	ret := binary.LittleEndian.Uint64(data)
+	binary.LittleEndian.PutUint64(buf, ret)
+
+	proxywasm.LogInfof("返回体中获取shareData: %d", ret)
+
 	body, err := proxywasm.GetHttpResponseBody(0, bodySize)
 	if err != nil {
 		return 0
@@ -50,23 +85,8 @@ func (r *responseContext) OnHttpResponseBody(bodySize int, endOfStream bool) typ
 		return types.ActionContinue
 	}
 	bodyStr := string(body)
-	proxywasm.LogInfof("original response body: %s", bodyStr)
+	proxywasm.LogInfof("response body: %s", bodyStr)
+	proxywasm.LogInfof("response body 是否结束: %t", endOfStream)
 
-	phonePat := ".*([^0-9]{1})(13|14|15|17|18|19)(\\d{9})([^0-9]{1}).*"
-	replacePat := ".*(\\d{3})(\\d{4})(\\d{4}).*"
-	phoneRegex := regexp.MustCompile(phonePat)
-	replaceRegex := regexp.MustCompile(replacePat)
-
-	for {
-		subMatch := phoneRegex.FindStringSubmatch(bodyStr)
-		if len(subMatch) != 0 {
-			phoneNumber := subMatch[2] + subMatch[3]
-			allString := replaceRegex.ReplaceAllString(phoneNumber, "$1****$3")
-			bodyStr = strings.ReplaceAll(bodyStr, phoneNumber, allString)
-		} else {
-			break
-		}
-	}
-	proxywasm.ReplaceHttpResponseBody([]byte(bodyStr))
 	return types.ActionContinue
 }
