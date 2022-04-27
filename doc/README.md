@@ -35,7 +35,7 @@ Proxy-Wasm 项目的主要目标是以灵活的方式使用任何编程语言来
 *Network Filter* 是一种处理 Tcp 协议的插件，例如对 Tcp 数据帧进行操作、建立连接等。它在处理流量的工作线程中使用 VM。
 *Wasm Service* 是一种在单例 VM 中运行的插件（即 Envoy 主线程中仅存在一个实例）。它主要用于与网络或 Http 过滤器并行执行一些额外的工作，例如聚合指标、日志等。有时，这样的单例 VM 本身也称为 Wasm 服务。
 
-<img src="./images/terminology.png" width="1000">
+![Wasm 架构简图](./images/terminology.png)
 
 ## Envoy 配置
 
@@ -347,7 +347,8 @@ var _ types.VMContext = &myVMContext{}
 
 *共享数据*基本上是一个键值存储，在所有 VM 之间共享（即*跨 VM* 或*跨线程*）。根据 `vm_config` 中指定的[`vm_id`](#envoy-configuration) 创建一个共享数据 KVS。这意味着您可以在所有 Wasm VM 之间共享一个键值存储，而不必使用相同的二进制文件 (vm_config.code)。唯一的要求是具有相同的 vm_id。
 
-<img src="./images/shared_data.png" width="600">
+![共享数据 架构简图](./images/shared_data.png)
+
 
 在上图中，您可以看到具有“vm_id=foo”的 VM 共享相同的共享数据存储，即使它们具有不同的二进制文件（hello.wasm 和 bye.wasm）。
 
@@ -422,7 +423,7 @@ func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error)
 
 下图是共享队列的说明性用法：
 
-<img src="./images/shared_queue.png" width="800">
+![共享队列](./images/shared_queue.png)
 
 `my-singleton.wasm` 加载为带有 `vm_id=foo` 的单例 VM，其中创建了两个 *Wasm Service*，它们对应于 VM 中的 `PluginContext 1` 和 `PluginContext 2`。这些插件上下文中的每一个都使用“http”和“tcp”名称调用 `RegisterQueue`，这会导致创建两个相应的队列。
 另一方面，在工作线程中，每个线程创建两种类型的 Wasm VM。它们在处理 Tcp 流和 Http 流，并将一些数据分别排入相应的队列中。正如我们上面解释的，将数据排入队列最终会调用 `PluginContext` 的 `OnQueueReady` 方法，
