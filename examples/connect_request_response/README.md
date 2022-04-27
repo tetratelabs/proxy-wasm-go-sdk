@@ -1,6 +1,6 @@
 ## connect_request_response
 
-在request中设置一个共享数据，然后在response中获取这个数据，用于串联同一个request和response。
+在request中设置一个共享数据，然后在response中获取这个数据，用于串联同一个request和response。。。
 
 ```
 2022-04-27T03:59:58.385387Z	info	envoy wasm	wasm log clean-mall-admin: <---- 新Http连接 ---->
