@@ -127,13 +127,14 @@ func (h *hostEmulator) ProxyGetBufferBytes(bt internal.BufferType, start int, ma
 	}
 }
 
-func (h *hostEmulator) ProxySetBufferBytes(bt internal.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) internal.Status {
+func (h *hostEmulator) ProxySetBufferBytes(bt internal.BufferType, start int, maxSize int, bufferData *byte, bufferSize int) (ret internal.Status) {
 	switch bt {
 	case internal.BufferTypeHttpRequestBody, internal.BufferTypeHttpResponseBody:
-		return h.httpHostEmulatorProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
+		ret = h.httpHostEmulatorProxySetBufferBytes(bt, start, maxSize, bufferData, bufferSize)
 	default:
 		panic(fmt.Sprintf("buffer type %d is not supported by proxytest frame work yet", bt))
 	}
+	return
 }
 
 // impl internal.ProxyWasmHost

@@ -15,10 +15,10 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.1'
+          go-version: '1.18'
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: run lint
         run: make lint
@@ -33,10 +33,10 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.1'
+          go-version: '1.18'
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: run tests
         run: make test
@@ -45,23 +45,23 @@ jobs:
     name: Build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.22.0
+      image: tinygo/tinygo:0.23.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache built examples
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache-built-examples
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.22.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.23.0
 
       - name: Install Go
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.1'
+          go-version: '1.18'
 
       # TinyGo's release container does not have Make command.
       - name: Install Make
@@ -96,7 +96,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.1'
+          go-version: '1.18'
 
       - name: Print Envoy version
         run: envoy --version
@@ -105,13 +105,13 @@ jobs:
         run: apt update && apt install make
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Fetch built examples
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.22.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.23.0
 
       - name: Run e2e test
         run: make test.e2e

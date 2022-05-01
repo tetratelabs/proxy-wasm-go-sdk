@@ -12,15 +12,15 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.1'
+          go-version: '1.18'
 
       - name: Install TinyGo
         run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/v0.22.0/tinygo_0.22.0_amd64.deb
-          sudo dpkg -i tinygo_0.22.0_amd64.deb
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.23.0/tinygo_0.23.0_amd64.deb
+          sudo dpkg -i tinygo_0.23.0_amd64.deb
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build examples
         run: make build.examples
