@@ -1,5 +1,5 @@
-goimports := golang.org/x/tools/cmd/goimports@v0.1.5
-golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.0
+goimports := golang.org/x/tools/cmd/goimports@v0.1.10
+golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
 
 .PHONY: build.example
 build.example:
@@ -15,11 +15,11 @@ build.examples:
 
 .PHONY: test
 test:
-	# First we test the main module because the iteration through the modules
-	# in the lines above is very inconvenient when the folder is ".".
-	go test -tags=proxytest $(shell go list ./... | grep -v e2e)
+	@# First we test the main module because the iteration through the modules
+	@# in the lines above is very inconvenient when the folder is ".".
+	@go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
-	# Now we go through the examples.
+	@# Now we go through the examples.
 	@find . -name "go.mod" \
 	| grep -v "\.\/go\.mod" \
 	| xargs -I {} bash -c 'dirname {}' \
@@ -27,15 +27,15 @@ test:
 
 .PHONY: test.e2e
 test.e2e:
-	go test -v ./e2e -count=1
+	@go test -v ./e2e -count=1
 
 .PHONY: test.e2e.single
 test.e2e.single:
-	go test -v ./e2e -run '/${name}' -count=1
+	@go test -v ./e2e -run '/${name}' -count=1
 
 .PHONY: run
 run:
-	envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
+	@envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
 
 .PHONY: lint
 lint:
