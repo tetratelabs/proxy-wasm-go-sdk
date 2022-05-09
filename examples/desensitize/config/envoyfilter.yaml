@@ -40,7 +40,7 @@ spec:
                 '@type': type.googleapis.com/google.protobuf.StringValue
                 value: |
                  {
-                   "logging_service": "grpc-logging.istio-system.svc.cluster.local:7575"
+                   "desensitizeTypes": ["PhoneNumber","IdCard"]
                  }
               vm_config:
                 code:

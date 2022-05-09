@@ -13,14 +13,28 @@ Desensitize也即数据脱敏。数据脱敏也叫数据的去隐私化，在我
 
 ![数据脱敏](../../doc/images/desensitize-type.png)
 
-
 ## 配置脱敏
-
-
+```yaml 
+      { 
+           configuration:
+                '@type': type.googleapis.com/google.protobuf.StringValue
+                value: |
+                 {
+                   "desensitizeTypes": ["PhoneNumber","IdCard"]
+                 }
+              vm_config:
+                code:
+                  remote:
+                    http_uri:
+                      uri: http://10.10.13.47:2333/wasm/desensitize.wasm
+                runtime: envoy.wasm.runtime.v8
+                vm_id: clean-mall-admin
+      }
+```
 
 ## 构建
 ```shell
-bazel build //:desensitize.wasm
+tinygo build -o desensitize.wasm -scheduler=none -target=wasi main.go
 ```
 
 
