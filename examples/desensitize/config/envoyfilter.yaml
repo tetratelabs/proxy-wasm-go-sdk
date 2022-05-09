@@ -1,0 +1,54 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  labels:
+    app: mall-admin
+  name: clean-mall-admin
+  namespace: mall
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+      proxy:
+        proxyVersion: ^1\.13.*
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        config_discovery:
+          config_source:
+            ads: {}
+            initial_fetch_timeout: 0s
+          type_urls:
+          - type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+        name: clean-mall-admin
+  - applyTo: EXTENSION_CONFIG
+    match: {}
+    patch:
+      operation: ADD
+      value:
+        name: clean-mall-admin
+        typed_config:
+          '@type': type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+          value:
+            config:
+              configuration:
+                '@type': type.googleapis.com/google.protobuf.StringValue
+                value: |
+                 {
+                   "logging_service": "grpc-logging.istio-system.svc.cluster.local:7575"
+                 }
+              vm_config:
+                code:
+                  remote:
+                    http_uri:
+                      uri: http://10.10.13.47:2333/wasm/desensitize.wasm
+                runtime: envoy.wasm.runtime.v8
+                vm_id: clean-mall-admin
+  workloadSelector:
+    labels:
+      app: mall-admin
