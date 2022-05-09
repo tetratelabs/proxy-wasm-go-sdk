@@ -7,7 +7,7 @@ replace github.com/tetratelabs/proxy-wasm-go-sdk => ../..
 require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tetratelabs/proxy-wasm-go-sdk v0.16.0
-	github.com/tidwall/gjson v1.14.0
+	github.com/tidwall/gjson v1.14.1
 )
 
 require (
