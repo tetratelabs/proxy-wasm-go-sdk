@@ -85,6 +85,7 @@ jobs:
           "istio/proxyv2:1.11.7",
           "istio/proxyv2:1.12.4",
           "istio/proxyv2:1.13.1",
+          "istio/proxyv2:1.14.0",
         ]
     name: E2E Test (${{ matrix.image }})
     needs: [build-examples]
