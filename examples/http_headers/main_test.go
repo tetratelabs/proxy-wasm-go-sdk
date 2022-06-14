@@ -68,6 +68,12 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	// Call OnHttpStreamDone.
 	host.CompleteHttpContext(id)
 
+	resHeaders := host.GetCurrentResponseHeaders(id)
+	require.Equal(t, "key1", resHeaders[0][0])
+	require.Equal(t, "value1", resHeaders[0][1])
+	require.Equal(t, "key2", resHeaders[1][0])
+	require.Equal(t, "value2", resHeaders[1][1])
+
 	// Check Envoy logs.
 	logs := host.GetInfoLogs()
 	require.Contains(t, logs, fmt.Sprintf("%d finished", id))
