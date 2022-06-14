@@ -446,6 +446,15 @@ func (h *httpHostEmulator) GetCurrentRequestHeaders(contextID uint32) [][2]strin
 }
 
 // impl HostEmulator
+func (h *httpHostEmulator) GetCurrentResponseHeaders(contextID uint32) [][2]string {
+	stream, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+	return stream.responseHeaders
+}
+
+// impl HostEmulator
 func (h *httpHostEmulator) GetCurrentRequestBody(contextID uint32) []byte {
 	stream, ok := h.httpStreams[contextID]
 	if !ok {

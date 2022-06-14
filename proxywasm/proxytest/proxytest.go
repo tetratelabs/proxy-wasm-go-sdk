@@ -63,6 +63,7 @@ type HostEmulator interface {
 	CompleteHttpContext(contextID uint32)
 	GetCurrentHttpStreamAction(contextID uint32) types.Action
 	GetCurrentRequestHeaders(contextID uint32) [][2]string
+	GetCurrentResponseHeaders(contextID uint32) [][2]string
 	GetCurrentRequestBody(contextID uint32) []byte
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
 }
