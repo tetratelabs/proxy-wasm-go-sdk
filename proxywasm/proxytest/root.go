@@ -17,6 +17,7 @@ package proxytest
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -237,8 +238,8 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32) internal.Status {
 	upstream := internal.RawBytePtrToString(upstreamData, upstreamSize)
 	body := internal.RawBytePtrToString(bodyData, bodySize)
-	headers := internal.DeserializeMap(internal.RawBytePtrToByteSlice(headerData, headerSize))
-	trailers := internal.DeserializeMap(internal.RawBytePtrToByteSlice(trailersData, trailersSize))
+	headers := deserializeRawBytePtrToMap(headerData, headerSize)
+	trailers := deserializeRawBytePtrToMap(trailersData, trailersSize)
 
 	log.Printf("[http callout to %s] timeout: %d", upstream, timeout)
 	log.Printf("[http callout to %s] headers: %v", upstream, headers)
@@ -314,8 +315,6 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType internal.Map
 		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
 	}
 
-	key := internal.RawBytePtrToString(keyData, keySize)
-
 	var hs [][2]string
 	switch mapType {
 	case internal.MapTypeHttpCallResponseHeaders:
@@ -325,6 +324,8 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType internal.Map
 	default:
 		panic("unimplemented")
 	}
+
+	key := strings.ToLower(internal.RawBytePtrToString(keyData, keySize))
 
 	for _, h := range hs {
 		if h[0] == key {
@@ -444,7 +445,7 @@ func (r *rootHostEmulator) CallOnHttpCallResponse(calloutID uint32, headers, tra
 	r.httpCalloutResponse[calloutID] = struct {
 		headers, trailers [][2]string
 		body              []byte
-	}{headers: headers, trailers: trailers, body: body}
+	}{headers: cloneWithLowerCaseMapKeys(headers), trailers: cloneWithLowerCaseMapKeys(trailers), body: body}
 
 	// PluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers in
 	r.activeCalloutID = calloutID

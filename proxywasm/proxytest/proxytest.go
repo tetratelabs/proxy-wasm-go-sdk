@@ -17,6 +17,7 @@ package proxytest
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
@@ -105,6 +106,22 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		defer release()
 		defer internal.VMStateReset()
 	}
+}
+
+func cloneWithLowerCaseMapKeys(m [][2]string) [][2]string {
+	r := make([][2]string, len(m))
+	for i, entry := range m {
+		r[i] = [2]string{strings.ToLower(entry[0]), entry[1]}
+	}
+	return r
+}
+
+func deserializeRawBytePtrToMap(aw *byte, size int) [][2]string {
+	m := internal.DeserializeMap(internal.RawBytePtrToByteSlice(aw, size))
+	for _, entry := range m {
+		entry[0] = strings.ToLower(entry[0])
+	}
+	return m
 }
 
 func getNextContextID() (ret uint32) {

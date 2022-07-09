@@ -118,7 +118,6 @@ func (h *httpHostEmulator) httpHostEmulatorProxySetBufferBytes(bt internal.Buffe
 // impl internal.ProxyWasmHost: delegated from hostEmulator
 func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType internal.MapType, keyData *byte,
 	keySize int, returnValueData **byte, returnValueSize *int) internal.Status {
-	key := internal.RawBytePtrToString(keyData, keySize)
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
@@ -135,6 +134,8 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapValue(mapType intern
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
+
+	key := strings.ToLower(internal.RawBytePtrToString(keyData, keySize))
 
 	for _, h := range headers {
 		if h[0] == key {
@@ -181,6 +182,7 @@ func (h *httpHostEmulator) ProxyAddHeaderMapValue(mapType internal.MapType, keyD
 }
 
 func addMapValue(base [][2]string, key, value string) [][2]string {
+	key = strings.ToLower(key)
 	for i, h := range base {
 		if h[0] == key {
 			h[1] += value
@@ -216,6 +218,7 @@ func (h *httpHostEmulator) ProxyReplaceHeaderMapValue(mapType internal.MapType, 
 
 // impl internal.ProxyWasmHost
 func replaceMapValue(base [][2]string, key, value string) [][2]string {
+	key = strings.ToLower(key)
 	for i, h := range base {
 		if h[0] == key {
 			h[1] = value
@@ -248,6 +251,7 @@ func (h *httpHostEmulator) ProxyRemoveHeaderMapValue(mapType internal.MapType, k
 }
 
 func removeHeaderMapValue(base [][2]string, key string) [][2]string {
+	key = strings.ToLower(key)
 	for i, h := range base {
 		if h[0] == key {
 			if len(base)-1 == i {
@@ -295,7 +299,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetHeaderMapPairs(mapType intern
 
 // impl internal.ProxyWasmHost
 func (h *httpHostEmulator) ProxySetHeaderMapPairs(mapType internal.MapType, mapData *byte, mapSize int) internal.Status {
-	m := internal.DeserializeMap(internal.RawBytePtrToByteSlice(mapData, mapSize))
+	m := deserializeRawBytePtrToMap(mapData, mapSize)
 	active := internal.VMStateGetActiveContextID()
 	stream := h.httpStreams[active]
 
@@ -332,7 +336,7 @@ func (h *httpHostEmulator) ProxySendLocalResponse(statusCode uint32,
 		StatusCode:       statusCode,
 		StatusCodeDetail: internal.RawBytePtrToString(statusCodeDetailData, statusCodeDetailsSize),
 		Data:             internal.RawBytePtrToByteSlice(bodyData, bodySize),
-		Headers:          internal.DeserializeMap(internal.RawBytePtrToByteSlice(headersData, headersSize)),
+		Headers:          deserializeRawBytePtrToMap(headersData, headersSize),
 		GRPCStatus:       grpcStatus,
 	}
 	return internal.StatusOK
@@ -353,7 +357,7 @@ func (h *httpHostEmulator) CallOnRequestHeaders(contextID uint32, headers [][2]s
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestHeaders = headers
+	cs.requestHeaders = cloneWithLowerCaseMapKeys(headers)
 	cs.action = internal.ProxyOnRequestHeaders(contextID,
 		len(headers), endOfStream)
 	return cs.action
@@ -366,7 +370,7 @@ func (h *httpHostEmulator) CallOnResponseHeaders(contextID uint32, headers [][2]
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseHeaders = headers
+	cs.responseHeaders = cloneWithLowerCaseMapKeys(headers)
 	cs.action = internal.ProxyOnResponseHeaders(contextID, len(headers), endOfStream)
 	return cs.action
 }
@@ -378,7 +382,7 @@ func (h *httpHostEmulator) CallOnRequestTrailers(contextID uint32, trailers [][2
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestTrailers = trailers
+	cs.requestTrailers = cloneWithLowerCaseMapKeys(trailers)
 	cs.action = internal.ProxyOnRequestTrailers(contextID, len(trailers))
 	return cs.action
 }
@@ -390,7 +394,7 @@ func (h *httpHostEmulator) CallOnResponseTrailers(contextID uint32, trailers [][
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseTrailers = trailers
+	cs.responseTrailers = cloneWithLowerCaseMapKeys(trailers)
 	cs.action = internal.ProxyOnResponseTrailers(contextID, len(trailers))
 	return cs.action
 }
