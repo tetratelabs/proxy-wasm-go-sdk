@@ -45,7 +45,7 @@ jobs:
     name: Build examples
     runs-on: ubuntu-latest
     container:
-      image: tinygo/tinygo:0.23.0
+      image: tinygo/tinygo:0.24.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
         id: cache-built-examples
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.23.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.24.0
 
       - name: Install Go
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
@@ -112,7 +112,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.23.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.24.0
 
       - name: Run e2e test
         run: make test.e2e
