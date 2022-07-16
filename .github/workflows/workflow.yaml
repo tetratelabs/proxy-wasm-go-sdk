@@ -76,12 +76,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [ 
+        image: [
           "envoyproxy/envoy-dev:latest",
           "envoyproxy/envoy:v1.19-latest",
           "envoyproxy/envoy:v1.20-latest",
           "envoyproxy/envoy:v1.21-latest",
           "envoyproxy/envoy:v1.22-latest",
+          "envoyproxy/envoy:v1.23-latest",
           "istio/proxyv2:1.11.7",
           "istio/proxyv2:1.12.4",
           "istio/proxyv2:1.13.1",
