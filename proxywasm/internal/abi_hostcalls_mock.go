@@ -21,6 +21,8 @@ package internal
 
 import (
 	"sync"
+
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/log"
 )
 
 var (
@@ -37,7 +39,7 @@ func RegisterMockWasmHost(host ProxyWasmHost) (release func()) {
 }
 
 type ProxyWasmHost interface {
-	ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status
+	ProxyLog(logLevel log.Level, messageData *byte, messageSize int) Status
 	ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) Status
 	ProxyGetProperty(pathData *byte, pathSize int, returnValueData **byte, returnValueSize *int) Status
 	ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int, bodyData *byte, bodySize int, headersData *byte, headersSize int, grpcStatus int32) Status
@@ -72,7 +74,7 @@ type DefaultProxyWAMSHost struct{}
 
 var _ ProxyWasmHost = DefaultProxyWAMSHost{}
 
-func (d DefaultProxyWAMSHost) ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status {
+func (d DefaultProxyWAMSHost) ProxyLog(logLevel log.Level, messageData *byte, messageSize int) Status {
 	return 0
 }
 func (d DefaultProxyWAMSHost) ProxySetProperty(pathData *byte, pathSize int, valueData *byte, valueSize int) Status {
@@ -148,7 +150,7 @@ func (d DefaultProxyWAMSHost) ProxyGetMetric(metricID uint32, returnMetricValue 
 	return 0
 }
 
-func ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status {
+func ProxyLog(logLevel log.Level, messageData *byte, messageSize int) Status {
 	return currentHost.ProxyLog(logLevel, messageData, messageSize)
 }
 

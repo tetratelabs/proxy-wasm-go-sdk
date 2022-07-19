@@ -21,37 +21,6 @@ const (
 	BufferTypeCallData             BufferType = 8
 )
 
-type LogLevel uint32
-
-const (
-	LogLevelTrace    LogLevel = 0
-	LogLevelDebug    LogLevel = 1
-	LogLevelInfo     LogLevel = 2
-	LogLevelWarn     LogLevel = 3
-	LogLevelError    LogLevel = 4
-	LogLevelCritical LogLevel = 5
-	LogLevelMax      LogLevel = 6
-)
-
-func (l LogLevel) String() string {
-	switch l {
-	case LogLevelTrace:
-		return "trace"
-	case LogLevelDebug:
-		return "debug"
-	case LogLevelInfo:
-		return "info"
-	case LogLevelWarn:
-		return "warn"
-	case LogLevelError:
-		return "error"
-	case LogLevelCritical:
-		return "critical"
-	default:
-		panic("invalid log level")
-	}
-}
-
 type MapType uint32
 
 const (

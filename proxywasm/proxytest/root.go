@@ -16,17 +16,18 @@ package proxytest
 
 import (
 	"fmt"
-	"log"
+	stdlog "log"
 	"strings"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/log"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 type (
 	rootHostEmulator struct {
 		activeCalloutID  uint32
-		logs             [internal.LogLevelMax][]string
+		logs             [log.LevelDisabled][]string
 		tickPeriod       uint32
 		foreignFunctions map[string]func([]byte) []byte
 
@@ -87,10 +88,10 @@ func newRootHostEmulator(pluginConfiguration, vmConfiguration []byte) *rootHostE
 }
 
 // impl internal.ProxyWasmHost
-func (r *rootHostEmulator) ProxyLog(logLevel internal.LogLevel, messageData *byte, messageSize int) internal.Status {
+func (r *rootHostEmulator) ProxyLog(logLevel log.Level, messageData *byte, messageSize int) internal.Status {
 	str := internal.RawBytePtrToString(messageData, messageSize)
 
-	log.Printf("proxy_%s_log: %s", logLevel, str)
+	stdlog.Printf("proxy_%s_log: %s", logLevel, str)
 	r.logs[logLevel] = append(r.logs[logLevel], str)
 	return internal.StatusOK
 }
@@ -120,10 +121,10 @@ func (r *rootHostEmulator) ProxyRegisterSharedQueue(nameData *byte, nameSize int
 func (r *rootHostEmulator) ProxyDequeueSharedQueue(queueID uint32, returnValueData **byte, returnValueSize *int) internal.Status {
 	queue, ok := r.queues[queueID]
 	if !ok {
-		log.Printf("queue %d is not found", queueID)
+		stdlog.Printf("queue %d is not found", queueID)
 		return internal.StatusNotFound
 	} else if len(queue) == 0 {
-		log.Printf("queue %d is empty", queueID)
+		stdlog.Printf("queue %d is empty", queueID)
 		return internal.StatusEmpty
 	}
 
@@ -138,7 +139,7 @@ func (r *rootHostEmulator) ProxyDequeueSharedQueue(queueID uint32, returnValueDa
 func (r *rootHostEmulator) ProxyEnqueueSharedQueue(queueID uint32, valueData *byte, valueSize int) internal.Status {
 	queue, ok := r.queues[queueID]
 	if !ok {
-		log.Printf("queue %d is not found", queueID)
+		stdlog.Printf("queue %d is not found", queueID)
 		return internal.StatusNotFound
 	}
 
@@ -241,10 +242,10 @@ func (r *rootHostEmulator) ProxyHttpCall(upstreamData *byte, upstreamSize int, h
 	headers := deserializeRawBytePtrToMap(headerData, headerSize)
 	trailers := deserializeRawBytePtrToMap(trailersData, trailersSize)
 
-	log.Printf("[http callout to %s] timeout: %d", upstream, timeout)
-	log.Printf("[http callout to %s] headers: %v", upstream, headers)
-	log.Printf("[http callout to %s] body: %s", upstream, body)
-	log.Printf("[http callout to %s] trailers: %v", upstream, trailers)
+	stdlog.Printf("[http callout to %s] timeout: %d", upstream, timeout)
+	stdlog.Printf("[http callout to %s] headers: %v", upstream, headers)
+	stdlog.Printf("[http callout to %s] body: %s", upstream, body)
+	stdlog.Printf("[http callout to %s] trailers: %v", upstream, trailers)
 
 	calloutID := uint32(len(r.httpCalloutIDToContextID))
 	contextID := internal.VMStateGetActiveContextID()
@@ -271,12 +272,12 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 	funcName := internal.RawBytePtrToString(funcNamePtr, funcNameSize)
 	param := internal.RawBytePtrToByteSlice(paramPtr, paramSize)
 
-	log.Printf("[foreign call] funcname: %s", funcName)
-	log.Printf("[foreign call] param: %s", param)
+	stdlog.Printf("[foreign call] funcname: %s", funcName)
+	stdlog.Printf("[foreign call] param: %s", param)
 
 	f, ok := r.foreignFunctions[funcName]
 	if !ok {
-		log.Fatalf("%s not registered as a foreign function", funcName)
+		stdlog.Fatalf("%s not registered as a foreign function", funcName)
 	}
 	ret := f(param)
 	*returnData = &ret[0]
@@ -289,7 +290,7 @@ func (r *rootHostEmulator) ProxyCallForeignFunction(funcNamePtr *byte, funcNameS
 func (r *rootHostEmulator) rootHostEmulatorProxyGetHeaderMapPairs(mapType internal.MapType, returnValueData **byte, returnValueSize *int) internal.Status {
 	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
-		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
+		stdlog.Fatalf("callout response unregistered for %d", r.activeCalloutID)
 	}
 
 	var raw []byte
@@ -312,7 +313,7 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetMapValue(mapType internal.Map
 	keySize int, returnValueData **byte, returnValueSize *int) internal.Status {
 	res, ok := r.httpCalloutResponse[r.activeCalloutID]
 	if !ok {
-		log.Fatalf("callout response unregistered for %d", r.activeCalloutID)
+		stdlog.Fatalf("callout response unregistered for %d", r.activeCalloutID)
 	}
 
 	var hs [][2]string
@@ -352,7 +353,7 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt internal.Buffe
 		activeID := internal.VMStateGetActiveContextID()
 		res, ok := r.httpCalloutResponse[r.activeCalloutID]
 		if !ok {
-			log.Fatalf("callout response unregistered for %d", activeID)
+			stdlog.Fatalf("callout response unregistered for %d", activeID)
 		}
 		buf = res.body
 	default:
@@ -362,7 +363,7 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt internal.Buffe
 	if len(buf) == 0 {
 		return internal.StatusNotFound
 	} else if start >= len(buf) {
-		log.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
+		stdlog.Printf("start index out of range: %d (start) >= %d ", start, len(buf))
 		return internal.StatusBadArgument
 	}
 
@@ -377,35 +378,35 @@ func (r *rootHostEmulator) rootHostEmulatorProxyGetBufferBytes(bt internal.Buffe
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetTraceLogs() []string {
-	return r.getLogs(internal.LogLevelTrace)
+	return r.getLogs(log.LevelTrace)
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetDebugLogs() []string {
-	return r.getLogs(internal.LogLevelDebug)
+	return r.getLogs(log.LevelDebug)
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetInfoLogs() []string {
-	return r.getLogs(internal.LogLevelInfo)
+	return r.getLogs(log.LevelInfo)
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetWarnLogs() []string {
-	return r.getLogs(internal.LogLevelWarn)
+	return r.getLogs(log.LevelWarn)
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetErrorLogs() []string {
-	return r.getLogs(internal.LogLevelError)
+	return r.getLogs(log.LevelError)
 }
 
 // impl HostEmulator
 func (r *rootHostEmulator) GetCriticalLogs() []string {
-	return r.getLogs(internal.LogLevelCritical)
+	return r.getLogs(log.LevelCritical)
 }
 
-func (r *rootHostEmulator) getLogs(level internal.LogLevel) []string {
+func (r *rootHostEmulator) getLogs(level log.Level) []string {
 	return r.logs[level]
 }
 

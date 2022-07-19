@@ -16,8 +16,10 @@
 
 package internal
 
+import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/log"
+
 //export proxy_log
-func ProxyLog(logLevel LogLevel, messageData *byte, messageSize int) Status
+func ProxyLog(logLevel log.Level, messageData *byte, messageSize int) Status
 
 //export proxy_send_local_response
 func ProxySendLocalResponse(statusCode uint32, statusCodeDetailData *byte, statusCodeDetailsSize int,

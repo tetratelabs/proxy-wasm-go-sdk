@@ -18,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sync/atomic"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/log"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -589,70 +591,93 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-// LogTracef emits a message as a log with Trace log level.
+var (
+	logLevel = new(int32)
+)
+
+// LogLevel returns the current log level.
+func LogLevel() log.Level {
+	return log.Level(atomic.LoadInt32(logLevel))
+}
+
+// SetLogLevel sets the log level to the provided level.
+func SetLogLevel(lvl log.Level) {
+	atomic.StoreInt32(logLevel, int32(lvl))
+}
+
+// Log emits a message as a log with the specified log level.
+func Log(lvl log.Level, msg string) {
+	if lvl >= LogLevel() && lvl < log.LevelDisabled {
+		internal.ProxyLog(lvl, internal.StringBytePtr(msg), len(msg))
+	}
+}
+
+// Logf formats according to a format specifier and emits as a log with the specified log level.
+func Logf(lvl log.Level, format string, args ...interface{}) {
+	if lvl >= LogLevel() && lvl < log.LevelDisabled {
+		msg := fmt.Sprintf(format, args...)
+		internal.ProxyLog(lvl, internal.StringBytePtr(msg), len(msg))
+	}
+}
+
+// LogTrace emits a message as a log with Trace log level.
 func LogTrace(msg string) {
-	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelTrace, msg)
 }
 
 // LogTracef formats according to a format specifier and emits as a log with Trace log level.
 func LogTracef(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelTrace, format, args...)
 }
 
-// LogTracef emits a message as a log with Debug log level.
+// LogDebug emits a message as a log with Debug log level.
 func LogDebug(msg string) {
-	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelDebug, msg)
 }
 
 // LogDebugf formats according to a format specifier and emits as a log with Debug log level.
 func LogDebugf(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelDebug, format, args...)
 }
 
-// LogTracef emits a message as a log with Info log level.
+// LogInfo emits a message as a log with Info log level.
 func LogInfo(msg string) {
-	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelInfo, msg)
 }
 
 // LogInfof formats according to a format specifier and emits as a log with Info log level.
 func LogInfof(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelInfo, format, args...)
 }
 
-// LogTracef emits a message as a log with Warn log level.
+// LogWarn emits a message as a log with Warn log level.
 func LogWarn(msg string) {
-	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelWarn, msg)
 }
 
 // LogWarnf formats according to a format specifier and emits as a log with Warn log level.
 func LogWarnf(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelWarn, format, args...)
 }
 
-// LogTracef emits a message as a log with Error log level.
+// LogError emits a message as a log with Error log level.
 func LogError(msg string) {
-	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelError, msg)
 }
 
 // LogErrorf formats according to a format specifier and emits as a log with Error log level.
 func LogErrorf(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelError, format, args...)
 }
 
-// LogTracef emits a message as a log with Critical log level.
+// LogCritical emits a message as a log with Critical log level.
 func LogCritical(msg string) {
-	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
+	Log(log.LevelCritical, msg)
 }
 
 // LogCriticalf formats according to a format specifier and emits as a log with Critical log level.
 func LogCriticalf(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
+	Logf(log.LevelCritical, format, args...)
 }
 
 type (
