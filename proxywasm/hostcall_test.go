@@ -50,8 +50,7 @@ func TestHostCall_ForeignFunction(t *testing.T) {
 
 func TestHostCall_Logging(t *testing.T) {
 	t.Run("trace", func(t *testing.T) {
-		SetLogLevel(log.LevelTrace)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelTrace
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -68,8 +67,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("trace disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelDebug)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDebug
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -84,8 +82,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("tracef", func(t *testing.T) {
-		SetLogLevel(log.LevelTrace)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelTrace
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -102,8 +99,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("tracef disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelDebug)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDebug
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -118,8 +114,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("debug", func(t *testing.T) {
-		SetLogLevel(log.LevelDebug)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDebug
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -136,8 +131,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("debug disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelInfo)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelInfo
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -152,8 +146,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("debugf", func(t *testing.T) {
-		SetLogLevel(log.LevelDebug)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDebug
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -170,8 +163,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("debugf disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelInfo)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelInfo
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -186,8 +178,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("info", func(t *testing.T) {
-		SetLogLevel(log.LevelInfo)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelInfo
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -204,8 +195,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("info disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelWarn)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelWarn
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -220,8 +210,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("infof", func(t *testing.T) {
-		SetLogLevel(log.LevelInfo)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelInfo
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -238,8 +227,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("infof disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelWarn)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelWarn
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -254,8 +242,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("warn", func(t *testing.T) {
-		SetLogLevel(log.LevelWarn)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelWarn
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -272,8 +259,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("warn disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelError)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelError
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -288,8 +274,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("warnf", func(t *testing.T) {
-		SetLogLevel(log.LevelWarn)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelWarn
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -306,8 +291,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("warnf disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelError)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelError
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -322,8 +306,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("error", func(t *testing.T) {
-		SetLogLevel(log.LevelError)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelError
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -340,8 +323,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("error disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelCritical)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelCritical
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -356,8 +338,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("errorf", func(t *testing.T) {
-		SetLogLevel(log.LevelError)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelError
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -374,8 +355,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("errorf disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelCritical)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelCritical
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -390,8 +370,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("critical", func(t *testing.T) {
-		SetLogLevel(log.LevelCritical)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelCritical
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -408,8 +387,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("critical disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelDisabled)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDisabled
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -424,8 +402,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("criticalf", func(t *testing.T) {
-		SetLogLevel(log.LevelCritical)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelCritical
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},
@@ -442,8 +419,7 @@ func TestHostCall_Logging(t *testing.T) {
 	})
 
 	t.Run("criticalf disabled", func(t *testing.T) {
-		SetLogLevel(log.LevelDisabled)
-		defer SetLogLevel(log.LevelTrace)
+		LogLevel = log.LevelDisabled
 
 		lh := &logHost{
 			DefaultProxyWAMSHost: internal.DefaultProxyWAMSHost{},

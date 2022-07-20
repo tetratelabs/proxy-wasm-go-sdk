@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"sync/atomic"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/log"
@@ -591,30 +590,19 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-var (
-	logLevel = new(int32)
-)
-
-// LogLevel returns the current log level.
-func LogLevel() log.Level {
-	return log.Level(atomic.LoadInt32(logLevel))
-}
-
-// SetLogLevel sets the log level to the provided level.
-func SetLogLevel(lvl log.Level) {
-	atomic.StoreInt32(logLevel, int32(lvl))
-}
+// LogLevel represents the current log level.
+var LogLevel = log.LevelTrace
 
 // Log emits a message as a log with the specified log level.
 func Log(lvl log.Level, msg string) {
-	if lvl >= LogLevel() && lvl < log.LevelDisabled {
+	if lvl >= LogLevel && lvl < log.LevelDisabled {
 		internal.ProxyLog(lvl, internal.StringBytePtr(msg), len(msg))
 	}
 }
 
 // Logf formats according to a format specifier and emits as a log with the specified log level.
 func Logf(lvl log.Level, format string, args ...interface{}) {
-	if lvl >= LogLevel() && lvl < log.LevelDisabled {
+	if lvl >= LogLevel && lvl < log.LevelDisabled {
 		msg := fmt.Sprintf(format, args...)
 		internal.ProxyLog(lvl, internal.StringBytePtr(msg), len(msg))
 	}
