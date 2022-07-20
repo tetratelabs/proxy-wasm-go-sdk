@@ -17,7 +17,6 @@ package proxywasm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
@@ -35,8 +34,8 @@ type logHost struct {
 func (l *logHost) ProxyLog(logLevel log.Level, messageData *byte, messageSize int) internal.Status {
 	l.wasCalled = true
 	actual := internal.RawBytePtrToString(messageData, messageSize)
-	assert.Equal(l.t, l.expMessage, actual)
-	assert.Equal(l.t, l.expLogLevel, logLevel)
+	require.Equal(l.t, l.expMessage, actual)
+	require.Equal(l.t, l.expLogLevel, logLevel)
 	return internal.StatusOK
 }
 
@@ -63,7 +62,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogTrace("trace")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("trace disabled", func(t *testing.T) {
@@ -78,7 +77,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogTrace("trace")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("tracef", func(t *testing.T) {
@@ -95,7 +94,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogTracef("trace: %s", "log")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("tracef disabled", func(t *testing.T) {
@@ -110,7 +109,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogTracef("trace: %s", "log")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("debug", func(t *testing.T) {
@@ -127,7 +126,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogDebug("abc")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("debug disabled", func(t *testing.T) {
@@ -142,7 +141,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogDebug("abc")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("debugf", func(t *testing.T) {
@@ -159,7 +158,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogDebugf("debug: %s", "log")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("debugf disabled", func(t *testing.T) {
@@ -174,7 +173,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogDebugf("debug: %s", "log")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("info", func(t *testing.T) {
@@ -191,7 +190,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogInfo("info")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("info disabled", func(t *testing.T) {
@@ -206,7 +205,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogInfo("info")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("infof", func(t *testing.T) {
@@ -223,7 +222,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogInfof("info: %s: %d", "log", 10)
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("infof disabled", func(t *testing.T) {
@@ -238,7 +237,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogInfof("info: %s: %d", "log", 10)
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("warn", func(t *testing.T) {
@@ -255,7 +254,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogWarn("warn")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("warn disabled", func(t *testing.T) {
@@ -270,7 +269,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogWarn("warn")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("warnf", func(t *testing.T) {
@@ -287,7 +286,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogWarnf("warn: %s: %d", "log", 10)
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("warnf disabled", func(t *testing.T) {
@@ -302,7 +301,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogWarnf("warn: %s: %d", "log", 10)
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -319,7 +318,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogError("error")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("error disabled", func(t *testing.T) {
@@ -334,7 +333,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogError("error")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("errorf", func(t *testing.T) {
@@ -351,7 +350,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogErrorf("error: %s: %d", "log", 10)
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("errorf disabled", func(t *testing.T) {
@@ -366,7 +365,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogErrorf("error: %s: %d", "log", 10)
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("critical", func(t *testing.T) {
@@ -383,7 +382,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogCritical("critical error")
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("critical disabled", func(t *testing.T) {
@@ -398,7 +397,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogCritical("critical error")
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 
 	t.Run("criticalf", func(t *testing.T) {
@@ -415,7 +414,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogCriticalf("critical: %s: %d", "log", 10)
 
-		assert.True(t, lh.wasCalled)
+		require.True(t, lh.wasCalled)
 	})
 
 	t.Run("criticalf disabled", func(t *testing.T) {
@@ -430,7 +429,7 @@ func TestHostCall_Logging(t *testing.T) {
 
 		LogCriticalf("critical: %s: %d", "log", 10)
 
-		assert.False(t, lh.wasCalled)
+		require.False(t, lh.wasCalled)
 	})
 }
 
