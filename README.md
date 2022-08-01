@@ -1,5 +1,3 @@
-__This project is in its early stage, and the API is likely to change and not stable.__
-
 # WebAssembly for Proxies (Go SDK) [![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/Test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions) [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 The Go SDK for
@@ -19,11 +17,8 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 
 ## Installation
 
-`go get` cannot be used for fetching this SDK and updating go.mod of your project due to the existence of "extern" functions which are only available in TinyGo. Instead, we can manually setup go.mod and go.sum via `go mod edit` and `go mod download`: 
-
 ```
-go mod edit -require=github.com/tetratelabs/proxy-wasm-go-sdk@main
-go mod download github.com/tetratelabs/proxy-wasm-go-sdk
+go get github.com/tetratelabs/proxy-wasm-go-sdk
 ```
 
 ## Build and run Examples
