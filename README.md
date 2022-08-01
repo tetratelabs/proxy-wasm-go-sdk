@@ -22,8 +22,7 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 `go get` cannot be used for fetching this SDK and updating go.mod of your project due to the existence of "extern" functions which are only available in TinyGo. Instead, we can manually setup go.mod and go.sum via `go mod edit` and `go mod download`: 
 
 ```
-go mod edit -require=github.com/tetratelabs/proxy-wasm-go-sdk@main
-go mod download github.com/tetratelabs/proxy-wasm-go-sdk
+go get github.com/tetratelabs/proxy-wasm-go-sdk
 ```
 
 ## Build and run Examples
