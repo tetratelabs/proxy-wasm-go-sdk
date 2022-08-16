@@ -30,7 +30,7 @@ type HostEmulator interface {
 	StartPlugin() types.OnPluginStartStatus
 	FinishVM() bool
 	GetCalloutAttributesFromContext(contextID uint32) []HttpCalloutAttribute
-	CallOnHttpCallResponse(contextID uint32, headers [][2]string, trailers [][2]string, body []byte)
+	CallOnHttpCallResponse(calloutID uint32, headers [][2]string, trailers [][2]string, body []byte)
 	GetCounterMetric(name string) (uint64, error)
 	GetGaugeMetric(name string) (uint64, error)
 	GetHistogramMetric(name string) (uint64, error)

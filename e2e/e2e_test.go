@@ -344,3 +344,32 @@ func Test_json_validation(t *testing.T) {
 		return true
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
+
+func Test_multiple_dispatches(t *testing.T) {
+	stdErr, kill := startEnvoy(t, 8001)
+	defer kill()
+
+	require.Eventually(t, func() bool {
+		res, err := http.Get("http://localhost:18000")
+		if err != nil || res.StatusCode != http.StatusOK {
+			return false
+		}
+		defer res.Body.Close()
+		return res.StatusCode == http.StatusOK
+	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+
+	require.Eventually(t, func() bool {
+		return checkMessage(stdErr.String(), []string{
+			"wasm log: pending dispatched requests: 9",
+			"wasm log: pending dispatched requests: 8",
+			"wasm log: pending dispatched requests: 7",
+			"wasm log: pending dispatched requests: 6",
+			"wasm log: pending dispatched requests: 5",
+			"wasm log: pending dispatched requests: 4",
+			"wasm log: pending dispatched requests: 3",
+			"wasm log: pending dispatched requests: 2",
+			"wasm log: pending dispatched requests: 1",
+			"wasm log: response resumed after processed 10 dispatched request",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
+}
