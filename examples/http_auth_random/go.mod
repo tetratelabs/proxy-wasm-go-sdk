@@ -1,6 +1,6 @@
 module github.com/tetratelabs/proxy-wasm-go-sdk/examples/http_auth_random
 
-go 1.17
+go 1.18
 
 replace github.com/tetratelabs/proxy-wasm-go-sdk => ../..
 

@@ -15,7 +15,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.1'
+          go-version: '1.18'
 
       - name: checkout
         uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.1'
+          go-version: '1.18'
 
       - name: checkout
         uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.1'
+          go-version: '1.18'
 
       # TinyGo's release container does not have Make command.
       - name: Install Make
@@ -98,7 +98,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.1'
+          go-version: '1.18'
 
       - name: Print Envoy version
         run: envoy --version
