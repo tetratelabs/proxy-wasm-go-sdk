@@ -1,6 +1,6 @@
 module github.com/tetratelabs/proxy-wasm-go-sdk/examples/dispatch_call_on_tick
 
-go 1.17
+go 1.18
 
 replace github.com/tetratelabs/proxy-wasm-go-sdk => ../..
 
