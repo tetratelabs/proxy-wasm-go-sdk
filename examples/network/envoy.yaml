@@ -55,6 +55,13 @@ static_resources:
 
   clusters:
     - name: web_service
+      metadata:
+        filter_metadata:
+          foo:
+            my_map:
+              cloud_provider: aws
+              region: ap-northeast-1
+              az: ap-northeast-1a
       connect_timeout: 0.25s
       type: STATIC
       lb_policy: ROUND_ROBIN

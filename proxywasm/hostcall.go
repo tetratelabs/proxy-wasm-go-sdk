@@ -536,6 +536,27 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 // for a given path.
 // Available path and properties depend on the host implementation.
 // For Envoy, please refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
+//
+// Note: if the target propety is map-type, use GetPropetyMap instead. This GetProperty returns
+// raw un-serialized bytes for such properties. For example, if you have the metadata as
+//
+//  clusters:
+//  - name: web_service
+//    metadata:
+//     filter_metadata:
+//       foo:
+//         my_value: '1234'
+//         my_map:
+//           k1: v1
+//           k2: v2
+//
+// Then,
+//  * use GetPropetyMap for {"cluster_metadata", "filter_metadata", "foo", "my_map"}.
+//  * use GetProperty   for {"cluster_metadata", "filter_metadata", "foo", "my_value"}.
+//
+// Note: you cannot get the raw bytes of protobuf. For example, accessing {"cluster_metadata", "filter_data", "foo"}) doesn't
+// returns the protobuf bytes, but instead this returns the serialized map of "foo". Therefore, we recommend to access individual
+// "leaf" fields (not the middle or top field of metadata) to avoid the need to figure out the (host-dependent) encoding of properties.
 func GetProperty(path []string) ([]byte, error) {
 	if len(path) == 0 {
 		return nil, errors.New("path must not be empty")
@@ -548,8 +569,17 @@ func GetProperty(path []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return internal.RawBytePtrToByteSlice(ret, retSize), nil
+}
+
+// GetPropertyMap is the same as GetProperty but can be used to decode map-typed properties.
+func GetPropertyMap(path []string) ([][2]string, error) {
+	b, err := GetProperty(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return internal.DeserializeMap(b), nil
 }
 
 // SetProperty is used for setting property/metadata in the host
