@@ -65,7 +65,7 @@ type vmContext struct {
 // with Go and with wasm. Tests will run much faster under Go for quicker development cycles, and the wasm runner can
 // confirm the behavior matches when actually compiled.
 //
-// For example, this snippet allows determining the `VMContext` based on a test case flag.
+// For example, this snippet allows determining the types.VMContext based on a test case flag.
 //
 //	var vm types.VMContext
 //	switch runner {
