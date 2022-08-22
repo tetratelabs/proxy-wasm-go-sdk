@@ -41,7 +41,7 @@ jobs:
       - name: run tests
         run: make test
 
-  build-examples:
+  examples:
     name: Build examples
     runs-on: ubuntu-latest
     container:
@@ -72,6 +72,9 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
+      - name: Build examples
+        run: make test.examples
+
   e2e-tests:
     strategy:
       fail-fast: false
@@ -89,7 +92,7 @@ jobs:
           "istio/proxyv2:1.14.0",
         ]
     name: E2E Test (${{ matrix.image }})
-    needs: [build-examples]
+    needs: [examples]
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.image }}
