@@ -16,6 +16,7 @@ package proxytest
 
 import (
 	"context"
+	"io"
 	"reflect"
 	"unsafe"
 
@@ -43,15 +44,22 @@ type guestABI struct {
 	proxyOnLog              api.Function
 }
 
+// WasmVMContext is a VMContext that delegates excecution to a compiled wasm binary.
+type WasmVMContext interface {
+	types.VMContext
+	io.Closer
+}
+
 type vmContext struct {
 	runtime wazero.Runtime
 	abi     guestABI
+	ctx     context.Context
 }
 
 // NewWasmVMContext returns a types.VMContext that delegates plugin invocations to the provided compiled wasm binary.
 // proxytest can be run with a compiled wasm binary by passing this to proxytest.WithVMContext.
 // Note: Currently only HTTP plugins are supported.
-func NewWasmVMContext(wasm []byte) (types.VMContext, error) {
+func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 	ctx := context.Background()
 	r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig().WithWasmCore2())
 
@@ -60,7 +68,7 @@ func NewWasmVMContext(wasm []byte) (types.VMContext, error) {
 		return nil, err
 	}
 
-	err = exportHostABI(r)
+	err = exportHostABI(ctx, r)
 	if err != nil {
 		return nil, err
 	}
@@ -89,23 +97,28 @@ func NewWasmVMContext(wasm []byte) (types.VMContext, error) {
 	return &vmContext{
 		runtime: r,
 		abi:     abi,
+		ctx:     ctx,
 	}, nil
 }
 
 func (v *vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	res, err := v.abi.proxyOnVMStart.Call(nil, uint64(vmConfigurationSize))
+	res, err := v.abi.proxyOnVMStart.Call(v.ctx, uint64(vmConfigurationSize))
 	handleErr(err)
 	return res[0] == 1
 }
 
 func (v *vmContext) NewPluginContext(contextID uint32) types.PluginContext {
-	_, err := v.abi.proxyOnContextCreate.Call(nil, uint64(contextID), 0)
+	_, err := v.abi.proxyOnContextCreate.Call(v.ctx, uint64(contextID), 0)
 	handleErr(err)
 	return &pluginContext{
 		id:  uint64(contextID),
 		abi: v.abi,
-		ctx: context.Background(),
+		ctx: v.ctx,
 	}
+}
+
+func (v *vmContext) Close() error {
+	return v.runtime.Close(v.ctx)
 }
 
 type pluginContext struct {
@@ -226,9 +239,6 @@ func copyBytesToWasm(ctx context.Context, mod api.Module, hostPtr *byte, size in
 	hdr.Cap = size
 	hdr.Len = size
 
-	// proxy-wasm only defines alloc without free so this leaks memory within the wasm module.
-	// A future cleanup could allow specifying buffers when initializing the host module, which
-	// would be from the sandbox memory when using the wasm wrapper.
 	alloc := mod.ExportedFunction("proxy_on_memory_allocate")
 	res, err := alloc.Call(ctx, uint64(size))
 	handleErr(err)
@@ -250,7 +260,7 @@ func wasmBool(b bool) uint64 {
 	return 0
 }
 
-func exportHostABI(r wazero.Runtime) error {
+func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 	_, err := r.NewModuleBuilder("env").
 		ExportFunction("proxy_log", func(ctx context.Context, mod api.Module, logLevel uint32, messageData uint32, messageSize uint32) uint32 {
 			messageDataPtr := wasmBytePtr(ctx, mod, messageData, messageSize)
@@ -418,6 +428,6 @@ func exportHostABI(r wazero.Runtime) error {
 			handleMemoryStatus(mod.Memory().WriteUint64Le(ctx, returnMetricValue, returnMetricValuePtr))
 			return ret
 		}).
-		Instantiate(nil, r)
+		Instantiate(ctx, r)
 	return err
 }
