@@ -72,7 +72,7 @@ jobs:
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
-      - name: Build examples
+      - name: Test examples
         run: make test.examples
 
   e2e-tests:
