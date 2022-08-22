@@ -203,7 +203,7 @@ func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) internal.Status 
 // impl internal.ProxyWasmHost
 func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) internal.Status {
 	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
-	return 0
+	return internal.StatusNotFound
 }
 
 // impl internal.ProxyWasmHost
