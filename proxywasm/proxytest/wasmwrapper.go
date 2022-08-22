@@ -50,6 +50,7 @@ type WasmVMContext interface {
 	io.Closer
 }
 
+// vmContext implements WasmVMContext.
 type vmContext struct {
 	runtime wazero.Runtime
 	abi     guestABI
@@ -58,6 +59,28 @@ type vmContext struct {
 
 // NewWasmVMContext returns a types.VMContext that delegates plugin invocations to the provided compiled wasm binary.
 // proxytest can be run with a compiled wasm binary by passing this to proxytest.WithVMContext.
+//
+// Running proxytest with the compiled wasm binary helps to ensure that the plugin will run when actually compiled with
+// TinyGo, however Stack traces and other debug features will be much worse. It is recommended to run unit tests both
+// with Go and with wasm. Tests will run much faster under Go for quicker development cycles, and the wasm runner can
+// confirm the behavior matches when actually compiled.
+//
+// For example, this snippet allows determining the `VMContext` based on a test case flag.
+//
+//	var vm types.VMContext
+//	switch runner {
+//	case "go":
+//		vm = &vmContext{}
+//	case "wasm":
+//		wasm, err := os.ReadFile("plugin.wasm")
+//		if err != nil {
+//			t.Skip("wasm not found")
+//		}
+//		v, err := proxytest.NewWasmVMContext(wasm)
+//		require.NoError(t, err)
+//		vm = v
+//	}
+//
 // Note: Currently only HTTP plugins are supported.
 func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 	ctx := context.Background()
@@ -101,12 +124,14 @@ func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 	}, nil
 }
 
+// OnVMStart implements the same method on types.VMContext.
 func (v *vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	res, err := v.abi.proxyOnVMStart.Call(v.ctx, uint64(vmConfigurationSize))
 	handleErr(err)
 	return res[0] == 1
 }
 
+// NewPluginContext implements the same method on types.VMContext.
 func (v *vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	_, err := v.abi.proxyOnContextCreate.Call(v.ctx, uint64(contextID), 0)
 	handleErr(err)
@@ -117,42 +142,50 @@ func (v *vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	}
 }
 
+// Close implements the same method on io.Closer.
 func (v *vmContext) Close() error {
 	return v.runtime.Close(v.ctx)
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	id  uint64
 	abi guestABI
 	ctx context.Context
 }
 
+// OnPluginStart implements the same method on types.PluginContext.
 func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	res, err := p.abi.proxyOnConfigure.Call(p.ctx, p.id, uint64(pluginConfigurationSize))
 	handleErr(err)
 	return res[0] == 1
 }
 
+// OnPluginDone implements the same method on types.PluginContext.
 func (p *pluginContext) OnPluginDone() bool {
 	res, err := p.abi.proxyOnDone.Call(p.ctx, p.id)
 	handleErr(err)
 	return res[0] == 1
 }
 
+// OnQueueReady implements the same method on types.PluginContext.
 func (p *pluginContext) OnQueueReady(queueID uint32) {
 	_, err := p.abi.proxyOnQueueReady.Call(p.ctx, p.id, uint64(queueID))
 	handleErr(err)
 }
 
+// OnTick implements the same method on types.PluginContext.
 func (p *pluginContext) OnTick() {
 	_, err := p.abi.proxyOnTick.Call(p.ctx, p.id)
 	handleErr(err)
 }
 
+// NewTcpContext implements the same method on types.PluginContext.
 func (p *pluginContext) NewTcpContext(uint32) types.TcpContext {
 	return nil
 }
 
+// NewHttpContext implements the same method on types.PluginContext.
 func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	_, err := p.abi.proxyOnContextCreate.Call(p.ctx, uint64(contextID), p.id)
 	handleErr(err)
@@ -163,48 +196,56 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	}
 }
 
+// httpContext implements types.HttpContext.
 type httpContext struct {
 	id  uint64
 	abi guestABI
 	ctx context.Context
 }
 
+// OnHttpRequestHeaders implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	res, err := h.abi.proxyOnRequestHeaders.Call(h.ctx, h.id, uint64(numHeaders), wasmBool(endOfStream))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpRequestBody implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	res, err := h.abi.proxyOnRequestBody.Call(h.ctx, h.id, uint64(bodySize), wasmBool(endOfStream))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpRequestTrailers implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpRequestTrailers(numTrailers int) types.Action {
 	res, err := h.abi.proxyOnRequestTrailers.Call(h.ctx, h.id, uint64(numTrailers))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpResponseHeaders implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	res, err := h.abi.proxyOnResponseHeaders.Call(h.ctx, h.id, uint64(numHeaders), wasmBool(endOfStream))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpResponseBody implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
 	res, err := h.abi.proxyOnResponseBody.Call(h.ctx, h.id, uint64(bodySize), wasmBool(endOfStream))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpResponseTrailers implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpResponseTrailers(numTrailers int) types.Action {
 	res, err := h.abi.proxyOnResponseTrailers.Call(h.ctx, h.id, uint64(numTrailers))
 	handleErr(err)
 	return types.Action(res[0])
 }
 
+// OnHttpStreamDone implements the same method on types.HttpContext.
 func (h *httpContext) OnHttpStreamDone() {
 	_, err := h.abi.proxyOnLog.Call(h.ctx, h.id)
 	handleErr(err)
