@@ -90,7 +90,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	// Get the remote ip address of the upstream cluster.
 	address, err := proxywasm.GetProperty([]string{"upstream", "address"})
 	if err != nil {
-		proxywasm.LogCriticalf("failed to get upstream data: %v", err)
+		proxywasm.LogCriticalf("failed to get upstream remote address: %v", err)
 		return types.ActionContinue
 	}
 
@@ -99,7 +99,8 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	// Get the upstream cluster's metadata in the cluster configuration.
 	metadataKeyValues, err := proxywasm.GetPropertyMap([]string{"cluster_metadata", "filter_metadata", "location"})
 	if err != nil {
-		panic(err)
+		proxywasm.LogCriticalf("failed to get upstream location metadata: %v", err)
+		return types.ActionContinue
 	}
 
 	for _, metadata := range metadataKeyValues {
