@@ -61,7 +61,7 @@ type vmContext struct {
 // proxytest can be run with a compiled wasm binary by passing this to proxytest.WithVMContext.
 //
 // Running proxytest with the compiled wasm binary helps to ensure that the plugin will run when actually compiled with
-// TinyGo, however Stack traces and other debug features will be much worse. It is recommended to run unit tests both
+// TinyGo, however stack traces and other debug features will be much worse. It is recommended to run unit tests both
 // with Go and with wasm. Tests will run much faster under Go for quicker development cycles, and the wasm runner can
 // confirm the behavior matches when actually compiled.
 //
