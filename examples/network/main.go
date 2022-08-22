@@ -97,14 +97,14 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	proxywasm.LogInfof("remote address: %s", string(address))
 
 	// Get the upstream cluster's metadata in the cluster configuration.
-	metadataKeyValues, err := proxywasm.GetPropertyMap([]string{"cluster_metadata", "filter_metadata", "foo", "my_map"})
+	metadataKeyValues, err := proxywasm.GetPropertyMap([]string{"cluster_metadata", "filter_metadata", "location"})
 	if err != nil {
 		panic(err)
 	}
 
 	for _, metadata := range metadataKeyValues {
 		key, value := metadata[0], metadata[1]
-		proxywasm.LogInfof("upsteam cluster matadata foo[%s]=%s", string(key), string(value))
+		proxywasm.LogInfof("upsteam cluster matadata location[%s]=%s", string(key), string(value))
 	}
 
 	data, err := proxywasm.GetUpstreamData(0, dataSize)
