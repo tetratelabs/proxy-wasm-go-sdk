@@ -573,6 +573,10 @@ func GetProperty(path []string) ([]byte, error) {
 }
 
 // GetPropertyMap is the same as GetProperty but can be used to decode map-typed properties.
+// See GetProperty for detail.
+//
+// Note: this operates under the assumption that the path is encoded as map, therefore this might
+// cause panic if it is used on the non-map types.
 func GetPropertyMap(path []string) ([][2]string, error) {
 	b, err := GetProperty(path)
 	if err != nil {
