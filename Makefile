@@ -12,7 +12,7 @@ test:
 	@go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
 .PHONY: test.examples
-test.examples: build.examples
+test.examples:
 	@find ./examples -mindepth 1 -type f -name "main.go" \
 	| xargs -I {} bash -c 'dirname {}' \
 	| xargs -I {} bash -c 'cd {} && go test -tags=proxytest ./...'
