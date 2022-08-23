@@ -53,7 +53,8 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 		return types.OnPluginStartStatusFailed
 	}
 
-	if len(data) == 1 {
+	// If the configuration data is not empty, ....
+	if len(data) > 0 {
 		ctx.diceOverride = uint32(data[0])
 	}
 
