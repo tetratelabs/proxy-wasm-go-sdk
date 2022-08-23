@@ -53,7 +53,8 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 		return types.OnPluginStartStatusFailed
 	}
 
-	// If the configuration data is not empty, ....
+	// If the configuration data is not empty, we use its value to override the routing
+	// decision for unit tests.
 	if len(data) > 0 {
 		ctx.diceOverride = uint32(data[0])
 	}
