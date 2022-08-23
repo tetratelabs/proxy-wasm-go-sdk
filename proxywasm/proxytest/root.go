@@ -170,7 +170,7 @@ func (r *rootHostEmulator) ProxySetSharedData(keyData *byte, keySize int,
 	// plugin deallocates the memory could be modified.
 	key := strings.Clone(internal.RawBytePtrToString(keyData, keySize))
 	v := internal.RawBytePtrToByteSlice(valueData, valueSize)
-	value := make([]byte, len(v), len(v))
+	value := make([]byte, len(v))
 	copy(value, v)
 
 	prev, ok := r.sharedDataKVS[key]
