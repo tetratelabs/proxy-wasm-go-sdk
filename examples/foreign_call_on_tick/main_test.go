@@ -1,9 +1,7 @@
 // These tests are supposed to run with `proxytest` build tag, and this way we can leverage the testing framework in "proxytest" package.
 // The framework emulates the expected behavior of Envoyproxy, and you can test your extensions without running Envoy and with
 // the standard Go CLI. To run tests, simply run
-// go test -tags=proxytest ./...
-
-//go:build proxytest
+// go test ./...
 
 package main
 
