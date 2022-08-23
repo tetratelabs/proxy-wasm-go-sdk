@@ -41,21 +41,42 @@ type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
+
+	diceOverride uint32 // For unit test
 }
 
 // Override types.DefaultPluginContext.
-func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &httpRouting{}
+func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	data, err := proxywasm.GetPluginConfiguration()
+	if err != nil && err != types.ErrorStatusNotFound {
+		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
+		return types.OnPluginStartStatusFailed
+	}
+
+	// If the configuration data is not empty, we use its value to override the routing
+	// decision for unit tests.
+	if len(data) > 0 {
+		ctx.diceOverride = uint32(data[0])
+	}
+
+	return types.OnPluginStartStatusOK
+}
+
+// Override types.DefaultPluginContext.
+func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
+	return &httpRouting{diceOverride: ctx.diceOverride}
 }
 
 type httpRouting struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
+
+	diceOverride uint32 // For unit test
 }
 
-// Unittest purpose.
-var dice = func() uint32 {
+// dice returns a random value to be used to determine the route.
+func dice() uint32 {
 	buf := make([]byte, 4)
 	_, _ = rand.Read(buf)
 	return binary.LittleEndian.Uint32(buf)
@@ -64,7 +85,12 @@ var dice = func() uint32 {
 // Override types.DefaultHttpContext.
 func (ctx *httpRouting) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	// Randomly routing to the canary cluster.
-	value := dice()
+	var value uint32
+	if ctx.diceOverride != 0 {
+		value = ctx.diceOverride
+	} else {
+		value = dice()
+	}
 	proxywasm.LogInfof("value: %d\n", value)
 	if value%2 == 0 {
 		const authorityKey = ":authority"

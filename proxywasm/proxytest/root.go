@@ -166,8 +166,12 @@ func (r *rootHostEmulator) ProxyGetSharedData(keyData *byte, keySize int,
 // impl internal.ProxyWasmHost
 func (r *rootHostEmulator) ProxySetSharedData(keyData *byte, keySize int,
 	valueData *byte, valueSize int, cas uint32) internal.Status {
-	key := internal.RawBytePtrToString(keyData, keySize)
-	value := internal.RawBytePtrToByteSlice(valueData, valueSize)
+	// Copy data provided by plugin to keep ownership within host. Otherwise, when
+	// plugin deallocates the memory could be modified.
+	key := strings.Clone(internal.RawBytePtrToString(keyData, keySize))
+	v := internal.RawBytePtrToByteSlice(valueData, valueSize)
+	value := make([]byte, len(v))
+	copy(value, v)
 
 	prev, ok := r.sharedDataKVS[key]
 	if !ok {

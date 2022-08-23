@@ -1,12 +1,6 @@
 goimports := golang.org/x/tools/cmd/goimports@v0.1.12
 golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.48.0
 
-.PHONY: build.example
-build.example:
-	@find ./examples -type f -name "main.go" | grep ${name}\
-	| xargs -I {} bash -c 'dirname {}' \
-	| xargs -I {} bash -c 'cd {} && tinygo build -o main.wasm -scheduler=none -target=wasi ./main.go'
-
 .PHONY: build.examples
 build.examples:
 	@find ./examples -mindepth 1 -type f -name "main.go" \
@@ -15,15 +9,13 @@ build.examples:
 
 .PHONY: test
 test:
-	@# First we test the main module because the iteration through the modules
-	@# in the lines above is very inconvenient when the folder is ".".
 	@go test -tags=proxytest $(shell go list ./... | grep -v e2e)
 
-	@# Now we go through the examples.
-	@find . -name "go.mod" \
-	| grep -v "\.\/go\.mod" \
+.PHONY: test.examples
+test.examples:
+	@find ./examples -mindepth 1 -type f -name "main.go" \
 	| xargs -I {} bash -c 'dirname {}' \
-	| xargs -I {} bash -c 'cd {}; go test -tags=proxytest ./...'
+	| xargs -I {} bash -c 'cd {} && go test -tags=proxytest ./...'
 
 .PHONY: test.e2e
 test.e2e:

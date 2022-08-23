@@ -126,7 +126,8 @@ func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 
 // OnVMStart implements the same method on types.VMContext.
 func (v *vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	res, err := v.abi.proxyOnVMStart.Call(v.ctx, uint64(vmConfigurationSize))
+	rootContextID := uint64(0) // unused
+	res, err := v.abi.proxyOnVMStart.Call(v.ctx, rootContextID, uint64(vmConfigurationSize))
 	handleErr(err)
 	return res[0] == 1
 }
@@ -138,7 +139,7 @@ func (v *vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{
 		id:  uint64(contextID),
 		abi: v.abi,
-		ctx: v.ctx,
+		ctx: withPluginContextID(v.ctx, contextID),
 	}
 }
 
@@ -274,6 +275,9 @@ func wasmBytePtr(ctx context.Context, mod api.Module, off uint32, size uint32) *
 }
 
 func copyBytesToWasm(ctx context.Context, mod api.Module, hostPtr *byte, size int, wasmPtrPtr uint32, wasmSizePtr uint32) {
+	if size == 0 {
+		return
+	}
 	var hostSlice []byte
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&hostSlice))
 	hdr.Data = uintptr(unsafe.Pointer(hostPtr))
@@ -430,6 +434,17 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			var calloutID uint32
 			ret := uint32(internal.ProxyHttpCall(upstreamPtr, int(upstreamSize), headerPtr, int(headerSize), bodyPtr, int(bodySize), trailersPtr, int(trailersSize), timeout, &calloutID))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, calloutIDPtr, calloutID))
+
+			// Finishing proxy_http_call executes a callback, not a plugin lifecycle method, unlike every other host function which would then end up in wasm.
+			// We can work around this by registering a callback here to go back to the wasm.
+			internal.RegisterHttpCallout(calloutID, func(numHeaders, bodySize, numTrailers int) {
+				proxyOnHttpCallResponse := mod.ExportedFunction("proxy_on_http_call_response")
+				_, err := proxyOnHttpCallResponse.Call(ctx, uint64(getPluginContextID(ctx)), uint64(calloutID), uint64(numHeaders), uint64(bodySize), uint64(numTrailers))
+				if err != nil {
+					panic(err)
+				}
+			})
+
 			return ret
 		}).
 		ExportFunction("proxy_call_foreign_function", func(ctx context.Context, mod api.Module, funcNamePtr uint32, funcNameSize uint32, paramPtr uint32, paramSize uint32, returnData uint32, returnSize uint32) uint32 {
@@ -471,4 +486,17 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 		}).
 		Instantiate(ctx, r)
 	return err
+}
+
+type pluginContextIDKeyType struct{}
+
+var pluginContextIDKey = pluginContextIDKeyType{}
+
+func withPluginContextID(ctx context.Context, id uint32) context.Context {
+	return context.WithValue(ctx, pluginContextIDKey, id)
+}
+
+func getPluginContextID(ctx context.Context) uint32 {
+	id, _ := ctx.Value(pluginContextIDKey).(uint32)
+	return id
 }
