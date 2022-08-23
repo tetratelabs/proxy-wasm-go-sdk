@@ -73,7 +73,7 @@ type httpRouting struct {
 	diceOverride uint32 // For unit test
 }
 
-var dice = func() uint32 {
+func dice() uint32 {
 	buf := make([]byte, 4)
 	_, _ = rand.Read(buf)
 	return binary.LittleEndian.Uint32(buf)
