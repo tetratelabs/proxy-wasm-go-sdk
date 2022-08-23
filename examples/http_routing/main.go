@@ -75,6 +75,7 @@ type httpRouting struct {
 	diceOverride uint32 // For unit test
 }
 
+// dice returns a random value to be used to determine the route.
 func dice() uint32 {
 	buf := make([]byte, 4)
 	_, _ = rand.Read(buf)
