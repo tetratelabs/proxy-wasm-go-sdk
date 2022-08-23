@@ -8,6 +8,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,182 +18,207 @@ import (
 )
 
 func TestSetBodyContext_OnHttpRequestHeaders(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
-	host, reset := proxytest.NewHostEmulator(opt)
-	defer reset()
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
+		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
+		host, reset := proxytest.NewHostEmulator(opt)
+		defer reset()
 
-	t.Run("remove content length", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("remove content length", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, [][2]string{
-			{"content-length", "10"},
-			{"buffer-operation", "replace"},
-		}, false)
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "replace"},
+			}, false)
 
-		// Must be continued.
-		require.Equal(t, types.ActionContinue, action)
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
 
-		// Check the final request headers
-		headers := host.GetCurrentRequestHeaders(id)
-		require.Equal(t,
-			[][2]string{{"buffer-operation", "replace"}},
-			headers,
-			"content-length header must be removed.")
-	})
+			// Check the final request headers
+			headers := host.GetCurrentRequestHeaders(id)
+			require.Equal(t,
+				[][2]string{{"buffer-operation", "replace"}},
+				headers,
+				"content-length header must be removed.")
+		})
 
-	t.Run("400 response", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("400 response", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestHeaders without "content-length"
-		action := host.CallOnRequestHeaders(id, nil, false)
+			// Call OnRequestHeaders without "content-length"
+			action := host.CallOnRequestHeaders(id, nil, false)
 
-		// Must be paused.
-		require.Equal(t, types.ActionPause, action)
+			// Must be paused.
+			require.Equal(t, types.ActionPause, action)
 
-		// Check the local response.
-		localResponse := host.GetSentLocalResponse(id)
-		require.NotNil(t, localResponse)
-		require.Equal(t, uint32(400), localResponse.StatusCode)
-		require.Equal(t, "content must be provided", string(localResponse.Data))
+			// Check the local response.
+			localResponse := host.GetSentLocalResponse(id)
+			require.NotNil(t, localResponse)
+			require.Equal(t, uint32(400), localResponse.StatusCode)
+			require.Equal(t, "content must be provided", string(localResponse.Data))
+		})
 	})
 }
 
 func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{})
-	host, reset := proxytest.NewHostEmulator(opt)
-	defer reset()
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
+		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
+		host, reset := proxytest.NewHostEmulator(opt)
+		defer reset()
 
-	t.Run("pause until EOS", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("pause until EOS", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestBody.
-		action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
+			// Call OnRequestBody.
+			action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
 
-		// Must be paused
-		require.Equal(t, types.ActionPause, action)
-	})
+			// Must be paused
+			require.Equal(t, types.ActionPause, action)
+		})
 
-	t.Run("append", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("append", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, [][2]string{
-			{"content-length", "10"},
-			{"buffer-operation", "append"},
-		}, false)
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "append"},
+			}, false)
 
-		// Must be continued.
-		require.Equal(t, types.ActionContinue, action)
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
 
-		// Call OnRequestBody.
-		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
-		require.Equal(t, types.ActionContinue, action)
+			// Call OnRequestBody.
+			action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
 
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, `original request body: [original body]`)
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original request body: [original body]`)
 
-		// Check the final request body is the replaced one.
-		require.Equal(t, "[original body][this is appended body]", string(host.GetCurrentRequestBody(id)))
-	})
+			// Check the final request body is the replaced one.
+			require.Equal(t, "[original body][this is appended body]", string(host.GetCurrentRequestBody(id)))
+		})
 
-	t.Run("prepend", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("prepend", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, [][2]string{
-			{"content-length", "10"},
-			{"buffer-operation", "prepend"},
-		}, false)
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "prepend"},
+			}, false)
 
-		// Must be continued.
-		require.Equal(t, types.ActionContinue, action)
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
 
-		// Call OnRequestBody.
-		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
-		require.Equal(t, types.ActionContinue, action)
+			// Call OnRequestBody.
+			action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
 
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, `original request body: [original body]`)
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original request body: [original body]`)
 
-		// Check the final request body is the replaced one.
-		require.Equal(t, "[this is prepended body][original body]", string(host.GetCurrentRequestBody(id)))
-	})
+			// Check the final request body is the replaced one.
+			require.Equal(t, "[this is prepended body][original body]", string(host.GetCurrentRequestBody(id)))
+		})
 
-	t.Run("replace", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("replace", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestHeaders.
-		action := host.CallOnRequestHeaders(id, [][2]string{
-			{"content-length", "10"},
-			{"buffer-operation", "replace"},
-		}, false)
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "replace"},
+			}, false)
 
-		// Must be continued.
-		require.Equal(t, types.ActionContinue, action)
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
 
-		// Call OnRequestBody.
-		action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
-		require.Equal(t, types.ActionContinue, action)
+			// Call OnRequestBody.
+			action = host.CallOnRequestBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
 
-		// Check Envoy logs.
-		logs := host.GetInfoLogs()
-		require.Contains(t, logs, `original request body: [original body]`)
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original request body: [original body]`)
 
-		// Check the final request body is the replaced one.
-		require.Equal(t, "[this is replaced body]", string(host.GetCurrentRequestBody(id)))
+			// Check the final request body is the replaced one.
+			require.Equal(t, "[this is replaced body]", string(host.GetCurrentRequestBody(id)))
+		})
 	})
 }
 
 func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithVMContext(&vmContext{}).
-		WithPluginConfiguration([]byte("echo"))
-	host, reset := proxytest.NewHostEmulator(opt)
-	defer reset()
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
+		opt := proxytest.NewEmulatorOption().WithVMContext(vm).
+			WithPluginConfiguration([]byte("echo"))
+		host, reset := proxytest.NewHostEmulator(opt)
+		defer reset()
 
-	require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
+		require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
-	t.Run("pause until EOS", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("pause until EOS", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		// Call OnRequestBody.
-		action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
+			// Call OnRequestBody.
+			action := host.CallOnRequestBody(id, []byte("aaaa"), false /* end of stream */)
 
-		// Must be paused
-		require.Equal(t, types.ActionPause, action)
-	})
+			// Must be paused
+			require.Equal(t, types.ActionPause, action)
+		})
 
-	t.Run("echo request", func(t *testing.T) {
-		// Create http context.
-		id := host.InitializeHttpContext()
+		t.Run("echo request", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
 
-		for _, frame := range []string{"frame1...", "frame2..."} {
-			// Call OnRequestHeaders without "content-length"
-			action := host.CallOnRequestBody(id, []byte(frame), false /* end of stream */)
+			for _, frame := range []string{"frame1...", "frame2..."} {
+				// Call OnRequestHeaders without "content-length"
+				action := host.CallOnRequestBody(id, []byte(frame), false /* end of stream */)
+
+				// Must be paused.
+				require.Equal(t, types.ActionPause, action)
+			}
+
+			// End stream.
+			action := host.CallOnRequestBody(id, nil, true /* end of stream */)
 
 			// Must be paused.
 			require.Equal(t, types.ActionPause, action)
+
+			// Check the local response.
+			localResponse := host.GetSentLocalResponse(id)
+			require.NotNil(t, localResponse)
+			require.Equal(t, uint32(200), localResponse.StatusCode)
+			require.Equal(t, "frame1...frame2...", string(localResponse.Data))
+		})
+	})
+}
+
+func vmTest(t *testing.T, f func(*testing.T, types.VMContext)) {
+	t.Helper()
+
+	t.Run("go", func(t *testing.T) {
+		f(t, &vmContext{})
+	})
+
+	t.Run("wasm", func(t *testing.T) {
+		wasm, err := os.ReadFile("main.wasm")
+		if err != nil {
+			t.Skip("wasm not found")
 		}
-
-		// End stream.
-		action := host.CallOnRequestBody(id, nil, true /* end of stream */)
-
-		// Must be paused.
-		require.Equal(t, types.ActionPause, action)
-
-		// Check the local response.
-		localResponse := host.GetSentLocalResponse(id)
-		require.NotNil(t, localResponse)
-		require.Equal(t, uint32(200), localResponse.StatusCode)
-		require.Equal(t, "frame1...frame2...", string(localResponse.Data))
+		v, err := proxytest.NewWasmVMContext(wasm)
+		require.NoError(t, err)
+		defer v.Close()
+		f(t, v)
 	})
 }

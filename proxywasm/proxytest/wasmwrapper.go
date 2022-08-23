@@ -126,7 +126,8 @@ func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 
 // OnVMStart implements the same method on types.VMContext.
 func (v *vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	res, err := v.abi.proxyOnVMStart.Call(v.ctx, uint64(vmConfigurationSize))
+	rootContextID := uint64(0) // unused
+	res, err := v.abi.proxyOnVMStart.Call(v.ctx, rootContextID, uint64(vmConfigurationSize))
 	handleErr(err)
 	return res[0] == 1
 }
@@ -274,6 +275,9 @@ func wasmBytePtr(ctx context.Context, mod api.Module, off uint32, size uint32) *
 }
 
 func copyBytesToWasm(ctx context.Context, mod api.Module, hostPtr *byte, size int, wasmPtrPtr uint32, wasmSizePtr uint32) {
+	if size == 0 {
+		return
+	}
 	var hostSlice []byte
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&hostSlice))
 	hdr.Data = uintptr(unsafe.Pointer(hostPtr))

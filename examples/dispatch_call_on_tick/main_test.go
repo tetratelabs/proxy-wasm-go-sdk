@@ -19,7 +19,7 @@ import (
 )
 
 func TestPluginContext_OnTick(t *testing.T) {
-	vmTest(t, func(vm types.VMContext) {
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
 		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
 		host, reset := proxytest.NewHostEmulator(opt)
 		defer reset()
@@ -43,7 +43,7 @@ func TestPluginContext_OnTick(t *testing.T) {
 }
 
 func TestPluginContext_OnVMStart(t *testing.T) {
-	vmTest(t, func(vm types.VMContext) {
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
 		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
 		host, reset := proxytest.NewHostEmulator(opt)
 		defer reset()
@@ -54,11 +54,11 @@ func TestPluginContext_OnVMStart(t *testing.T) {
 	})
 }
 
-func vmTest(t *testing.T, f func(types.VMContext)) {
+func vmTest(t *testing.T, f func(*testing.T, types.VMContext)) {
 	t.Helper()
 
 	t.Run("go", func(t *testing.T) {
-		f(&vmContext{})
+		f(t, &vmContext{})
 	})
 
 	t.Run("wasm", func(t *testing.T) {
@@ -68,6 +68,7 @@ func vmTest(t *testing.T, f func(types.VMContext)) {
 		}
 		v, err := proxytest.NewWasmVMContext(wasm)
 		require.NoError(t, err)
-		f(v)
+		defer v.Close()
+		f(t, v)
 	})
 }
