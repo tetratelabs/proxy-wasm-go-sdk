@@ -436,10 +436,10 @@ Please refer to [an example](../examples/shared_queue) for demonstration.
 
 # Unit tests with testing framework
 
-This SDK contains the testing framework for unit testing Proxy-Wasm programs without actually running network proxies and with the official Go test toolchain. [proxytest](../proxywasm/proxytest) package implements the Envoy proxy emulator and can be used with "proxytest" build tag. That is, you can run tests just like you do when writing native programs:
+This SDK contains the testing framework for unit testing Proxy-Wasm programs without actually running network proxies and with the official Go test toolchain. [proxytest](../proxywasm/proxytest) package implements the Envoy proxy emulator. That is, you can run tests just like you do when writing native programs:
 
 ```
-go test -tags=proxytest ./...
+go test ./...
 ```
 
 Please refer to `main_test.go` files under [examples](../examples) directory for demonstrations.

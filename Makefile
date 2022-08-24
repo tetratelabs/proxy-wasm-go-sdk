@@ -9,13 +9,13 @@ build.examples:
 
 .PHONY: test
 test:
-	@go test -tags=proxytest $(shell go list ./... | grep -v e2e)
+	@go test $(shell go list ./... | grep -v e2e)
 
 .PHONY: test.examples
 test.examples:
 	@find ./examples -mindepth 1 -type f -name "main.go" \
 	| xargs -I {} bash -c 'dirname {}' \
-	| xargs -I {} bash -c 'cd {} && go test -tags=proxytest ./...'
+	| xargs -I {} bash -c 'cd {} && go test ./...'
 
 .PHONY: test.e2e
 test.e2e:
@@ -31,7 +31,7 @@ run:
 
 .PHONY: lint
 lint:
-	@go run $(golangci_lint) run --build-tags proxytest
+	@go run $(golangci_lint) run
 
 .PHONY: format
 format:
