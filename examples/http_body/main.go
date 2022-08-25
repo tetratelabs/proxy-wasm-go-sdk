@@ -69,12 +69,19 @@ type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
-	totalRequestBodySize int
-	bufferOperation      string
+	modifyResponse        bool
+	totalRequestBodySize  int
+	totalResponseBodySize int
+	bufferOperation       string
 }
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	mode, err := proxywasm.GetHttpRequestHeader("buffer-replace-at")
+	if mode == "response" {
+		ctx.modifyResponse = true
+	}
+
 	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
@@ -101,6 +108,10 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+	if ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
@@ -124,6 +135,54 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 	}
 	if err != nil {
 		proxywasm.LogErrorf("failed to %s request body: %v", ctx.bufferOperation, err)
+		return types.ActionContinue
+	}
+	return types.ActionContinue
+}
+
+// Override types.DefaultHttpContext.
+func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
+	if !ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
+	// Remove Content-Length in order to prevent severs from crashing if we set different body.
+	if err := proxywasm.RemoveHttpResponseHeader("content-length"); err != nil {
+		panic(err)
+	}
+
+	return types.ActionContinue
+}
+
+// Override types.DefaultHttpContext.
+func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
+	if !ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
+	ctx.totalResponseBodySize += bodySize
+	if !endOfStream {
+		// Wait until we see the entire body to replace.
+		return types.ActionPause
+	}
+
+	originalBody, err := proxywasm.GetHttpResponseBody(0, ctx.totalResponseBodySize)
+	if err != nil {
+		proxywasm.LogErrorf("failed to get response body: %v", err)
+		return types.ActionContinue
+	}
+	proxywasm.LogInfof("original response body: %s", string(originalBody))
+
+	switch ctx.bufferOperation {
+	case bufferOperationAppend:
+		err = proxywasm.AppendHttpResponseBody([]byte(`[this is appended body]`))
+	case bufferOperationPrepend:
+		err = proxywasm.PrependHttpResponseBody([]byte(`[this is prepended body]`))
+	case bufferOperationReplace:
+		err = proxywasm.ReplaceHttpResponseBody([]byte(`[this is replaced body]`))
+	}
+	if err != nil {
+		proxywasm.LogErrorf("failed to %s response body: %v", ctx.bufferOperation, err)
 		return types.ActionContinue
 	}
 	return types.ActionContinue

@@ -66,6 +66,7 @@ type HostEmulator interface {
 	GetCurrentRequestHeaders(contextID uint32) [][2]string
 	GetCurrentResponseHeaders(contextID uint32) [][2]string
 	GetCurrentRequestBody(contextID uint32) []byte
+	GetCurrentResponseBody(contextID uint32) []byte
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
 }
 
