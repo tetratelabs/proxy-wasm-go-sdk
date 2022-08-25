@@ -16,7 +16,7 @@ $ curl -XPUT localhost:18000 --data '[initial body]' -H "buffer-operation: repla
 
 To modify the response:
 ```
-****$ curl -XPUT localhost:18000 --data '[initial body]' -H "buffer-operation: prepend" -H "buffer-replace-at: response"
+$ curl -XPUT localhost:18000 --data '[initial body]' -H "buffer-operation: prepend" -H "buffer-replace-at: response"
 [this is prepended body][initial body]
 
 $ curl -XPUT localhost:18000 --data '[initial body]' -H "buffer-operation: append" -H "buffer-replace-at: response"
