@@ -7,6 +7,9 @@ on:
     branches:
       - main
 
+env:
+  TINYGO_VERSION: 0.25.0
+
 jobs:
   style:
     name: Code style check
@@ -44,8 +47,6 @@ jobs:
   examples:
     name: Build examples
     runs-on: ubuntu-latest
-    container:
-      image: tinygo/tinygo:0.24.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -58,15 +59,17 @@ jobs:
           key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.24.0
 
       - name: Install Go
-        if: steps.cache-built-examples.outputs.cache-hit != 'true'
         uses: actions/setup-go@v3
         with:
           go-version: '1.18'
 
-      # TinyGo's release container does not have Make command.
-      - name: Install Make
-        if: steps.cache-built-examples.outputs.cache-hit != 'true'
-        run: apt install make
+      - name: Install TinyGo
+        run: |
+          gh release download v${TINYGO_VERSION} -p '*.linux-amd64.tar.gz' -D ~ -R github.com/tinygo-org/tinygo
+          tar -xf ~/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz  -C $HOME
+          echo "$HOME/tinygo/bin" >> $GITHUB_PATH
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build examples
         if: steps.cache-built-examples.outputs.cache-hit != 'true'
