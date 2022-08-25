@@ -26,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,13 +61,15 @@ func startEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func())
 	buf := new(bytes.Buffer)
 	cmd.Stderr = buf
 	require.NoError(t, cmd.Start())
-	require.Eventually(t, func() bool {
+	if !assert.Eventually(t, func() bool {
 		res, err := http.Get(fmt.Sprintf("http://localhost:%d/listeners", adminPort))
 		if err != nil {
 			return false
 		}
 		defer res.Body.Close()
 		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started:\n"+buf.String())
+	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started:\n") {
+		t.Fatalf("envoy stderr: %s", buf.String())
+	}
 	return buf, func() { require.NoError(t, cmd.Process.Kill()) }
 }
