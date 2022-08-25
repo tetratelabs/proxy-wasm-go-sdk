@@ -56,7 +56,7 @@ jobs:
         id: cache-built-examples
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-0.24.0
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-${{ env.TINYGO_VERSION }}
 
       - name: Install Go
         uses: actions/setup-go@v3
