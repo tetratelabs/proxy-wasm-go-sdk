@@ -58,7 +58,7 @@ func (h *httpHostEmulator) httpHostEmulatorProxyGetBufferBytes(bt internal.Buffe
 	case internal.BufferTypeHttpRequestBody:
 		buf = stream.requestBody
 	case internal.BufferTypeHttpResponseBody:
-		buf = stream.requestBody
+		buf = stream.responseBody
 	default:
 		panic("unreachable: maybe a bug in this host emulation or SDK")
 	}
@@ -465,6 +465,15 @@ func (h *httpHostEmulator) GetCurrentRequestBody(contextID uint32) []byte {
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 	return stream.requestBody
+}
+
+// impl HostEmulator
+func (h *httpHostEmulator) GetCurrentResponseBody(contextID uint32) []byte {
+	stream, ok := h.httpStreams[contextID]
+	if !ok {
+		log.Fatalf("invalid context id: %d", contextID)
+	}
+	return stream.responseBody
 }
 
 // impl HostEmulator

@@ -69,8 +69,9 @@ type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
-	totalRequestBodySize int
-	bufferOperation      string
+	totalRequestBodySize  int
+	totalResponseBodySize int
+	bufferOperation       string
 }
 
 // Override types.DefaultHttpContext.
@@ -124,6 +125,36 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 	}
 	if err != nil {
 		proxywasm.LogErrorf("failed to %s request body: %v", ctx.bufferOperation, err)
+		return types.ActionContinue
+	}
+	return types.ActionContinue
+}
+
+// Override types.DefaultHttpContext.
+func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
+	ctx.totalResponseBodySize += bodySize
+	if !endOfStream {
+		// Wait until we see the entire body to replace.
+		return types.ActionPause
+	}
+
+	originalBody, err := proxywasm.GetHttpResponseBody(0, ctx.totalResponseBodySize)
+	if err != nil {
+		proxywasm.LogErrorf("failed to get response body: %v", err)
+		return types.ActionContinue
+	}
+	proxywasm.LogInfof("original response body: %s", string(originalBody))
+
+	switch ctx.bufferOperation {
+	case bufferOperationAppend:
+		err = proxywasm.AppendHttpResponseBody([]byte(`[this is appended body]`))
+	case bufferOperationPrepend:
+		err = proxywasm.PrependHttpResponseBody([]byte(`[this is prepended body]`))
+	case bufferOperationReplace:
+		err = proxywasm.ReplaceHttpResponseBody([]byte(`[this is replaced body]`))
+	}
+	if err != nil {
+		proxywasm.LogErrorf("failed to %s response body: %v", ctx.bufferOperation, err)
 		return types.ActionContinue
 	}
 	return types.ActionContinue

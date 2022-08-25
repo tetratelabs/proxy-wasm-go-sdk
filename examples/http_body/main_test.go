@@ -155,6 +155,100 @@ func TestSetBodyContext_OnHttpRequestBody(t *testing.T) {
 	})
 }
 
+func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
+	vmTest(t, func(t *testing.T, vm types.VMContext) {
+		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
+		host, reset := proxytest.NewHostEmulator(opt)
+		defer reset()
+
+		t.Run("pause until EOS", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
+
+			// Call OnResponseBody.
+			action := host.CallOnResponseBody(id, []byte("aaaa"), false /* end of stream */)
+
+			// Must be paused
+			require.Equal(t, types.ActionPause, action)
+		})
+
+		t.Run("append", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
+
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "append"},
+			}, false)
+
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
+
+			// Call OnResponseBody.
+			action = host.CallOnResponseBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
+
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original response body: [original body]`)
+
+			// Check the final response body is the replaced one.
+			require.Equal(t, "[original body][this is appended body]", string(host.GetCurrentResponseBody(id)))
+		})
+
+		t.Run("prepend", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
+
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "prepend"},
+			}, false)
+
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
+
+			// Call OnRequestBody.
+			action = host.CallOnResponseBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
+
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original response body: [original body]`)
+
+			// Check the final request body is the replaced one.
+			require.Equal(t, "[this is prepended body][original body]", string(host.GetCurrentResponseBody(id)))
+		})
+
+		t.Run("replace", func(t *testing.T) {
+			// Create http context.
+			id := host.InitializeHttpContext()
+
+			// Call OnRequestHeaders.
+			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"content-length", "10"},
+				{"buffer-operation", "replace"},
+			}, false)
+
+			// Must be continued.
+			require.Equal(t, types.ActionContinue, action)
+
+			// Call OnRequestBody.
+			action = host.CallOnResponseBody(id, []byte(`[original body]`), true)
+			require.Equal(t, types.ActionContinue, action)
+
+			// Check Envoy logs.
+			logs := host.GetInfoLogs()
+			require.Contains(t, logs, `original response body: [original body]`)
+
+			// Check the final request body is the replaced one.
+			require.Equal(t, "[this is replaced body]", string(host.GetCurrentResponseBody(id)))
+		})
+	})
+}
+
 func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
 	vmTest(t, func(t *testing.T, vm types.VMContext) {
 		opt := proxytest.NewEmulatorOption().WithVMContext(vm).
