@@ -131,6 +131,16 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 }
 
 // Override types.DefaultHttpContext.
+func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
+	// Remove Content-Length in order to prevent severs from crashing if we set different body.
+	if err := proxywasm.RemoveHttpRequestHeader("content-length"); err != nil {
+		panic(err)
+	}
+
+	return types.ActionContinue
+}
+
+// Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
 	ctx.totalResponseBodySize += bodySize
 	if !endOfStream {
