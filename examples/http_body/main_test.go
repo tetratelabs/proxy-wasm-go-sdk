@@ -161,23 +161,13 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 		host, reset := proxytest.NewHostEmulator(opt)
 		defer reset()
 
-		t.Run("pause until EOS", func(t *testing.T) {
-			// Create http context.
-			id := host.InitializeHttpContext()
-
-			// Call OnResponseBody.
-			action := host.CallOnResponseBody(id, []byte("aaaa"), false /* end of stream */)
-
-			// Must be paused
-			require.Equal(t, types.ActionPause, action)
-		})
-
 		t.Run("append", func(t *testing.T) {
 			// Create http context.
 			id := host.InitializeHttpContext()
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"plugin-mode", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "append"},
 			}, false)
@@ -203,6 +193,7 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"plugin-mode", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "prepend"},
 			}, false)
@@ -228,6 +219,7 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
+				{"plugin-mode", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "replace"},
 			}, false)

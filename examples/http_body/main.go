@@ -69,6 +69,7 @@ type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
+	modifyResponse        bool
 	totalRequestBodySize  int
 	totalResponseBodySize int
 	bufferOperation       string
@@ -76,6 +77,11 @@ type setBodyContext struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	mode, err := proxywasm.GetHttpRequestHeader("plugin-mode")
+	if mode == "response" {
+		ctx.modifyResponse = true
+	}
+
 	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
@@ -102,6 +108,10 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
+	if ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
@@ -132,6 +142,10 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
+	if !ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
 	// Remove Content-Length in order to prevent severs from crashing if we set different body.
 	if err := proxywasm.RemoveHttpResponseHeader("content-length"); err != nil {
 		panic(err)
@@ -142,6 +156,10 @@ func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream boo
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
+	if !ctx.modifyResponse {
+		return types.ActionContinue
+	}
+
 	ctx.totalResponseBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
