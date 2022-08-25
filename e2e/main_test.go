@@ -68,7 +68,7 @@ func startEnvoy(t *testing.T, adminPort int) (stdErr *bytes.Buffer, kill func())
 		}
 		defer res.Body.Close()
 		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started:\n") {
+	}, 5*time.Second, 100*time.Millisecond, "Envoy has not started") {
 		t.Fatalf("envoy stderr: %s", buf.String())
 	}
 	return buf, func() { require.NoError(t, cmd.Process.Kill()) }
