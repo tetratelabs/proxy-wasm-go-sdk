@@ -95,8 +95,8 @@ func Test_http_body(t *testing.T) {
 	for _, tc := range []struct {
 		op, expBody string
 	}{
-		{op: "append", expBody: `[original body][this is appended body]`},
-		{op: "prepend", expBody: `[this is prepended body][original body]`},
+		{op: "append", expBody: `[original body][this is appended body][this is appended body]`},
+		{op: "prepend", expBody: `[this is prepended body][this is prepended body][original body]`},
 		{op: "replace", expBody: `[this is replaced body]`},
 		// Should fall back to to the replace.
 		{op: "invalid", expBody: `[this is replaced body]`},
