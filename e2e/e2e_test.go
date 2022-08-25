@@ -106,6 +106,7 @@ func Test_http_body(t *testing.T) {
 				// Should fall back to to the replace.
 				{op: "invalid", expBody: `[this is replaced body]`},
 			} {
+				tc := tc
 				t.Run(tc.op, func(t *testing.T) {
 					require.Eventually(t, func() bool {
 						req, err := http.NewRequest("PUT", "http://localhost:18000/anything",
