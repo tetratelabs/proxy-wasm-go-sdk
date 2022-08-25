@@ -119,7 +119,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-tinygo-${{ env.TINYGO_VERSION }}
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-${{ env.TINYGO_VERSION }}
 
       - name: Run e2e test
         run: make test.e2e
