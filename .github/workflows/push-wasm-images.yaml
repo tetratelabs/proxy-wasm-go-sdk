@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+env:
+  TINYGO_VERSION: 0.25.0
 
 jobs:
   build-and-push-wasm-images:
@@ -16,8 +18,8 @@ jobs:
 
       - name: Install TinyGo
         run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/v0.24.0/tinygo_0.24.0_amd64.deb
-          sudo dpkg -i tinygo_0.24.0_amd64.deb
+          wget https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.deb
+          sudo dpkg -i tinygo_${TINYGO_VERSION}_amd64.deb
 
       - name: Checkout
         uses: actions/checkout@v3
