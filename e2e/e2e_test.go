@@ -101,7 +101,7 @@ func Test_http_body(t *testing.T) {
 				op, expBody string
 			}{
 				{op: "append", expBody: `[original body][this is appended body]`},
-				{op: "prepend", expBody: `[this is prepended body][this is prepended body]`},
+				{op: "prepend", expBody: `[this is prepended body][original body]`},
 				{op: "replace", expBody: `[this is replaced body]`},
 				// Should fall back to to the replace.
 				{op: "invalid", expBody: `[this is replaced body]`},
@@ -111,7 +111,7 @@ func Test_http_body(t *testing.T) {
 						req, err := http.NewRequest("PUT", "http://localhost:18000/anything",
 							bytes.NewBuffer([]byte(`[original body]`)))
 						require.NoError(t, err)
-						req.Header.Add("plugin-mode", mode)
+						req.Header.Add("buffer-replace-at", mode)
 						req.Header.Add("buffer-operation", tc.op)
 						res, err := http.DefaultClient.Do(req)
 						if err != nil {

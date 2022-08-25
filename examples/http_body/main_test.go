@@ -167,7 +167,7 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
-				{"plugin-mode", "response"},
+				{"buffer-replace-at", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "append"},
 			}, false)
@@ -193,7 +193,7 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
-				{"plugin-mode", "response"},
+				{"buffer-replace-at", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "prepend"},
 			}, false)
@@ -219,7 +219,7 @@ func TestSetBodyContext_OnHttpResponseBody(t *testing.T) {
 
 			// Call OnRequestHeaders.
 			action := host.CallOnRequestHeaders(id, [][2]string{
-				{"plugin-mode", "response"},
+				{"buffer-replace-at", "response"},
 				{"content-length", "10"},
 				{"buffer-operation", "replace"},
 			}, false)

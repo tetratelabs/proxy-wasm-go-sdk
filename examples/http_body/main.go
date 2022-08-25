@@ -77,7 +77,7 @@ type setBodyContext struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	mode, err := proxywasm.GetHttpRequestHeader("plugin-mode")
+	mode, err := proxywasm.GetHttpRequestHeader("buffer-replace-at")
 	if mode == "response" {
 		ctx.modifyResponse = true
 	}
