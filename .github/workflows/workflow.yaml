@@ -95,7 +95,7 @@ jobs:
         run: make test.examples
 
       - name: Install Envoy
-        run:
+        run: |
           export ENVOY_BIN_DIR=$HOME/envoy/bin
           mkdir -p $ENVOY_BIN_DIR
           docker run -v $ENVOY_BIN_DIR:/tmp/proxy-wasm-go-sdk -w /tmp/proxy-wasm-go-sdk \
