@@ -45,7 +45,22 @@ jobs:
         run: make test
 
   examples:
-    name: Build examples
+    name: Examples (${{ matrix.envoy-image }})
+    strategy:
+      fail-fast: false
+      matrix:
+        envoy-image: [
+          "envoyproxy/envoy-dev:latest",
+          "envoyproxy/envoy:v1.19-latest",
+          "envoyproxy/envoy:v1.20-latest",
+          "envoyproxy/envoy:v1.21-latest",
+          "envoyproxy/envoy:v1.22-latest",
+          "envoyproxy/envoy:v1.23-latest",
+          "istio/proxyv2:1.11.7",
+          "istio/proxyv2:1.12.4",
+          "istio/proxyv2:1.13.1",
+          "istio/proxyv2:1.14.0",
+        ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -53,10 +68,12 @@ jobs:
 
       - name: Cache built examples
         uses: actions/cache@v3
-        id: cache-built-examples
         with:
-          path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-${{ env.TINYGO_VERSION }}
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-v${{ env.TINYGO_VERSION }}
 
       - name: Install Go
         uses: actions/setup-go@v3
@@ -72,59 +89,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build examples
-        if: steps.cache-built-examples.outputs.cache-hit != 'true'
         run: make build.examples
 
       - name: Test examples
         run: make test.examples
 
-  e2e-tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        image: [
-          "envoyproxy/envoy-dev:latest",
-          "envoyproxy/envoy:v1.19-latest",
-          "envoyproxy/envoy:v1.20-latest",
-          "envoyproxy/envoy:v1.21-latest",
-          "envoyproxy/envoy:v1.22-latest",
-          "envoyproxy/envoy:v1.23-latest",
-          "istio/proxyv2:1.11.7",
-          "istio/proxyv2:1.12.4",
-          "istio/proxyv2:1.13.1",
-          "istio/proxyv2:1.14.0",
-        ]
-    name: E2E Test (${{ matrix.image }})
-    needs: [examples]
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ matrix.image }}
-      options: --privileged
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.18'
-
-      - name: Print Envoy version
-        run: envoy --version
-
-      - name: Install Make
-        run: apt update && apt install make
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Fetch built examples
-        uses: actions/cache@v3
-        with:
-          path: examples
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-${{ env.TINYGO_VERSION }}
+      - name: Install Envoy
+        run:
+          export ENVOY_BIN_DIR=$HOME/envoy/bin
+          mkdir -p $ENVOY_BIN_DIR
+          docker run -v $ENVOY_BIN_DIR:/tmp/proxy-wasm-go-sdk -w /tmp/proxy-wasm-go-sdk \
+            --entrypoint /bin/cp ${{ matrix.image }} /usr/local/bin/envoy .
+          echo $ENVOY_BIN_DIR >> $GITHUB_PATH
 
       - name: Run e2e test
         run: make test.e2e
-        env:
-          # Explicitly disable CGO even though we don't use it anywhere. 
-          # That is because envoy containers do not have GCC installed
-          # plus CGO is enbaled by default, which results in build error.
-          CGO_ENABLED: "0"
