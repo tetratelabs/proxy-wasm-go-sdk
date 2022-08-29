@@ -409,6 +409,10 @@ func (h *httpHostEmulator) CallOnRequestBody(contextID uint32, body []byte, endO
 	cs.requestBody = append(cs.requestBody, body...)
 	cs.action = internal.ProxyOnRequestBody(contextID,
 		len(body), endOfStream)
+	if cs.action == types.ActionContinue {
+		// Buffering not requested
+		cs.requestBody = nil
+	}
 	return cs.action
 }
 
@@ -419,9 +423,13 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseBody = body
+	cs.responseBody = append(cs.responseBody, body...)
 	cs.action = internal.ProxyOnResponseBody(contextID,
 		len(body), endOfStream)
+	if cs.action == types.ActionContinue {
+		// Buffering not requested
+		cs.responseBody = nil
+	}
 	return cs.action
 }
 
