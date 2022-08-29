@@ -66,14 +66,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Cache built examples
+      - name: Build cache
         uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
+            ~/.cache/tinygo
             ~/go/pkg/mod
             ~/go/bin
-          key: examples-${{ hashFiles('examples/**', 'proxywasm/**', 'Makefile') }}-v${{ env.TINYGO_VERSION }}
+          key: examples-${{ hashFiles('**/go.mod', '**/go.sum') }}-v${{ env.TINYGO_VERSION }}
 
       - name: Install Go
         uses: actions/setup-go@v3
