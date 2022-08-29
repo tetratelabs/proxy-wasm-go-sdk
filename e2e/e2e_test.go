@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,7 +109,7 @@ func Test_http_body(t *testing.T) {
 			} {
 				tc := tc
 				t.Run(tc.op, func(t *testing.T) {
-					require.Eventually(t, func() bool {
+					if !assert.Eventually(t, func() bool {
 						req, err := http.NewRequest("PUT", "http://localhost:18000/anything",
 							bytes.NewBuffer([]byte(`[original body]`)))
 						require.NoError(t, err)
@@ -127,7 +128,9 @@ func Test_http_body(t *testing.T) {
 							[]string{"failed to"},
 						))
 						return true
-					}, 5*time.Second, 500*time.Millisecond, stdErr.String())
+					}, 5*time.Second, 500*time.Millisecond) {
+						t.Fatalf("envoy log: %s", stdErr.String())
+					}
 				})
 			}
 		})

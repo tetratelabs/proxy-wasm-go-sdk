@@ -5,7 +5,7 @@ on:
       - main
   push:
     branches:
-      - main
+      - testaaaa
 
 env:
   TINYGO_VERSION: 0.25.0
