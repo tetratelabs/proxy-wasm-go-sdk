@@ -121,13 +121,11 @@ func Test_http_body(t *testing.T) {
 						defer res.Body.Close()
 						body, err := io.ReadAll(res.Body)
 						require.NoError(t, err)
-						require.Equal(t, tc.expBody, string(body))
-						require.True(t, checkMessage(stdErr.String(), []string{
+						return tc.expBody == string(body) && checkMessage(stdErr.String(), []string{
 							fmt.Sprintf(`original %s body: [original body]`, mode)},
 							[]string{"failed to"},
-						))
-						return true
-					}, 10*time.Second, 500*time.Millisecond, stdErr.String())
+						)
+					}, 5*time.Second, 500*time.Millisecond)
 				})
 			}
 		})
