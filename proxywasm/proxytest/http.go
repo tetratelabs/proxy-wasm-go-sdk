@@ -27,10 +27,17 @@ type (
 		httpStreams map[uint32]*httpStreamState
 	}
 	httpStreamState struct {
-		requestHeaders, responseHeaders       [][2]string
-		requestTrailers, responseTrailers     [][2]string
+		requestHeaders, responseHeaders   [][2]string
+		requestTrailers, responseTrailers [][2]string
+
+		// bodyBuffer keeps the body read so far when plugins request buffering
+		// by returning types.ActionPause. Buffers are cleared when types.ActionContinue
+		// is returned.
 		requestBodyBuffer, responseBodyBuffer []byte
-		requestBody, responseBody             []byte
+		// body is the body visible to the plugin, which will include anything
+		// in its bodyBuffer as well. If types.ActionContinue is returned, the
+		// content of body is sent to the upstream or downstream.
+		requestBody, responseBody []byte
 
 		action            types.Action
 		sentLocalResponse *LocalHttpResponse
