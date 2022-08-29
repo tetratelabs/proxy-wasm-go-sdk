@@ -29,7 +29,15 @@ type (
 	httpStreamState struct {
 		requestHeaders, responseHeaders   [][2]string
 		requestTrailers, responseTrailers [][2]string
-		requestBody, responseBody         []byte
+
+		// bodyBuffer keeps the body read so far when plugins request buffering
+		// by returning types.ActionPause. Buffers are cleared when types.ActionContinue
+		// is returned.
+		requestBodyBuffer, responseBodyBuffer []byte
+		// body is the body visible to the plugin, which will include anything
+		// in its bodyBuffer as well. If types.ActionContinue is returned, the
+		// content of body is sent to the upstream or downstream.
+		requestBody, responseBody []byte
 
 		action            types.Action
 		sentLocalResponse *LocalHttpResponse
@@ -406,9 +414,15 @@ func (h *httpHostEmulator) CallOnRequestBody(contextID uint32, body []byte, endO
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestBody = append(cs.requestBody, body...)
+	cs.requestBody = append(cs.requestBodyBuffer, body...)
 	cs.action = internal.ProxyOnRequestBody(contextID,
 		len(body), endOfStream)
+	if cs.action == types.ActionPause {
+		// Buffering requested
+		cs.requestBodyBuffer = cs.requestBody
+	} else {
+		cs.requestBodyBuffer = nil
+	}
 	return cs.action
 }
 
@@ -419,9 +433,15 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseBody = body
+	cs.responseBody = append(cs.responseBodyBuffer, body...)
 	cs.action = internal.ProxyOnResponseBody(contextID,
 		len(body), endOfStream)
+	if cs.action == types.ActionPause {
+		// Buffering requested
+		cs.responseBodyBuffer = cs.responseBody
+	} else {
+		cs.responseBodyBuffer = nil
+	}
 	return cs.action
 }
 
