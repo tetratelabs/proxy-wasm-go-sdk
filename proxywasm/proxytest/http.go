@@ -27,9 +27,10 @@ type (
 		httpStreams map[uint32]*httpStreamState
 	}
 	httpStreamState struct {
-		requestHeaders, responseHeaders   [][2]string
-		requestTrailers, responseTrailers [][2]string
-		requestBody, responseBody         []byte
+		requestHeaders, responseHeaders       [][2]string
+		requestTrailers, responseTrailers     [][2]string
+		requestBodyBuffer, responseBodyBuffer []byte
+		requestBody, responseBody             []byte
 
 		action            types.Action
 		sentLocalResponse *LocalHttpResponse
@@ -406,12 +407,14 @@ func (h *httpHostEmulator) CallOnRequestBody(contextID uint32, body []byte, endO
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.requestBody = append(cs.requestBody, body...)
+	cs.requestBody = append(cs.requestBodyBuffer, body...)
 	cs.action = internal.ProxyOnRequestBody(contextID,
 		len(body), endOfStream)
-	if cs.action == types.ActionContinue {
-		// Buffering not requested
-		cs.requestBody = nil
+	if cs.action == types.ActionPause {
+		// Buffering requested
+		cs.requestBodyBuffer = cs.requestBody
+	} else {
+		cs.requestBodyBuffer = nil
 	}
 	return cs.action
 }
@@ -423,12 +426,14 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 		log.Fatalf("invalid context id: %d", contextID)
 	}
 
-	cs.responseBody = append(cs.responseBody, body...)
+	cs.responseBody = append(cs.responseBodyBuffer, body...)
 	cs.action = internal.ProxyOnResponseBody(contextID,
 		len(body), endOfStream)
-	if cs.action == types.ActionContinue {
-		// Buffering not requested
-		cs.responseBody = nil
+	if cs.action == types.ActionPause {
+		// Buffering requested
+		cs.responseBodyBuffer = cs.responseBody
+	} else {
+		cs.responseBodyBuffer = nil
 	}
 	return cs.action
 }
