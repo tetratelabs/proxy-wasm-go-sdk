@@ -127,7 +127,7 @@ func Test_http_body(t *testing.T) {
 							[]string{"failed to"},
 						))
 						return true
-					}, 5*time.Second, 500*time.Millisecond, stdErr.String())
+					}, 10*time.Second, 500*time.Millisecond, stdErr.String())
 				})
 			}
 		})

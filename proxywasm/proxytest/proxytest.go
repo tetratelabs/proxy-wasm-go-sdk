@@ -28,8 +28,6 @@ import (
 // methods in the plugin or return state about the host itself, reflecting any changes from previous
 // plugin invocations.
 type HostEmulator interface {
-	// Root
-
 	// StartVM executes types.VMContext.OnVMStart in the plugin.
 	StartVM() types.OnVMStartStatus
 	// StartPlugin executes types.PluginContext.OnPluginStart in the plugin.
@@ -68,8 +66,6 @@ type HostEmulator interface {
 	// RegisterForeignFunction registers the foreign function in the host.
 	RegisterForeignFunction(name string, f func([]byte) []byte)
 
-	// network
-
 	// InitializeConnection executes types.TcpContext.OnNewConnection in the plugin.
 	InitializeConnection() (contextID uint32, action types.Action)
 	// CallOnUpstreamData executes types.TcpContext.OnUpstreamData in the plugin.
@@ -82,8 +78,6 @@ type HostEmulator interface {
 	CloseDownstreamConnection(contextID uint32)
 	// CompleteConnection executes types.TcpContext.OnStreamDone in the plugin.
 	CompleteConnection(contextID uint32)
-
-	// http
 
 	// InitializeHttpContext executes types.PluginContext.NewHttpContext in the plugin.
 	InitializeHttpContext() (contextID uint32)
