@@ -25,14 +25,17 @@ type testHttpContext struct {
 	buffered bool
 }
 
+// NewPluginContext implements the same method on types.VMContext.
 func (p *testPlugin) NewPluginContext(uint32) types.PluginContext {
 	return &testPluginContext{buffered: p.buffered}
 }
 
+// NewPluginContext implements the same method on types.PluginContext.
 func (p *testPluginContext) NewHttpContext(uint32) types.HttpContext {
 	return &testHttpContext{buffered: p.buffered}
 }
 
+// OnHttpRequestBody implements the same method on types.HttpContext.
 func (h *testHttpContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	if !endOfStream {
 		if h.buffered {
@@ -51,6 +54,7 @@ func (h *testHttpContext) OnHttpRequestBody(bodySize int, endOfStream bool) type
 	return types.ActionContinue
 }
 
+// OnHttpResponseBody implements the same method on types.HttpContext.
 func (h *testHttpContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
 	if !endOfStream {
 		if h.buffered {
