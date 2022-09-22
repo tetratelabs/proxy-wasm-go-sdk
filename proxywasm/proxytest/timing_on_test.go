@@ -6,55 +6,137 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-type noopPlugin struct {
+type timedPlugin struct {
 	types.DefaultVMContext
 	tcp bool
 }
 
 // NewPluginContext implements the same method on types.DefaultVMContext.
-func (p *noopPlugin) NewPluginContext(uint32) types.PluginContext {
-	return &noopPluginContext{tcp: p.tcp}
+func (p *timedPlugin) NewPluginContext(uint32) types.PluginContext {
+	time.Sleep(1 * time.Millisecond)
+	return &timedPluginContext{tcp: p.tcp}
 }
 
-type noopPluginContext struct {
+type timedPluginContext struct {
 	types.DefaultPluginContext
 	tcp bool
 }
 
+// OnPluginStart implements the same method on types.PluginContext.
+func (p *timedPluginContext) OnPluginStart(int) types.OnPluginStartStatus {
+	time.Sleep(1 * time.Millisecond)
+	return true
+}
+
 // NewHttpContext implements the same method on types.DefaultPluginContext.
-func (p *noopPluginContext) NewHttpContext(uint32) types.HttpContext {
+func (p *timedPluginContext) NewHttpContext(uint32) types.HttpContext {
+	time.Sleep(1 * time.Millisecond)
 	if !p.tcp {
-		return &noopHttpContext{}
+		return &timedHttpContext{}
 	}
 	return nil
 }
 
 // NewTcpContext implements the same method on types.DefaultPluginContext.
-func (p *noopPluginContext) NewTcpContext(uint32) types.TcpContext {
+func (p *timedPluginContext) NewTcpContext(uint32) types.TcpContext {
+	time.Sleep(1 * time.Millisecond)
 	if p.tcp {
-		return &noopTcpContext{}
+		return &timedTcpContext{}
 	}
 	return nil
 }
 
-type noopHttpContext struct {
-	types.DefaultHttpContext
+type timedHttpContext struct {
 }
 
-type noopTcpContext struct {
-	types.DefaultTcpContext
+// OnHttpRequestHeaders implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpRequestBody implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpRequestBody(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpRequestTrailers implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpRequestTrailers(int) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpResponseHeaders implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpResponseHeaders(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpResponseBody implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpResponseBody(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpResponseTrailers implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpResponseTrailers(int) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnHttpStreamDone implements the same method on types.HttpContext.
+func (c *timedHttpContext) OnHttpStreamDone() {
+	time.Sleep(1 * time.Millisecond)
+}
+
+type timedTcpContext struct {
+}
+
+// OnNewConnection implements the same method on types.TcpContext.
+func (t timedTcpContext) OnNewConnection() types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnDownstreamData implements the same method on types.TcpContext.
+func (t timedTcpContext) OnDownstreamData(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnDownstreamClose implements the same method on types.TcpContext.
+func (t timedTcpContext) OnDownstreamClose(types.PeerType) {
+	time.Sleep(1 * time.Millisecond)
+}
+
+// OnUpstreamData implements the same method on types.TcpContext.
+func (t timedTcpContext) OnUpstreamData(int, bool) types.Action {
+	time.Sleep(1 * time.Millisecond)
+	return types.ActionContinue
+}
+
+// OnUpstreamClose implements the same method on types.TcpContext.
+func (t timedTcpContext) OnUpstreamClose(types.PeerType) {
+	time.Sleep(1 * time.Millisecond)
+}
+
+// OnStreamDone implements the same method on types.TcpContext.
+func (t timedTcpContext) OnStreamDone() {
+	time.Sleep(1 * time.Millisecond)
 }
 
 // Execute lifecycle methods, there should be logs for the no-op plugin.
 func TestTimingOn(t *testing.T) {
 	t.Run("http", func(t *testing.T) {
-		host, reset := NewHostEmulator(NewEmulatorOption().WithVMContext(&noopPlugin{}))
+		host, reset := NewHostEmulator(NewEmulatorOption().WithVMContext(&timedPlugin{}))
 		defer reset()
 
 		require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
@@ -83,7 +165,7 @@ func TestTimingOn(t *testing.T) {
 	})
 
 	t.Run("tcp", func(t *testing.T) {
-		host, reset := NewHostEmulator(NewEmulatorOption().WithVMContext(&noopPlugin{tcp: true}))
+		host, reset := NewHostEmulator(NewEmulatorOption().WithVMContext(&timedPlugin{tcp: true}))
 		defer reset()
 
 		require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
@@ -111,7 +193,8 @@ func requireLogged(t *testing.T, msg string, logs []string) {
 	for _, l := range logs {
 		if re.MatchString(l) {
 			// While we can't make reliable assertions on the actual time took, it is inconceivable to have a time of
-			// 0, though bugs like forgetting "defer" might cause it. So do a special check for it.
+			// 0 since we add a small sleep in each function, while bugs like forgetting "defer" might cause it. So do
+			// a special check for it.
 			require.NotContains(t, l, "took 0s")
 			return
 		}
