@@ -62,6 +62,9 @@ func Test_proxyOnVMStart(t *testing.T) {
 	require.True(t, vmContext.onVMStartCalled)
 	require.Equal(t, uint32(0), currentState.activeContextID)
 
+	// Allocate memory
+	require.NotNil(t, proxyOnMemoryAllocate(100))
+
 	// Create plugin context.
 	pluginContextID := uint32(100)
 	proxyOnContextCreate(pluginContextID, 0)

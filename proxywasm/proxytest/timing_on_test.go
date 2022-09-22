@@ -5,6 +5,7 @@ package proxytest
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -110,8 +111,13 @@ func requireLogged(t *testing.T, msg string, logs []string) {
 	re := regexp.MustCompile(fmt.Sprintf(`%s took \d+`, msg))
 	for _, l := range logs {
 		if re.MatchString(l) {
+			// While we can't make reliable assertions on the actual time took, it is inconceivable to have a time of
+			// 0, though bugs like forgetting "defer" might cause it. So do a special check for it.
+			if strings.Contains(l, "took 0s") {
+				require.Fail(t, "unexpected log", "times should be non-zero: %s", l)
+			}
 			return
 		}
 	}
-	require.Failf(t, "expected log", "expected log %s, got %v", msg, logs)
+	require.Failf(t, "unexpected log", "expected log %s, got %v", msg, logs)
 }

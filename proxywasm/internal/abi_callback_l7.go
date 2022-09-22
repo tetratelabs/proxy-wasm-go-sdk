@@ -23,7 +23,7 @@ import (
 //export proxy_on_request_headers
 func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
 	if recordTiming {
-		logTiming("proxyOnRequestHeaders", time.Now())
+		defer logTiming("proxyOnRequestHeaders", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -37,7 +37,7 @@ func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) t
 //export proxy_on_request_body
 func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
 	if recordTiming {
-		logTiming("proxyOnRequestBody", time.Now())
+		defer logTiming("proxyOnRequestBody", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -50,7 +50,7 @@ func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.
 //export proxy_on_request_trailers
 func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 	if recordTiming {
-		logTiming("proxyOnRequestTrailers", time.Now())
+		defer logTiming("proxyOnRequestTrailers", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -63,7 +63,7 @@ func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 //export proxy_on_response_headers
 func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
 	if recordTiming {
-		logTiming("proxyOnResponseHeaders", time.Now())
+		defer logTiming("proxyOnResponseHeaders", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -76,7 +76,7 @@ func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) 
 //export proxy_on_response_body
 func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
 	if recordTiming {
-		logTiming("proxyOnResponseBody", time.Now())
+		defer logTiming("proxyOnResponseBody", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -89,7 +89,7 @@ func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types
 //export proxy_on_response_trailers
 func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 	if recordTiming {
-		logTiming("proxyOnResponseTrailers", time.Now())
+		defer logTiming("proxyOnResponseTrailers", time.Now())
 	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
@@ -102,7 +102,7 @@ func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 //export proxy_on_http_call_response
 func proxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
 	if recordTiming {
-		logTiming("proxyOnHttpCallResponse", time.Now())
+		defer logTiming("proxyOnHttpCallResponse", time.Now())
 	}
 	root, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {

@@ -23,7 +23,7 @@ import (
 //export proxy_on_vm_start
 func proxyOnVMStart(_ uint32, vmConfigurationSize int) types.OnVMStartStatus {
 	if recordTiming {
-		logTiming("proxyOnVMStart", time.Now())
+		defer logTiming("proxyOnVMStart", time.Now())
 	}
 	return currentState.vmContext.OnVMStart(vmConfigurationSize)
 }
@@ -31,7 +31,7 @@ func proxyOnVMStart(_ uint32, vmConfigurationSize int) types.OnVMStartStatus {
 //export proxy_on_configure
 func proxyOnConfigure(pluginContextID uint32, pluginConfigurationSize int) types.OnPluginStartStatus {
 	if recordTiming {
-		logTiming("proxyOnConfigure", time.Now())
+		defer logTiming("proxyOnConfigure", time.Now())
 	}
 	ctx, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {

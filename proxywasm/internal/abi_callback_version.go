@@ -21,6 +21,6 @@ import "time"
 //export proxy_abi_version_0_2_0
 func proxyABIVersion() {
 	if recordTiming {
-		logTiming("proxyABIVersion", time.Now())
+		defer logTiming("proxyABIVersion", time.Now())
 	}
 }

@@ -25,6 +25,9 @@ import (
 const recordTiming = true
 
 func logTiming(msg string, start time.Time) {
+	if !recordTiming {
+		panic("BUG: logTiming should not be called when timing is disabled")
+	}
 	f := fmt.Sprintf("%s took %s", msg, time.Since(start))
 	ProxyLog(LogLevelDebug, StringBytePtr(f), len(f))
 }

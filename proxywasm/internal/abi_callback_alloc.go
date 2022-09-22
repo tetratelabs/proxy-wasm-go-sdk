@@ -16,12 +16,10 @@ package internal
 
 import "time"
 
-// nolint
-//
 //export proxy_on_memory_allocate
 func proxyOnMemoryAllocate(size uint) *byte {
 	if recordTiming {
-		logTiming("proxyOnMemoryAllocate", time.Now())
+		defer logTiming("proxyOnMemoryAllocate", time.Now())
 	}
 	buf := make([]byte, size)
 	return &buf[0]

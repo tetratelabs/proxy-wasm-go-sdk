@@ -19,7 +19,7 @@ import "time"
 //export proxy_on_context_create
 func proxyOnContextCreate(contextID uint32, pluginContextID uint32) {
 	if recordTiming {
-		logTiming("proxyOnContextCreate", time.Now())
+		defer logTiming("proxyOnContextCreate", time.Now())
 	}
 	if pluginContextID == 0 {
 		currentState.createPluginContext(contextID)
@@ -33,7 +33,7 @@ func proxyOnContextCreate(contextID uint32, pluginContextID uint32) {
 //export proxy_on_log
 func proxyOnLog(contextID uint32) {
 	if recordTiming {
-		logTiming("proxyOnLog", time.Now())
+		defer logTiming("proxyOnLog", time.Now())
 	}
 	if ctx, ok := currentState.tcpContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
@@ -47,7 +47,7 @@ func proxyOnLog(contextID uint32) {
 //export proxy_on_done
 func proxyOnDone(contextID uint32) bool {
 	if recordTiming {
-		logTiming("proxyOnDone", time.Now())
+		defer logTiming("proxyOnDone", time.Now())
 	}
 	if ctx, ok := currentState.pluginContexts[contextID]; ok {
 		currentState.setActiveContextID(contextID)
@@ -59,7 +59,7 @@ func proxyOnDone(contextID uint32) bool {
 //export proxy_on_delete
 func proxyOnDelete(contextID uint32) {
 	if recordTiming {
-		logTiming("proxyOnDelete", time.Now())
+		defer logTiming("proxyOnDelete", time.Now())
 	}
 	delete(currentState.contextIDToRootID, contextID)
 	if _, ok := currentState.tcpContexts[contextID]; ok {
