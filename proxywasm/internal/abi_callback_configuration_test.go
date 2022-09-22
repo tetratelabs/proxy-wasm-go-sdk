@@ -46,7 +46,7 @@ func (c *testConfigurationPluginContext) OnPluginStart(int) types.OnPluginStartS
 	return true
 }
 
-func Test_proxyOnVMStart(t *testing.T) {
+func Test_pluginInitialization(t *testing.T) {
 	currentStateMux.Lock()
 	defer currentStateMux.Unlock()
 
@@ -57,13 +57,13 @@ func Test_proxyOnVMStart(t *testing.T) {
 		contextIDToRootID: map[uint32]uint32{},
 	}
 
+	// Check ABI version. There is no return value so just make sure it doesn't panic.
+	proxyABIVersion()
+
 	// Call OnVMStart.
 	proxyOnVMStart(0, 0)
 	require.True(t, vmContext.onVMStartCalled)
 	require.Equal(t, uint32(0), currentState.activeContextID)
-
-	// Check ABI version. There is no return value so just make sure it doesn't panic.
-	proxyABIVersion()
 
 	// Allocate memory
 	require.NotNil(t, proxyOnMemoryAllocate(100))
