@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2022 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !proxywasm_timing
+
 package internal
 
 import "time"
 
-//export proxy_on_tick
-func proxyOnTick(pluginContextID uint32) {
-	if recordTiming {
-		defer logTiming("proxyOnTick", time.Now())
-	}
-	ctx, ok := currentState.pluginContexts[pluginContextID]
-	if !ok {
-		panic("invalid root_context_id")
-	}
-	currentState.setActiveContextID(pluginContextID)
-	ctx.context.OnTick()
+// When no build tag is specified, we do record print timing information so set this to false.
+const recordTiming = false
+
+func logTiming(msg string, start time.Time) {
+	panic("BUG: logTiming should not be called when timing is disabled")
 }

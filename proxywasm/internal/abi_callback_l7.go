@@ -15,11 +15,16 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
 //export proxy_on_request_headers
 func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnRequestHeaders", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_headers")
@@ -31,6 +36,9 @@ func proxyOnRequestHeaders(contextID uint32, numHeaders int, endOfStream bool) t
 
 //export proxy_on_request_body
 func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnRequestBody", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_body")
@@ -41,6 +49,9 @@ func proxyOnRequestBody(contextID uint32, bodySize int, endOfStream bool) types.
 
 //export proxy_on_request_trailers
 func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnRequestTrailers", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context on proxy_on_request_trailers")
@@ -51,6 +62,9 @@ func proxyOnRequestTrailers(contextID uint32, numTrailers int) types.Action {
 
 //export proxy_on_response_headers
 func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnResponseHeaders", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
@@ -61,6 +75,9 @@ func proxyOnResponseHeaders(contextID uint32, numHeaders int, endOfStream bool) 
 
 //export proxy_on_response_body
 func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnResponseBody", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
@@ -71,6 +88,9 @@ func proxyOnResponseBody(contextID uint32, bodySize int, endOfStream bool) types
 
 //export proxy_on_response_trailers
 func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnResponseTrailers", time.Now())
+	}
 	ctx, ok := currentState.httpContexts[contextID]
 	if !ok {
 		panic("invalid context id on proxy_on_response_headers")
@@ -81,6 +101,9 @@ func proxyOnResponseTrailers(contextID uint32, numTrailers int) types.Action {
 
 //export proxy_on_http_call_response
 func proxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, bodySize, numTrailers int) {
+	if recordTiming {
+		defer logTiming("proxyOnHttpCallResponse", time.Now())
+	}
 	root, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
 		panic("http_call_response on invalid plugin context")

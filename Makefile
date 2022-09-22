@@ -10,6 +10,7 @@ build.examples:
 .PHONY: test
 test:
 	@go test $(shell go list ./... | grep -v e2e)
+	@go test -tags "proxywasm_timing" ./proxywasm/proxytest
 
 .PHONY: test.examples
 test.examples:

@@ -14,10 +14,17 @@
 
 package internal
 
-import "github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+import (
+	"time"
+
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
+)
 
 //export proxy_on_new_connection
 func proxyOnNewConnection(contextID uint32) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnNewConnection", time.Now())
+	}
 	ctx, ok := currentState.tcpContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -28,6 +35,9 @@ func proxyOnNewConnection(contextID uint32) types.Action {
 
 //export proxy_on_downstream_data
 func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnDownstreamData", time.Now())
+	}
 	ctx, ok := currentState.tcpContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -38,6 +48,9 @@ func proxyOnDownstreamData(contextID uint32, dataSize int, endOfStream bool) typ
 
 //export proxy_on_downstream_connection_close
 func proxyOnDownstreamConnectionClose(contextID uint32, pType types.PeerType) {
+	if recordTiming {
+		defer logTiming("proxyOnDownstreamConnectionClose", time.Now())
+	}
 	ctx, ok := currentState.tcpContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -48,6 +61,9 @@ func proxyOnDownstreamConnectionClose(contextID uint32, pType types.PeerType) {
 
 //export proxy_on_upstream_data
 func proxyOnUpstreamData(contextID uint32, dataSize int, endOfStream bool) types.Action {
+	if recordTiming {
+		defer logTiming("proxyOnUpstreamData", time.Now())
+	}
 	ctx, ok := currentState.tcpContexts[contextID]
 	if !ok {
 		panic("invalid context")
@@ -58,6 +74,9 @@ func proxyOnUpstreamData(contextID uint32, dataSize int, endOfStream bool) types
 
 //export proxy_on_upstream_connection_close
 func proxyOnUpstreamConnectionClose(contextID uint32, pType types.PeerType) {
+	if recordTiming {
+		defer logTiming("proxyOnUpstreamConnectionClose", time.Now())
+	}
 	ctx, ok := currentState.tcpContexts[contextID]
 	if !ok {
 		panic("invalid context")

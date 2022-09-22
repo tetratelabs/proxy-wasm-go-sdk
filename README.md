@@ -40,6 +40,12 @@ and we run end-to-end tests with multiple versions of Envoy and Envoy-based [ist
 
 Please refer to [workflow.yaml](.github/workflows/workflow.yaml) for which version is used for End-to-End tests.
 
+## Build tags
+
+The following build tags can be used to customize the behavior of the built plugin:
+
+- `proxywasm_timing`: Enables logging of time spent in invocation of the plugin's exported functions. This can be useful for debugging performance issues.
+
 ## Contributing
 
 We welcome contributions from the community! See [CONTRIBUTING.md](doc/CONTRIBUTING.md) for how to contribute to this repository.
