@@ -14,6 +14,13 @@
 
 package internal
 
-//nolint
+import "time"
+
+// nolint
+//
 //export proxy_abi_version_0_2_0
-func proxyABIVersion() {}
+func proxyABIVersion() {
+	if recordTiming {
+		logTiming("proxyABIVersion", time.Now())
+	}
+}

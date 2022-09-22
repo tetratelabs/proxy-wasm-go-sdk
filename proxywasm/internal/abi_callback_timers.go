@@ -14,8 +14,13 @@
 
 package internal
 
+import "time"
+
 //export proxy_on_tick
 func proxyOnTick(pluginContextID uint32) {
+	if recordTiming {
+		logTiming("proxyOnTick", time.Now())
+	}
 	ctx, ok := currentState.pluginContexts[pluginContextID]
 	if !ok {
 		panic("invalid root_context_id")

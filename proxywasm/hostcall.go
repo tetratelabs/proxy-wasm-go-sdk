@@ -540,19 +540,19 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 // Note: if the target propety is map-type, use GetPropetyMap instead. This GetProperty returns
 // raw un-serialized bytes for such properties. For example, if you have the metadata as
 //
-//  clusters:
-//  - name: web_service
-//    metadata:
-//     filter_metadata:
-//       foo:
-//         my_value: '1234'
-//         my_map:
-//           k1: v1
-//           k2: v2
+//	clusters:
+//	- name: web_service
+//	  metadata:
+//	   filter_metadata:
+//	     foo:
+//	       my_value: '1234'
+//	       my_map:
+//	         k1: v1
+//	         k2: v2
 //
 // Then,
-//  * use GetPropetyMap for {"cluster_metadata", "filter_metadata", "foo", "my_map"}.
-//  * use GetProperty   for {"cluster_metadata", "filter_metadata", "foo", "my_value"}.
+//   - use GetPropetyMap for {"cluster_metadata", "filter_metadata", "foo", "my_map"}.
+//   - use GetProperty   for {"cluster_metadata", "filter_metadata", "foo", "my_value"}.
 //
 // Note: you cannot get the raw bytes of protobuf. For example, accessing {"cluster_metadata", "filter_data", "foo"}) doesn't
 // returns the protobuf bytes, but instead this returns the serialized map of "foo". Therefore, we recommend to access individual

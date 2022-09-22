@@ -17,19 +17,19 @@ package types
 // There are four types of these intefaces which you are supposed to implement in order to extend your network proxies.
 // They are VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 //
-//                          Wasm Virtual Machine(VM)
-//                     (corresponds to VM configuration)
-//  ┌────────────────────────────────────────────────────────────────────────────┐
-//  │                                                      TcpContext            │
-//  │                                                  ╱ (Each Tcp stream)       │
-//  │                                                 ╱                          │
-//  │                      1: N                      ╱ 1: N                      │
-//  │       VMContext  ──────────  PluginContext                                 │
-//  │  (VM configuration)     (Plugin configuration) ╲ 1: N                      │
-//  │                                                 ╲                          │
-//  │                                                  ╲   HttpContext           │
-//  │                                                   (Each Http stream)       │
-//  └────────────────────────────────────────────────────────────────────────────┘
+//	                        Wasm Virtual Machine(VM)
+//	                   (corresponds to VM configuration)
+//	┌────────────────────────────────────────────────────────────────────────────┐
+//	│                                                      TcpContext            │
+//	│                                                  ╱ (Each Tcp stream)       │
+//	│                                                 ╱                          │
+//	│                      1: N                      ╱ 1: N                      │
+//	│       VMContext  ──────────  PluginContext                                 │
+//	│  (VM configuration)     (Plugin configuration) ╲ 1: N                      │
+//	│                                                 ╲                          │
+//	│                                                  ╲   HttpContext           │
+//	│                                                   (Each Http stream)       │
+//	└────────────────────────────────────────────────────────────────────────────┘
 //
 // To summarize,
 //
@@ -48,7 +48,6 @@ package types
 // 5) TcpContext is responsible for handling individual Tcp stream events.
 //
 // 6) HttpContext is responsible for handling individual Http stream events.
-//
 //
 // VMContext corresponds to a Wasm VM machine and its configuration.
 // It's the entrypoint for extending the network proxy.

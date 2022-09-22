@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -334,7 +333,7 @@ func Test_json_validation(t *testing.T) {
 		}
 		defer res.Body.Close()
 
-		_, err = io.Copy(ioutil.Discard, res.Body)
+		_, err = io.Copy(io.Discard, res.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, res.StatusCode)
 
@@ -348,7 +347,7 @@ func Test_json_validation(t *testing.T) {
 		}
 		defer res.Body.Close()
 
-		_, err = io.Copy(ioutil.Discard, res.Body)
+		_, err = io.Copy(io.Discard, res.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, res.StatusCode)
 

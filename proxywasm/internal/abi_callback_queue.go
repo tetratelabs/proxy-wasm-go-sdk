@@ -14,8 +14,13 @@
 
 package internal
 
+import "time"
+
 //export proxy_on_queue_ready
 func proxyOnQueueReady(contextID, queueID uint32) {
+	if recordTiming {
+		logTiming("proxyOnQueueReady", time.Now())
+	}
 	ctx, ok := currentState.pluginContexts[contextID]
 	if !ok {
 		panic("invalid context")

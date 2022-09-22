@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2022 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build proxywasm_timing
+
 package internal
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
-// nolint
-//
-//export proxy_on_memory_allocate
-func proxyOnMemoryAllocate(size uint) *byte {
-	if recordTiming {
-		logTiming("proxyOnMemoryAllocate", time.Now())
-	}
-	buf := make([]byte, size)
-	return &buf[0]
+// When the build tag is specified, we record timing information so set this to true.
+const recordTiming = true
+
+func logTiming(msg string, start time.Time) {
+	f := fmt.Sprintf("%s took %s", msg, time.Since(start))
+	ProxyLog(LogLevelDebug, StringBytePtr(f), len(f))
 }
