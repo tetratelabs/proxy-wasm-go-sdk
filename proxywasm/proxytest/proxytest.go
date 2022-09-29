@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"unsafe"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
@@ -140,6 +141,7 @@ type hostEmulator struct {
 	*httpHostEmulator
 
 	effectiveContextID uint32
+	properties         map[string]string
 }
 
 // NewHostEmulator returns a new HostEmulator that can be used to test a plugin. Plugin tests will
@@ -154,6 +156,7 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		network,
 		http,
 		0,
+		make(map[string]string),
 	}
 
 	release := internal.RegisterMockWasmHost(emulator)
@@ -258,14 +261,24 @@ func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Statu
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) internal.Status {
-	panic("unimplemented")
+func (h *hostEmulator) ProxySetProperty(namePtr *byte, nameSize int, valuePtr *byte, valueSize int) internal.Status {
+	name := internal.RawBytePtrToString(namePtr, nameSize)
+	value := internal.RawBytePtrToString(valuePtr, valueSize)
+	h.properties[name] = value
+	return internal.StatusOK
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) internal.Status {
-	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
-	return internal.StatusNotFound
+func (h *hostEmulator) ProxyGetProperty(namePtr *byte, nameSize int, valuePtrPtr **byte, valueSizePtr *int) internal.Status {
+	name := internal.RawBytePtrToString(namePtr, nameSize)
+	if _, ok := h.properties[name]; !ok {
+		return internal.StatusNotFound
+	}
+	value := []byte(h.properties[name])
+	*valuePtrPtr = (*byte)(unsafe.Pointer(&value))
+	valueSize := len(value)
+	*valueSizePtr = valueSize
+	return internal.StatusOK
 }
 
 // impl internal.ProxyWasmHost
