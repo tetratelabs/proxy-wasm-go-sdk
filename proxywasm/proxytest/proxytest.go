@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"unsafe"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
@@ -274,8 +273,8 @@ func (h *hostEmulator) ProxyGetProperty(namePtr *byte, nameSize int, valuePtrPtr
 	if _, ok := h.properties[name]; !ok {
 		return internal.StatusNotFound
 	}
-	value := []byte(h.properties[name])
-	*valuePtrPtr = (*byte)(unsafe.Pointer(&value))
+	value := h.properties[name]
+	*valuePtrPtr = internal.StringBytePtr(value)
 	valueSize := len(value)
 	*valueSizePtr = valueSize
 	return internal.StatusOK
