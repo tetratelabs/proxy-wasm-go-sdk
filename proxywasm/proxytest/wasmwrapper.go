@@ -84,7 +84,7 @@ type vmContext struct {
 // Note: Currently only HTTP plugins are supported.
 func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 	ctx := context.Background()
-	r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig().WithWasmCore2())
+	r := wazero.NewRuntime(ctx)
 
 	_, err := wasi_snapshot_preview1.Instantiate(ctx, r)
 	if err != nil {
@@ -306,7 +306,7 @@ func wasmBool(b bool) uint64 {
 }
 
 func exportHostABI(ctx context.Context, r wazero.Runtime) error {
-	_, err := r.NewModuleBuilder("env").
+	_, err := r.NewHostModuleBuilder("env").
 		ExportFunction("proxy_log", func(ctx context.Context, mod api.Module, logLevel uint32, messageData uint32, messageSize uint32) uint32 {
 			messageDataPtr := wasmBytePtr(ctx, mod, messageData, messageSize)
 			return uint32(internal.ProxyLog(internal.LogLevel(logLevel), messageDataPtr, int(messageSize)))
