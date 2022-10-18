@@ -27,7 +27,7 @@ go get github.com/tetratelabs/proxy-wasm-go-sdk
 make build.examples
 
 # Build a specific example.
-make build.example name=helloworld
+make build.examples name=helloworld
 
 # Run a specific example.
 make run name=helloworld
