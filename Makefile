@@ -1,6 +1,14 @@
 goimports := golang.org/x/tools/cmd/goimports@v0.1.12
 golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
 
+
+.PHONY: build.example
+build.example:
+	@find ./examples -type f -name "main.go" | grep ${name}\
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'cd {} && tinygo build -o main.wasm -scheduler=none -target=wasi ./main.go'
+
+
 .PHONY: build.examples
 build.examples:
 	@find ./examples -mindepth 1 -type f -name "main.go" \
