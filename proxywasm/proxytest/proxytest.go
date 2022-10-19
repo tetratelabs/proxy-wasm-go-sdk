@@ -140,7 +140,7 @@ type hostEmulator struct {
 	*httpHostEmulator
 
 	effectiveContextID uint32
-	properties         map[string]string
+	properties         map[string][]byte
 }
 
 // NewHostEmulator returns a new HostEmulator that can be used to test a plugin. Plugin tests will
@@ -155,7 +155,7 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		network,
 		http,
 		0,
-		make(map[string]string),
+		make(map[string][]byte),
 	}
 
 	release := internal.RegisterMockWasmHost(emulator)
@@ -262,7 +262,7 @@ func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Statu
 // impl internal.ProxyWasmHost
 func (h *hostEmulator) ProxySetProperty(namePtr *byte, nameSize int, valuePtr *byte, valueSize int) internal.Status {
 	name := internal.RawBytePtrToString(namePtr, nameSize)
-	value := internal.RawBytePtrToString(valuePtr, valueSize)
+	value := internal.RawBytePtrToByteSlice(valuePtr, valueSize)
 	h.properties[name] = value
 	return internal.StatusOK
 }
@@ -274,7 +274,7 @@ func (h *hostEmulator) ProxyGetProperty(namePtr *byte, nameSize int, valuePtrPtr
 		return internal.StatusNotFound
 	}
 	value := h.properties[name]
-	*valuePtrPtr = internal.StringBytePtr(value)
+	*valuePtrPtr = &value[0]
 	valueSize := len(value)
 	*valueSizePtr = valueSize
 	return internal.StatusOK
