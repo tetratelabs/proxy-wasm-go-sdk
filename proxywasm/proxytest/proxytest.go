@@ -260,23 +260,23 @@ func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Statu
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxySetProperty(namePtr *byte, nameSize int, valuePtr *byte, valueSize int) internal.Status {
-	name := internal.RawBytePtrToString(namePtr, nameSize)
-	value := internal.RawBytePtrToByteSlice(valuePtr, valueSize)
-	h.properties[name] = value
+func (h *hostEmulator) ProxySetProperty(pathPtr *byte, pathSize int, dataPtr *byte, dataSize int) internal.Status {
+	path := internal.RawBytePtrToString(pathPtr, pathSize)
+	data := internal.RawBytePtrToByteSlice(dataPtr, dataSize)
+	h.properties[path] = data
 	return internal.StatusOK
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxyGetProperty(namePtr *byte, nameSize int, valuePtrPtr **byte, valueSizePtr *int) internal.Status {
-	name := internal.RawBytePtrToString(namePtr, nameSize)
-	if _, ok := h.properties[name]; !ok {
+func (h *hostEmulator) ProxyGetProperty(pathPtr *byte, pathSize int, dataPtrPtr **byte, dataSizePtr *int) internal.Status {
+	path := internal.RawBytePtrToString(pathPtr, pathSize)
+	if _, ok := h.properties[path]; !ok {
 		return internal.StatusNotFound
 	}
-	value := h.properties[name]
-	*valuePtrPtr = &value[0]
-	valueSize := len(value)
-	*valueSizePtr = valueSize
+	data := h.properties[path]
+	*dataPtrPtr = &data[0]
+	dataSize := len(data)
+	*dataSizePtr = dataSize
 	return internal.StatusOK
 }
 
