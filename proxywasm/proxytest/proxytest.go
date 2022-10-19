@@ -126,6 +126,10 @@ type HostEmulator interface {
 	// host. This contains the arguments passed to proxywasm.SendHttpResponse in the plugin. If
 	// proxywasm.SendHttpResponse hasn't been invoked by the plugin, this will return nil.
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
+	// GetProperty returns property data from the host, for a given path.
+	GetProperty(path []string) ([]byte, error)
+	// SetProperty sets property data on the host, for a given path.
+	SetProperty(path []string, data []byte) error
 }
 
 const (
