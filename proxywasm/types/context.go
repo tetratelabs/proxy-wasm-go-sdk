@@ -14,7 +14,7 @@
 
 package types
 
-// There are four types of these intefaces which you are supposed to implement in order to extend your network proxies.
+// There are four types of these interfaces which you are supposed to implement in order to extend your network proxies.
 // They are VMContext, PluginContext, TcpContext and HttpContext, and their relationship can be described as the following diagram:
 //
 //	                        Wasm Virtual Machine(VM)
@@ -48,7 +48,7 @@ package types
 // 5) TcpContext is responsible for handling individual Tcp stream events.
 //
 // 6) HttpContext is responsible for handling individual Http stream events.
-//
+
 // VMContext corresponds to a Wasm VM machine and its configuration.
 // It's the entrypoint for extending the network proxy.
 // Its lifetime matches the Wasm Virtual Machines on the host.
@@ -92,10 +92,11 @@ type PluginContext interface {
 	// extension points. For example, if you configure this plugin context is running
 	// at Http filters, then NewHttpContext must be implemented. Same goes for
 	// Tcp filters.
-	//
+
 	// NewTcpContext is used for creating TcpContext for each Tcp stream.
 	// Return nil to indicate this PluginContext is not for TcpContext.
 	NewTcpContext(contextID uint32) TcpContext
+
 	// NewHttpContext is used for creating HttpContext for each Http stream.
 	// Return nil to indicate this PluginContext is not for HttpContext.
 	NewHttpContext(contextID uint32) HttpContext
@@ -112,14 +113,14 @@ type TcpContext interface {
 	// OnDownstreamClose is called when the downstream connection is closed.
 	OnDownstreamClose(peerType PeerType)
 
-	/// OnUpstreamData is called when a data frame arrives from the upstream connection.
+	// OnUpstreamData is called when a data frame arrives from the upstream connection.
 	OnUpstreamData(dataSize int, endOfStream bool) Action
 
 	// OnUpstreamClose is called when the upstream connection is closed.
 	OnUpstreamClose(peerType PeerType)
 
 	// OnStreamDone is called before the host deletes this context.
-	// You can retreive the stream information (such as remote addesses, etc.) during this call.
+	// You can retrieve the stream information (such as remote addresses, etc.) during this call.
 	// This can be used to implement logging features.
 	OnStreamDone()
 }
@@ -178,12 +179,14 @@ type (
 )
 
 // impl VMContext
+
 func (*DefaultVMContext) OnVMStart(vmConfigurationSize int) OnVMStartStatus { return OnVMStartStatusOK }
 func (*DefaultVMContext) NewPluginContext(contextID uint32) PluginContext {
 	return &DefaultPluginContext{}
 }
 
 // impl PluginContext
+
 func (*DefaultPluginContext) OnQueueReady(uint32) {}
 func (*DefaultPluginContext) OnTick()             {}
 func (*DefaultPluginContext) OnPluginStart(int) OnPluginStartStatus {
@@ -194,6 +197,7 @@ func (*DefaultPluginContext) NewTcpContext(uint32) TcpContext   { return nil }
 func (*DefaultPluginContext) NewHttpContext(uint32) HttpContext { return nil }
 
 // impl TcpContext
+
 func (*DefaultTcpContext) OnDownstreamData(int, bool) Action { return ActionContinue }
 func (*DefaultTcpContext) OnDownstreamClose(PeerType)        {}
 func (*DefaultTcpContext) OnNewConnection() Action           { return ActionContinue }
@@ -202,6 +206,7 @@ func (*DefaultTcpContext) OnUpstreamClose(PeerType)          {}
 func (*DefaultTcpContext) OnStreamDone()                     {}
 
 // impl HttpContext
+
 func (*DefaultHttpContext) OnHttpRequestHeaders(int, bool) Action  { return ActionContinue }
 func (*DefaultHttpContext) OnHttpRequestBody(int, bool) Action     { return ActionContinue }
 func (*DefaultHttpContext) OnHttpRequestTrailers(int) Action       { return ActionContinue }

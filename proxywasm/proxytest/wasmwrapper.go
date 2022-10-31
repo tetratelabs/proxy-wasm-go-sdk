@@ -44,7 +44,7 @@ type guestABI struct {
 	proxyOnLog              api.Function
 }
 
-// WasmVMContext is a VMContext that delegates excecution to a compiled wasm binary.
+// WasmVMContext is a VMContext that delegates execution to a compiled wasm binary.
 type WasmVMContext interface {
 	types.VMContext
 	io.Closer
@@ -307,16 +307,21 @@ func wasmBool(b bool) uint64 {
 
 func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 	_, err := r.NewHostModuleBuilder("env").
-		ExportFunction("proxy_log", func(ctx context.Context, mod api.Module, logLevel uint32, messageData uint32, messageSize uint32) uint32 {
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, logLevel uint32, messageData uint32, messageSize uint32) uint32 {
 			messageDataPtr := wasmBytePtr(ctx, mod, messageData, messageSize)
 			return uint32(internal.ProxyLog(internal.LogLevel(logLevel), messageDataPtr, int(messageSize)))
 		}).
-		ExportFunction("proxy_set_property", func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32, valueData uint32, valueSize uint32) uint32 {
+		Export("proxy_log").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32, valueData uint32, valueSize uint32) uint32 {
 			pathDataPtr := wasmBytePtr(ctx, mod, pathData, pathSize)
 			valueDataPtr := wasmBytePtr(ctx, mod, valueData, valueSize)
 			return uint32(internal.ProxySetProperty(pathDataPtr, int(pathSize), valueDataPtr, int(valueSize)))
 		}).
-		ExportFunction("proxy_get_property", func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32,
+		Export("proxy_set_property").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32,
 			returnValueData uint32, returnValueSize uint32) uint32 {
 			pathDataPtr := wasmBytePtr(ctx, mod, pathData, pathSize)
 			var returnValueHostPtr *byte
@@ -325,7 +330,9 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			copyBytesToWasm(ctx, mod, returnValueHostPtr, returnValueSizePtr, returnValueData, returnValueSize)
 			return ret
 		}).
-		ExportFunction("proxy_send_local_response", func(ctx context.Context, mod api.Module,
+		Export("proxy_get_property").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module,
 			statusCode uint32, statusCodeDetailData uint32, statusCodeDetailsSize uint32,
 			bodyData uint32, bodySize uint32, headersData uint32, headersSize uint32, grpcStatus int32) uint32 {
 			statusCodeDetailDataPtr := wasmBytePtr(ctx, mod, statusCodeDetailData, statusCodeDetailsSize)
@@ -334,7 +341,9 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return uint32(internal.ProxySendLocalResponse(statusCode, statusCodeDetailDataPtr, int(statusCodeDetailsSize),
 				bodyDataPtr, int(bodySize), headersDataPtr, int(headersSize), grpcStatus))
 		}).
-		ExportFunction("proxy_get_shared_data", func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32,
+		Export("proxy_send_local_response").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32,
 			returnValueData uint32, returnValueSize uint32, returnCas uint32) uint32 {
 			keyDataPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			var returnValueHostPtr *byte
@@ -345,19 +354,25 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnCas, returnCasPtr))
 			return ret
 		}).
-		ExportFunction("proxy_set_shared_data", func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32, valueData uint32, valueSize uint32, cas uint32) uint32 {
+		Export("proxy_get_shared_data").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32, valueData uint32, valueSize uint32, cas uint32) uint32 {
 			keyDataPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			valueDataPtr := wasmBytePtr(ctx, mod, valueData, valueSize)
 			return uint32(internal.ProxySetSharedData(keyDataPtr, int(keySize), valueDataPtr, int(valueSize), cas))
 		}).
-		ExportFunction("proxy_register_shared_queue", func(ctx context.Context, mod api.Module, nameData uint32, nameSize uint32, returnID uint32) uint32 {
+		Export("proxy_set_shared_data").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, nameData uint32, nameSize uint32, returnID uint32) uint32 {
 			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
 			var returnIDPtr uint32
 			ret := uint32(internal.ProxyRegisterSharedQueue(namePtr, int(nameSize), &returnIDPtr))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnID, returnIDPtr))
 			return ret
 		}).
-		ExportFunction("proxy_resolve_shared_queue", func(ctx context.Context, mod api.Module, vmIDData uint32, vmIDSize uint32, nameData uint32, nameSize uint32, returnID uint32) uint32 {
+		Export("proxy_register_shared_queue").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, vmIDData uint32, vmIDSize uint32, nameData uint32, nameSize uint32, returnID uint32) uint32 {
 			vmID := wasmBytePtr(ctx, mod, vmIDData, vmIDSize)
 			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
 			var returnIDPtr uint32
@@ -365,18 +380,24 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnID, returnIDPtr))
 			return ret
 		}).
-		ExportFunction("proxy_dequeue_shared_queue", func(ctx context.Context, mod api.Module, queueID uint32, returnValueData uint32, returnValueSize uint32) uint32 {
+		Export("proxy_resolve_shared_queue").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, queueID uint32, returnValueData uint32, returnValueSize uint32) uint32 {
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			ret := uint32(internal.ProxyDequeueSharedQueue(queueID, &returnValueHostPtr, &returnValueSizePtr))
 			copyBytesToWasm(ctx, mod, returnValueHostPtr, returnValueSizePtr, returnValueData, returnValueSize)
 			return ret
 		}).
-		ExportFunction("proxy_enqueue_shared_queue", func(ctx context.Context, mod api.Module, queueID uint32, valueData uint32, valueSize uint32) uint32 {
+		Export("proxy_dequeue_shared_queue").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, queueID uint32, valueData uint32, valueSize uint32) uint32 {
 			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
 			return uint32(internal.ProxyEnqueueSharedQueue(queueID, valuePtr, int(valueSize)))
 		}).
-		ExportFunction("proxy_get_header_map_value", func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, returnValueData uint32, returnValueSize uint32) uint32 {
+		Export("proxy_enqueue_shared_queue").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, returnValueData uint32, returnValueSize uint32) uint32 {
 			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			var retValDataHostPtr *byte
 			var retValSizePtr int
@@ -384,49 +405,69 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			copyBytesToWasm(ctx, mod, retValDataHostPtr, retValSizePtr, returnValueData, returnValueSize)
 			return ret
 		}).
-		ExportFunction("proxy_add_header_map_value", func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
+		Export("proxy_get_header_map_value").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
 			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
 			return uint32(internal.ProxyAddHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize), valuePtr, int(valueSize)))
 		}).
-		ExportFunction("proxy_replace_header_map_value", func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
+		Export("proxy_add_header_map_value").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
 			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
 			return uint32(internal.ProxyReplaceHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize), valuePtr, int(valueSize)))
 		}).
-		ExportFunction("proxy_continue_stream", func(streamType uint32) uint32 {
+		Export("proxy_replace_header_map_value").
+		NewFunctionBuilder().
+		WithFunc(func(streamType uint32) uint32 {
 			return uint32(internal.ProxyContinueStream(internal.StreamType(streamType)))
 		}).
-		ExportFunction("proxy_close_stream", func(streamType uint32) uint32 {
+		Export("proxy_continue_stream").
+		NewFunctionBuilder().
+		WithFunc(func(streamType uint32) uint32 {
 			return uint32(internal.ProxyCloseStream(internal.StreamType(streamType)))
 		}).
-		ExportFunction("proxy_remove_header_map_value", func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32) uint32 {
+		Export("proxy_close_stream").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32) uint32 {
 			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
 			return uint32(internal.ProxyRemoveHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize)))
 		}).
-		ExportFunction("proxy_get_header_map_pairs", func(ctx context.Context, mod api.Module, mapType uint32, returnValueData uint32, returnValueSize uint32) uint32 {
+		Export("proxy_remove_header_map_value").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, returnValueData uint32, returnValueSize uint32) uint32 {
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			ret := uint32(internal.ProxyGetHeaderMapPairs(internal.MapType(mapType), &returnValueHostPtr, &returnValueSizePtr))
 			copyBytesToWasm(ctx, mod, returnValueHostPtr, returnValueSizePtr, returnValueData, returnValueSize)
 			return ret
 		}).
-		ExportFunction("proxy_set_header_map_pairs", func(ctx context.Context, mod api.Module, mapType uint32, mapData uint32, mapSize uint32) uint32 {
+		Export("proxy_get_header_map_pairs").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, mapData uint32, mapSize uint32) uint32 {
 			mapPtr := wasmBytePtr(ctx, mod, mapData, mapSize)
 			return uint32(internal.ProxySetHeaderMapPairs(internal.MapType(mapType), mapPtr, int(mapSize)))
 		}).
-		ExportFunction("proxy_get_buffer_bytes", func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, returnBufferData uint32, returnBufferSize uint32) uint32 {
+		Export("proxy_set_header_map_pairs").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, returnBufferData uint32, returnBufferSize uint32) uint32 {
 			var returnBufferDataHostPtr *byte
 			var returnBufferSizePtr int
 			ret := uint32(internal.ProxyGetBufferBytes(internal.BufferType(bufferType), int(start), int(maxSize), &returnBufferDataHostPtr, &returnBufferSizePtr))
 			copyBytesToWasm(ctx, mod, returnBufferDataHostPtr, returnBufferSizePtr, returnBufferData, returnBufferSize)
 			return ret
 		}).
-		ExportFunction("proxy_set_buffer_bytes", func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, bufferData uint32, bufferSize uint32) uint32 {
+		Export("proxy_get_buffer_bytes").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, bufferData uint32, bufferSize uint32) uint32 {
 			bufferPtr := wasmBytePtr(ctx, mod, bufferData, bufferSize)
 			return uint32(internal.ProxySetBufferBytes(internal.BufferType(bufferType), int(start), int(maxSize), bufferPtr, int(bufferSize)))
 		}).
-		ExportFunction("proxy_http_call", func(ctx context.Context, mod api.Module, upstreamData uint32, upstreamSize uint32, headerData uint32, headerSize uint32, bodyData uint32, bodySize uint32, trailersData uint32, trailersSize uint32, timeout uint32, calloutIDPtr uint32) uint32 {
+		Export("proxy_set_buffer_bytes").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, upstreamData uint32, upstreamSize uint32, headerData uint32, headerSize uint32, bodyData uint32, bodySize uint32, trailersData uint32, trailersSize uint32, timeout uint32, calloutIDPtr uint32) uint32 {
 			upstreamPtr := wasmBytePtr(ctx, mod, upstreamData, upstreamSize)
 			headerPtr := wasmBytePtr(ctx, mod, headerData, headerSize)
 			bodyPtr := wasmBytePtr(ctx, mod, bodyData, bodySize)
@@ -447,7 +488,9 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 
 			return ret
 		}).
-		ExportFunction("proxy_call_foreign_function", func(ctx context.Context, mod api.Module, funcNamePtr uint32, funcNameSize uint32, paramPtr uint32, paramSize uint32, returnData uint32, returnSize uint32) uint32 {
+		Export("proxy_http_call").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, funcNamePtr uint32, funcNameSize uint32, paramPtr uint32, paramSize uint32, returnData uint32, returnSize uint32) uint32 {
 			funcName := wasmBytePtr(ctx, mod, funcNamePtr, funcNameSize)
 			paramHostPtr := wasmBytePtr(ctx, mod, paramPtr, paramSize)
 			var returnDataHostPtr *byte
@@ -456,34 +499,49 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			copyBytesToWasm(ctx, mod, returnDataHostPtr, returnDataSizePtr, returnData, returnSize)
 			return ret
 		}).
-		ExportFunction("proxy_set_tick_period_milliseconds", func(period uint32) uint32 {
+		Export("proxy_call_foreign_function").
+		NewFunctionBuilder().
+		WithFunc(func(period uint32) uint32 {
 			return uint32(internal.ProxySetTickPeriodMilliseconds(period))
 		}).
-		ExportFunction("proxy_set_effective_context", func(contextID uint32) uint32 {
+		Export("proxy_set_tick_period_milliseconds").
+		NewFunctionBuilder().
+		WithFunc(func(contextID uint32) uint32 {
 			return uint32(internal.ProxySetEffectiveContext(contextID))
 		}).
-		ExportFunction("proxy_done", func() uint32 {
+		Export("proxy_set_effective_context").
+		NewFunctionBuilder().
+		WithFunc(func() uint32 {
 			return uint32(internal.ProxyDone())
 		}).
-		ExportFunction("proxy_define_metric", func(ctx context.Context, mod api.Module, metricType uint32, metricNameData uint32, metricNameSize uint32, returnMetricIDPtr uint32) uint32 {
+		Export("proxy_done").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, metricType uint32, metricNameData uint32, metricNameSize uint32, returnMetricIDPtr uint32) uint32 {
 			metricName := wasmBytePtr(ctx, mod, metricNameData, metricNameSize)
 			var returnMetricID uint32
 			ret := uint32(internal.ProxyDefineMetric(internal.MetricType(metricType), metricName, int(metricNameSize), &returnMetricID))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnMetricIDPtr, returnMetricID))
 			return ret
 		}).
-		ExportFunction("proxy_increment_metric", func(metricID uint32, offset int64) uint32 {
+		Export("proxy_define_metric").
+		NewFunctionBuilder().
+		WithFunc(func(metricID uint32, offset int64) uint32 {
 			return uint32(internal.ProxyIncrementMetric(metricID, offset))
 		}).
-		ExportFunction("proxy_record_metric", func(metricID uint32, value uint64) uint32 {
+		Export("proxy_increment_metric").
+		NewFunctionBuilder().
+		WithFunc(func(metricID uint32, value uint64) uint32 {
 			return uint32(internal.ProxyRecordMetric(metricID, value))
 		}).
-		ExportFunction("proxy_get_metric", func(ctx context.Context, mod api.Module, metricID uint32, returnMetricValue uint32) uint32 {
+		Export("proxy_record_metric").
+		NewFunctionBuilder().
+		WithFunc(func(ctx context.Context, mod api.Module, metricID uint32, returnMetricValue uint32) uint32 {
 			var returnMetricValuePtr uint64
 			ret := uint32(internal.ProxyGetMetric(metricID, &returnMetricValuePtr))
 			handleMemoryStatus(mod.Memory().WriteUint64Le(ctx, returnMetricValue, returnMetricValuePtr))
 			return ret
 		}).
+		Export("proxy_get_metric").
 		Instantiate(ctx, r)
 	return err
 }
