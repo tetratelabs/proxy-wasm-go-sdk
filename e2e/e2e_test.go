@@ -263,6 +263,46 @@ func Test_postpone_requests(t *testing.T) {
 	}, 6*time.Second, time.Millisecond, stdErr.String())
 }
 
+func Test_properties(t *testing.T) {
+	stdErr, kill := startEnvoy(t, 8001)
+	defer kill()
+	require.Eventually(t, func() bool {
+		baseUrl := "http://localhost:18000"
+		for _, tt := range []struct {
+			pathname   string
+			authHeader [2]string
+			status     int
+		}{
+			{"/one", [2]string{}, http.StatusUnauthorized},
+			{"/one", [2]string{"cookie", "value"}, http.StatusOK},
+			{"/two", [2]string{}, http.StatusUnauthorized},
+			{"/two", [2]string{"authorization", "token"}, http.StatusOK},
+			{"/three", [2]string{}, http.StatusOK},
+		} {
+			req, err := http.NewRequest("GET", baseUrl+tt.pathname, nil)
+			require.NoError(t, err)
+			if tt.authHeader[0] != "" && tt.authHeader[1] != "" {
+				req.Header.Add(tt.authHeader[0], tt.authHeader[1])
+			}
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return false
+			}
+			defer res.Body.Close()
+
+			if res.StatusCode != tt.status {
+				return false
+			}
+		}
+
+		return checkMessage(stdErr.String(), []string{
+			"auth header is \"cookie\"",
+			"auth header is \"authorization\"",
+			"no auth header for route",
+		}, nil)
+	}, 5*time.Second, time.Millisecond, stdErr.String())
+}
+
 func Test_shared_data(t *testing.T) {
 	stdErr, kill := startEnvoy(t, 8001)
 	defer kill()
