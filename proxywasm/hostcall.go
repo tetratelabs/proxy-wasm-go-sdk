@@ -177,7 +177,7 @@ func ReplaceDownstreamData(data []byte) error {
 	return replaceBuffer(internal.BufferTypeDownstreamData, data)
 }
 
-// GetDownstreamData can be used for retrieving upstream TCP data buffered in the host.
+// GetUpstreamData can be used for retrieving upstream TCP data buffered in the host.
 // Returned bytes beginning from "start" to "start" + "maxSize" in the buffer.
 // Only available during types.TcpContext.OnUpstreamData.
 func GetUpstreamData(start, maxSize int) ([]byte, error) {
