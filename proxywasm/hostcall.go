@@ -537,7 +537,7 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 // Available path and properties depend on the host implementation.
 // For Envoy, please refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes
 //
-// Note: if the target propety is map-type, use GetPropetyMap instead. This GetProperty returns
+// Note: if the target property is map-type, use GetPropertyMap instead. This GetProperty returns
 // raw un-serialized bytes for such properties. For example, if you have the metadata as
 //
 //	clusters:
@@ -551,11 +551,11 @@ func SetSharedData(key string, data []byte, cas uint32) error {
 //	         k2: v2
 //
 // Then,
-//   - use GetPropetyMap for {"cluster_metadata", "filter_metadata", "foo", "my_map"}.
-//   - use GetProperty   for {"cluster_metadata", "filter_metadata", "foo", "my_value"}.
+//   - use GetPropertyMap for {"cluster_metadata", "filter_metadata", "foo", "my_map"}.
+//   - use GetProperty    for {"cluster_metadata", "filter_metadata", "foo", "my_value"}.
 //
 // Note: you cannot get the raw bytes of protobuf. For example, accessing {"cluster_metadata", "filter_data", "foo"}) doesn't
-// returns the protobuf bytes, but instead this returns the serialized map of "foo". Therefore, we recommend to access individual
+// return the protobuf bytes, but instead this returns the serialized map of "foo". Therefore, we recommend to access individual
 // "leaf" fields (not the middle or top field of metadata) to avoid the need to figure out the (host-dependent) encoding of properties.
 func GetProperty(path []string) ([]byte, error) {
 	if len(path) == 0 {

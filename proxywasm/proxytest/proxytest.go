@@ -126,6 +126,10 @@ type HostEmulator interface {
 	// host. This contains the arguments passed to proxywasm.SendHttpResponse in the plugin. If
 	// proxywasm.SendHttpResponse hasn't been invoked by the plugin, this will return nil.
 	GetSentLocalResponse(contextID uint32) *LocalHttpResponse
+	// GetProperty returns property data from the host, for a given path.
+	GetProperty(path []string) ([]byte, error)
+	// SetProperty sets property data on the host, for a given path.
+	SetProperty(path []string, data []byte) error
 }
 
 const (
@@ -140,6 +144,7 @@ type hostEmulator struct {
 	*httpHostEmulator
 
 	effectiveContextID uint32
+	properties         map[string][]byte
 }
 
 // NewHostEmulator returns a new HostEmulator that can be used to test a plugin. Plugin tests will
@@ -154,6 +159,7 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		network,
 		http,
 		0,
+		make(map[string][]byte),
 	}
 
 	release := internal.RegisterMockWasmHost(emulator)
@@ -258,14 +264,24 @@ func (h *hostEmulator) ProxySetEffectiveContext(contextID uint32) internal.Statu
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxySetProperty(*byte, int, *byte, int) internal.Status {
-	panic("unimplemented")
+func (h *hostEmulator) ProxySetProperty(pathPtr *byte, pathSize int, dataPtr *byte, dataSize int) internal.Status {
+	path := internal.RawBytePtrToString(pathPtr, pathSize)
+	data := internal.RawBytePtrToByteSlice(dataPtr, dataSize)
+	h.properties[path] = data
+	return internal.StatusOK
 }
 
 // impl internal.ProxyWasmHost
-func (h *hostEmulator) ProxyGetProperty(*byte, int, **byte, *int) internal.Status {
-	log.Printf("ProxyGetProperty not implemented in the host emulator yet")
-	return internal.StatusNotFound
+func (h *hostEmulator) ProxyGetProperty(pathPtr *byte, pathSize int, dataPtrPtr **byte, dataSizePtr *int) internal.Status {
+	path := internal.RawBytePtrToString(pathPtr, pathSize)
+	if _, ok := h.properties[path]; !ok {
+		return internal.StatusNotFound
+	}
+	data := h.properties[path]
+	*dataPtrPtr = &data[0]
+	dataSize := len(data)
+	*dataSizePtr = dataSize
+	return internal.StatusOK
 }
 
 // impl internal.ProxyWasmHost

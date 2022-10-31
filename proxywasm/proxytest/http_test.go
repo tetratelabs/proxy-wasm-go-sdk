@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
+	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/internal"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
@@ -119,4 +120,31 @@ func TestBodyBuffering(t *testing.T) {
 			require.Contains(t, logs, fmt.Sprintf("response body:%s", tt.logged))
 		})
 	}
+}
+
+func TestProperties(t *testing.T) {
+	t.Run("Set and get properties", func(t *testing.T) {
+		host, reset := NewHostEmulator(NewEmulatorOption().WithVMContext(&testPlugin{}))
+		defer reset()
+
+		_ = host.InitializeHttpContext()
+
+		propertyPath := []string{
+			"route_metadata",
+			"filter_metadata",
+			"envoy.filters.http.wasm",
+			"hello",
+		}
+		propertyData := []byte("world")
+
+		err := host.SetProperty(propertyPath, propertyData)
+		require.Equal(t, err, nil)
+
+		data, err := host.GetProperty(propertyPath)
+		require.Equal(t, err, nil)
+		require.Equal(t, data, propertyData)
+
+		_, err = host.GetProperty([]string{"non-existent path"})
+		require.Equal(t, err, internal.StatusToError(internal.StatusNotFound))
+	})
 }
