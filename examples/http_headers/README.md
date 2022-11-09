@@ -1,6 +1,15 @@
 ## http_headers
 
-this example handles http request/response headers events and log all headers.
+This example handles http request/response headers events and log all headers.
+
+In case there is information in the argument it will add the header to the response: 
+
+```yaml
+header: custom-header
+value: custom-value
+```
+
+Also, it adds a hardcoded header "x-proxy-wasm-go-sdk-example" with value "http_headers". 
 
 ```
 wasm log: request header --> :authority: localhost:18000
@@ -16,5 +25,7 @@ wasm log: response header <-- content-type: text/plain
 wasm log: response header <-- date: Thu, 01 Oct 2020 09:10:09 GMT
 wasm log: response header <-- server: envoy
 wasm log: response header <-- x-envoy-upstream-service-time: 0
+wasm log: response header --> x-proxy-wasm-go-sdk-example: http_headers
+wasm log: response header --> custom-header: custom-value
 wasm log: 2 finished
 ```
