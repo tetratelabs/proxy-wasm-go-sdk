@@ -17,9 +17,10 @@ package main
 import (
 	"strings"
 
+	"github.com/tidwall/gjson"
+
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
-	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -58,6 +59,10 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 func (p *pluginContext) OnPluginStart(_ int) types.OnPluginStartStatus {
 	proxywasm.LogDebug("loading plugin config")
 	data, err := proxywasm.GetPluginConfiguration()
+	if data == nil {
+		return types.OnPluginStartStatusOK
+	}
+
 	if err != nil {
 		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
 		return types.OnPluginStartStatusFailed
