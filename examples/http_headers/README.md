@@ -4,6 +4,16 @@ This example handles http request/response headers events and log all headers.
 
 In envoy.yaml, the custom header is given as the plugin configuration like the following:
 
+```yaml
+configuration:
+  "@type": type.googleapis.com/google.protobuf.StringValue
+  value: |
+    {
+      "header": "x-wasm-header",
+      "value": "demo-wasm"
+    }
+```
+
 and this adds the `x-wasm-header: demo-wasm` header to all the responses.
 Also, it adds a hardcoded header "x-proxy-wasm-go-sdk-example" with value "http_headers". 
 
