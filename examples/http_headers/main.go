@@ -34,7 +34,7 @@ type vmContext struct {
 }
 
 // Override types.DefaultVMContext.
-func (*vmContext) NewPluginContext(_ uint32) types.PluginContext {
+func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
@@ -43,6 +43,7 @@ type pluginContext struct {
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 
+	// Header passed by argument. If not empty will be added to the response
 	headerName  string
 	headerValue string
 }
@@ -56,7 +57,7 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	}
 }
 
-func (p *pluginContext) OnPluginStart(_ int) types.OnPluginStartStatus {
+func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	proxywasm.LogDebug("loading plugin config")
 	data, err := proxywasm.GetPluginConfiguration()
 	if data == nil {
@@ -96,7 +97,7 @@ type httpHeaders struct {
 }
 
 // Override types.DefaultHttpContext.
-func (ctx *httpHeaders) OnHttpRequestHeaders(_ int, _ bool) types.Action {
+func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	err := proxywasm.ReplaceHttpRequestHeader("test", "best")
 	if err != nil {
 		proxywasm.LogCritical("failed to set request header: test")

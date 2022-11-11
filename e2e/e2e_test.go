@@ -145,8 +145,10 @@ func Test_http_headers(t *testing.T) {
 			return false
 		}
 		defer res.Body.Close()
+		require.Equal(t, res.Header.Get("x-wasm-header"), "demo-wasm")
+		require.Equal(t, res.Header.Get("x-proxy-wasm-go-sdk-example"), "http_headers")
 		return checkMessage(stdErr.String(), []string{
-			key, value, "server: envoy",
+			key, value, "server: envoy", "x-wasm-header", "x-proxy-wasm-go-sdk-example",
 		}, nil)
 	}, 5*time.Second, time.Millisecond, stdErr.String())
 }
