@@ -54,9 +54,13 @@ func TestHttpHeaders_OnHttpRequestHeaders(t *testing.T) {
 
 func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 	vmTest(t, func(t *testing.T, vm types.VMContext) {
-		opt := proxytest.NewEmulatorOption().WithVMContext(vm)
+		opt := proxytest.NewEmulatorOption().
+			WithPluginConfiguration([]byte(fmt.Sprintf(`{"header": %q, "value": %q}`, "x-wasm-header", "x-value"))).
+			WithVMContext(vm)
 		host, reset := proxytest.NewHostEmulator(opt)
 		defer reset()
+
+		require.Equal(t, types.OnPluginStartStatusOK, host.StartPlugin())
 
 		// Initialize http context.
 		id := host.InitializeHttpContext()
@@ -70,16 +74,18 @@ func TestHttpHeaders_OnHttpResponseHeaders(t *testing.T) {
 		host.CompleteHttpContext(id)
 
 		resHeaders := host.GetCurrentResponseHeaders(id)
-		require.Equal(t, "key1", resHeaders[0][0])
-		require.Equal(t, "value1", resHeaders[0][1])
-		require.Equal(t, "key2", resHeaders[1][0])
-		require.Equal(t, "value2", resHeaders[1][1])
+		require.Contains(t, resHeaders, [2]string{"key1", "value1"})
+		require.Contains(t, resHeaders, [2]string{"key2", "value2"})
+		require.Contains(t, resHeaders, [2]string{"x-wasm-header", "x-value"})
+		require.Contains(t, resHeaders, [2]string{"x-proxy-wasm-go-sdk-example", "http_headers"})
 
 		// Check Envoy logs.
 		logs := host.GetInfoLogs()
 		require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 		require.Contains(t, logs, "response header <-- key2: value2")
 		require.Contains(t, logs, "response header <-- key1: value1")
+		require.Contains(t, logs, "response header <-- x-wasm-header: x-value")
+		require.Contains(t, logs, "response header <-- x-proxy-wasm-go-sdk-example: http_headers")
 	})
 }
 

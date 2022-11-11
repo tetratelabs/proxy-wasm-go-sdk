@@ -30,6 +30,13 @@ static_resources:
                       type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
                       value:
                         config:
+                          configuration:
+                            "@type": type.googleapis.com/google.protobuf.StringValue
+                            value: |
+                              {
+                                "header": "x-wasm-header",
+                                "value": "demo-wasm"
+                              }
                           vm_config:
                             runtime: "envoy.wasm.runtime.v8"
                             code:
