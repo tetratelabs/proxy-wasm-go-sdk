@@ -43,7 +43,7 @@ type pluginContext struct {
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 
-	// headerName and headerValue are the header to be added to response. They are configured via 
+	// headerName and headerValue are the header to be added to response. They are configured via
 	// plugin configuration during OnPluginStart.
 	headerName  string
 	headerValue string
