@@ -32,6 +32,6 @@ wasm log: response header <-- date: Thu, 01 Oct 2020 09:10:09 GMT
 wasm log: response header <-- server: envoy
 wasm log: response header <-- x-envoy-upstream-service-time: 0
 wasm log: response header --> x-proxy-wasm-go-sdk-example: http_headers
-wasm log: response header --> custom-header: custom-value
+wasm log: response header --> x-wasm-header: demo-wasm
 wasm log: 2 finished
 ```
