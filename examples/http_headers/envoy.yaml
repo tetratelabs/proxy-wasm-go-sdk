@@ -34,7 +34,7 @@ static_resources:
                             "@type": type.googleapis.com/google.protobuf.StringValue
                             value: |
                               {
-                                "header": "x-wasm-header"
+                                "header": "x-wasm-header",
                                 "value": "demo-wasm"
                               }
                           vm_config:
