@@ -623,7 +623,7 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-// LogTracef emits a message as a log with Trace log level.
+// LogTrace emits a message as a log with Trace log level.
 func LogTrace(msg string) {
 	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
@@ -634,7 +634,7 @@ func LogTracef(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Debug log level.
+// LogDebug emits a message as a log with Debug log level.
 func LogDebug(msg string) {
 	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
@@ -645,7 +645,7 @@ func LogDebugf(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Info log level.
+// LogInfo emits a message as a log with Info log level.
 func LogInfo(msg string) {
 	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
@@ -656,7 +656,7 @@ func LogInfof(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Warn log level.
+// LogWarn emits a message as a log with Warn log level.
 func LogWarn(msg string) {
 	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
@@ -667,7 +667,7 @@ func LogWarnf(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Error log level.
+// LogError emits a message as a log with Error log level.
 func LogError(msg string) {
 	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
@@ -678,7 +678,7 @@ func LogErrorf(format string, args ...interface{}) {
 	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Critical log level.
+// LogCritical emits a message as a log with Critical log level.
 func LogCritical(msg string) {
 	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
 }
