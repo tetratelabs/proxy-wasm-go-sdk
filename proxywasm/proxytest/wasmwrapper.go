@@ -269,7 +269,7 @@ func wasmBytePtr(ctx context.Context, mod api.Module, off uint32, size uint32) *
 		return nil
 
 	}
-	buf, ok := mod.Memory().Read(ctx, off, size)
+	buf, ok := mod.Memory().Read(off, size)
 	handleMemoryStatus(ok)
 	return &buf[0]
 }
@@ -287,14 +287,14 @@ func copyBytesToWasm(ctx context.Context, mod api.Module, hostPtr *byte, size in
 	alloc := mod.ExportedFunction("proxy_on_memory_allocate")
 	res, err := alloc.Call(ctx, uint64(size))
 	handleErr(err)
-	buf, ok := mod.Memory().Read(ctx, uint32(res[0]), uint32(size))
+	buf, ok := mod.Memory().Read(uint32(res[0]), uint32(size))
 	handleMemoryStatus(ok)
 
 	copy(buf, hostSlice)
-	ok = mod.Memory().WriteUint32Le(ctx, wasmPtrPtr, uint32(res[0]))
+	ok = mod.Memory().WriteUint32Le(wasmPtrPtr, uint32(res[0]))
 	handleMemoryStatus(ok)
 
-	ok = mod.Memory().WriteUint32Le(ctx, wasmSizePtr, uint32(size))
+	ok = mod.Memory().WriteUint32Le(wasmSizePtr, uint32(size))
 	handleMemoryStatus(ok)
 }
 
@@ -351,7 +351,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			var returnCasPtr uint32
 			ret := uint32(internal.ProxyGetSharedData(keyDataPtr, int(keySize), &returnValueHostPtr, &returnValueSizePtr, &returnCasPtr))
 			copyBytesToWasm(ctx, mod, returnValueHostPtr, returnValueSizePtr, returnValueData, returnValueSize)
-			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnCas, returnCasPtr))
+			handleMemoryStatus(mod.Memory().WriteUint32Le(returnCas, returnCasPtr))
 			return ret
 		}).
 		Export("proxy_get_shared_data").
@@ -367,7 +367,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
 			var returnIDPtr uint32
 			ret := uint32(internal.ProxyRegisterSharedQueue(namePtr, int(nameSize), &returnIDPtr))
-			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnID, returnIDPtr))
+			handleMemoryStatus(mod.Memory().WriteUint32Le(returnID, returnIDPtr))
 			return ret
 		}).
 		Export("proxy_register_shared_queue").
@@ -377,7 +377,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
 			var returnIDPtr uint32
 			ret := uint32(internal.ProxyResolveSharedQueue(vmID, int(vmIDSize), namePtr, int(nameSize), &returnIDPtr))
-			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnID, returnIDPtr))
+			handleMemoryStatus(mod.Memory().WriteUint32Le(returnID, returnIDPtr))
 			return ret
 		}).
 		Export("proxy_resolve_shared_queue").
@@ -474,7 +474,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			trailersPtr := wasmBytePtr(ctx, mod, trailersData, trailersSize)
 			var calloutID uint32
 			ret := uint32(internal.ProxyHttpCall(upstreamPtr, int(upstreamSize), headerPtr, int(headerSize), bodyPtr, int(bodySize), trailersPtr, int(trailersSize), timeout, &calloutID))
-			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, calloutIDPtr, calloutID))
+			handleMemoryStatus(mod.Memory().WriteUint32Le(calloutIDPtr, calloutID))
 
 			// Finishing proxy_http_call executes a callback, not a plugin lifecycle method, unlike every other host function which would then end up in wasm.
 			// We can work around this by registering a callback here to go back to the wasm.
@@ -520,7 +520,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			metricName := wasmBytePtr(ctx, mod, metricNameData, metricNameSize)
 			var returnMetricID uint32
 			ret := uint32(internal.ProxyDefineMetric(internal.MetricType(metricType), metricName, int(metricNameSize), &returnMetricID))
-			handleMemoryStatus(mod.Memory().WriteUint32Le(ctx, returnMetricIDPtr, returnMetricID))
+			handleMemoryStatus(mod.Memory().WriteUint32Le(returnMetricIDPtr, returnMetricID))
 			return ret
 		}).
 		Export("proxy_define_metric").
@@ -538,7 +538,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 		WithFunc(func(ctx context.Context, mod api.Module, metricID uint32, returnMetricValue uint32) uint32 {
 			var returnMetricValuePtr uint64
 			ret := uint32(internal.ProxyGetMetric(metricID, &returnMetricValuePtr))
-			handleMemoryStatus(mod.Memory().WriteUint64Le(ctx, returnMetricValue, returnMetricValuePtr))
+			handleMemoryStatus(mod.Memory().WriteUint64Le(returnMetricValue, returnMetricValuePtr))
 			return ret
 		}).
 		Export("proxy_get_metric").
