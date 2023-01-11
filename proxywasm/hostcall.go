@@ -623,67 +623,97 @@ func CallForeignFunction(funcName string, param []byte) (ret []byte, err error) 
 	}
 }
 
-// LogTracef emits a message as a log with Trace log level.
+// LogTrace emits a message as a log with Trace log level.
 func LogTrace(msg string) {
 	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogTracef formats according to a format specifier and emits as a log with Trace log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogTracef(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelTrace, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Debug log level.
+// LogDebug emits a message as a log with Debug log level.
 func LogDebug(msg string) {
 	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogDebugf formats according to a format specifier and emits as a log with Debug log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogDebugf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelDebug, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Info log level.
+// LogInfo emits a message as a log with Info log level.
 func LogInfo(msg string) {
 	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogInfof formats according to a format specifier and emits as a log with Info log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogInfof(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelInfo, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Warn log level.
+// LogWarn emits a message as a log with Warn log level.
 func LogWarn(msg string) {
 	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogWarnf formats according to a format specifier and emits as a log with Warn log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogWarnf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelWarn, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Error log level.
+// LogError emits a message as a log with Error log level.
 func LogError(msg string) {
 	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogErrorf formats according to a format specifier and emits as a log with Error log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogErrorf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelError, internal.StringBytePtr(msg), len(msg))
 }
 
-// LogTracef emits a message as a log with Critical log level.
+// LogCritical emits a message as a log with Critical log level.
 func LogCritical(msg string) {
 	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
 }
 
 // LogCriticalf formats according to a format specifier and emits as a log with Critical log level.
+//
+// Note that not all combinations of format and args are supported by tinygo.
+// For example, %v with a map will cause a panic. See
+// https://tinygo.org/docs/reference/lang-support/stdlib/#fmt for more
+// information.
 func LogCriticalf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	internal.ProxyLog(internal.LogLevelCritical, internal.StringBytePtr(msg), len(msg))
