@@ -17,6 +17,7 @@ package proxytest
 import (
 	"context"
 	"io"
+	"os"
 	"reflect"
 	"unsafe"
 
@@ -96,7 +97,13 @@ func NewWasmVMContext(wasm []byte) (WasmVMContext, error) {
 		return nil, err
 	}
 
-	mod, err := r.InstantiateModuleFromBinary(ctx, wasm)
+	compiled, err := r.CompileModule(ctx, wasm)
+	if err != nil {
+		return nil, err
+	}
+
+	wazeroconfig := wazero.NewModuleConfig().WithStdout(os.Stderr).WithStderr(os.Stderr)
+	mod, err := r.InstantiateModule(ctx, compiled, wazeroconfig)
 	if err != nil {
 		return nil, err
 	}
