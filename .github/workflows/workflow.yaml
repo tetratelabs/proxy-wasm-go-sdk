@@ -55,6 +55,7 @@ jobs:
           "envoyproxy/envoy:v1.22-latest",
           "envoyproxy/envoy:v1.23-latest",
           "envoyproxy/envoy:v1.24-latest",
+          "envoyproxy/envoy:v1.25-latest",
           "istio/proxyv2:1.14.0",
           "istio/proxyv2:1.15.0",
           "istio/proxyv2:1.16.0",
