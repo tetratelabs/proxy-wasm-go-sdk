@@ -549,7 +549,7 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_get_metric").
-		Instantiate(ctx, r)
+		Instantiate(ctx)
 	return err
 }
 
