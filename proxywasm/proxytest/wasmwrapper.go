@@ -559,13 +559,12 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return uint32(internal.ProxySetHeaderMapPairs(internal.MapType(mapType), mapPtr, int(mapSize)))
 		}).
 		Export("proxy_set_header_map_pairs").
-		// proxy_get_buffer_bytes gets up to max_size bytes from the buffer, starting from offset, returning any flags.
+		// proxy_get_buffer_bytes gets up to max_size bytes from the buffer, starting from offset.
 		//
-		// Note: proxy-wasm-spec calls this proxy_get_buffer. See
+		// Note: proxy-wasm-spec calls this proxy_get_buffer, but the signature is incompatible. See
 		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_buffer
 		NewFunctionBuilder().
-		WithParameterNames("buffer_type", "offset", "max_size", "return_buffer_data", "return_buffer_size",
-			"return_flags").
+		WithParameterNames("buffer_type", "offset", "max_size", "return_buffer_data", "return_buffer_size").
 		WithResultNames("call_result").
 		WithFunc(func(ctx context.Context, mod api.Module, bufferType, start, maxSize, returnBufferData,
 			returnBufferSize uint32) uint32 {
