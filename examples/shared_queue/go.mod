@@ -1,6 +1,6 @@
 module github.com/tetratelabs/proxy-wasm-go-sdk/examples/shared_queue
 
-go 1.18
+go 1.19
 
 replace github.com/tetratelabs/proxy-wasm-go-sdk => ../..
 

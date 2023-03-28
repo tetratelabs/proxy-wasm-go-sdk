@@ -1,10 +1,10 @@
 module github.com/tetratelabs/proxy-wasm-go-sdk
 
-go 1.18
+go 1.19
 
 require (
-	github.com/stretchr/testify v1.8.0
-	github.com/tetratelabs/wazero v1.0.0-rc.2
+	github.com/stretchr/testify v1.8.2
+	github.com/tetratelabs/wazero v1.0.0
 )
 
 require (
