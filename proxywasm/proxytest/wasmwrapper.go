@@ -271,7 +271,7 @@ func handleMemoryStatus(ok bool) {
 	}
 }
 
-func wasmBytePtr(ctx context.Context, mod api.Module, off uint32, size uint32) *byte {
+func wasmBytePtr(mod api.Module, off uint32, size uint32) *byte {
 	if size == 0 {
 		return nil
 
@@ -314,23 +314,37 @@ func wasmBool(b bool) uint64 {
 
 func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 	_, err := r.NewHostModuleBuilder("env").
+		// proxy_log logs a message at the given log_level.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_log
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, logLevel uint32, messageData uint32, messageSize uint32) uint32 {
-			messageDataPtr := wasmBytePtr(ctx, mod, messageData, messageSize)
+		WithParameterNames("log_level", "message_data", "message_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, logLevel, messageData, messageSize uint32) uint32 {
+			messageDataPtr := wasmBytePtr(mod, messageData, messageSize)
 			return uint32(internal.ProxyLog(internal.LogLevel(logLevel), messageDataPtr, int(messageSize)))
 		}).
 		Export("proxy_log").
+		// proxy_set_property sets a property value.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_property
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32, valueData uint32, valueSize uint32) uint32 {
-			pathDataPtr := wasmBytePtr(ctx, mod, pathData, pathSize)
-			valueDataPtr := wasmBytePtr(ctx, mod, valueData, valueSize)
+		WithParameterNames("property_path_data", "property_path_size", "property_value_data",
+			"property_value_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, pathData, pathSize, valueData, valueSize uint32) uint32 {
+			pathDataPtr := wasmBytePtr(mod, pathData, pathSize)
+			valueDataPtr := wasmBytePtr(mod, valueData, valueSize)
 			return uint32(internal.ProxySetProperty(pathDataPtr, int(pathSize), valueDataPtr, int(valueSize)))
 		}).
 		Export("proxy_set_property").
+		// proxy_get_property gets a property value.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_property
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, pathData uint32, pathSize uint32,
-			returnValueData uint32, returnValueSize uint32) uint32 {
-			pathDataPtr := wasmBytePtr(ctx, mod, pathData, pathSize)
+		WithParameterNames("property_path_data", "property_path_size", "return_property_value_data",
+			"return_property_value_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, pathData, pathSize, returnValueData,
+			returnValueSize uint32) uint32 {
+			pathDataPtr := wasmBytePtr(mod, pathData, pathSize)
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			ret := uint32(internal.ProxyGetProperty(pathDataPtr, int(pathSize), &returnValueHostPtr, &returnValueSizePtr))
@@ -338,58 +352,92 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_get_property").
+		// proxy_send_local_response sends an HTTP response without forwarding request to the upstream.
+		//
+		// Note: proxy-wasm spec calls this proxy_send_http_response. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_send_http_response
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module,
-			statusCode uint32, statusCodeDetailData uint32, statusCodeDetailsSize uint32,
-			bodyData uint32, bodySize uint32, headersData uint32, headersSize uint32, grpcStatus int32) uint32 {
-			statusCodeDetailDataPtr := wasmBytePtr(ctx, mod, statusCodeDetailData, statusCodeDetailsSize)
-			bodyDataPtr := wasmBytePtr(ctx, mod, bodyData, bodySize)
-			headersDataPtr := wasmBytePtr(ctx, mod, headersData, headersSize)
-			return uint32(internal.ProxySendLocalResponse(statusCode, statusCodeDetailDataPtr, int(statusCodeDetailsSize),
-				bodyDataPtr, int(bodySize), headersDataPtr, int(headersSize), grpcStatus))
+		WithParameterNames("response_code", "response_code_details_data", "response_code_details_size",
+			"response_body_data", "response_body_size", "additional_headers_map_data", "additional_headers_size",
+			"grpc_status").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, statusCode, statusCodeDetailData, statusCodeDetailsSize,
+			bodyData, bodySize, headersData, headersSize, grpcStatus uint32) uint32 {
+			statusCodeDetailDataPtr := wasmBytePtr(mod, statusCodeDetailData, statusCodeDetailsSize)
+			bodyDataPtr := wasmBytePtr(mod, bodyData, bodySize)
+			headersDataPtr := wasmBytePtr(mod, headersData, headersSize)
+			return uint32(internal.ProxySendLocalResponse(statusCode, statusCodeDetailDataPtr,
+				int(statusCodeDetailsSize), bodyDataPtr, int(bodySize), headersDataPtr, int(headersSize), int32(grpcStatus)))
 		}).
 		Export("proxy_send_local_response").
+		// proxy_get_shared_data gets shared data identified by a key. The compare-and-switch value is returned and can
+		// be used when updating the value with proxy_set_shared_data.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_shared_data
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32,
-			returnValueData uint32, returnValueSize uint32, returnCas uint32) uint32 {
-			keyDataPtr := wasmBytePtr(ctx, mod, keyData, keySize)
+		WithParameterNames("key_data", "key_size", "return_value_data", "return_value_size", "return_cas").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, keyData, keySize, returnValueData, returnValueSize,
+			returnCas uint32) uint32 {
+			keyDataPtr := wasmBytePtr(mod, keyData, keySize)
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			var returnCasPtr uint32
-			ret := uint32(internal.ProxyGetSharedData(keyDataPtr, int(keySize), &returnValueHostPtr, &returnValueSizePtr, &returnCasPtr))
+			ret := uint32(internal.ProxyGetSharedData(keyDataPtr, int(keySize), &returnValueHostPtr,
+				&returnValueSizePtr, &returnCasPtr))
 			copyBytesToWasm(ctx, mod, returnValueHostPtr, returnValueSizePtr, returnValueData, returnValueSize)
 			handleMemoryStatus(mod.Memory().WriteUint32Le(returnCas, returnCasPtr))
 			return ret
 		}).
 		Export("proxy_get_shared_data").
+		// proxy_set_shared_data sets the value of shared data using its key. If compare-and-switch value is set, it
+		// must match the current value.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_shared_data
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, keyData uint32, keySize uint32, valueData uint32, valueSize uint32, cas uint32) uint32 {
-			keyDataPtr := wasmBytePtr(ctx, mod, keyData, keySize)
-			valueDataPtr := wasmBytePtr(ctx, mod, valueData, valueSize)
+		WithParameterNames("key_data", "key_size", "value_data", "value_size", "cas").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, keyData, keySize, valueData, valueSize, cas uint32) uint32 {
+			keyDataPtr := wasmBytePtr(mod, keyData, keySize)
+			valueDataPtr := wasmBytePtr(mod, valueData, valueSize)
 			return uint32(internal.ProxySetSharedData(keyDataPtr, int(keySize), valueDataPtr, int(valueSize), cas))
 		}).
 		Export("proxy_set_shared_data").
+		// proxy_register_shared_queue registers a shared queue using a given name. It can be referred to in
+		// proxy_enqueue_shared_queue and proxy_dequeue_shared_queue using the returned ID.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_register_shared_queue
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, nameData uint32, nameSize uint32, returnID uint32) uint32 {
-			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
+		WithParameterNames("queue_name_data", "queue_name_size", "return_queue_id").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, nameData, nameSize, returnID uint32) uint32 {
+			namePtr := wasmBytePtr(mod, nameData, nameSize)
 			var returnIDPtr uint32
 			ret := uint32(internal.ProxyRegisterSharedQueue(namePtr, int(nameSize), &returnIDPtr))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(returnID, returnIDPtr))
 			return ret
 		}).
 		Export("proxy_register_shared_queue").
+		// proxy_resolve_shared_queue resolves existing shared queue using a given name. It can be referred to in
+		// proxy_enqueue_shared_queue and proxy_dequeue_shared_queue using the returned ID.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_resolve_shared_queue
+		//
+		// Note: The "vm_id_data" and "vm_id_size" parameters are not documented in proxy-wasm spec.
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, vmIDData uint32, vmIDSize uint32, nameData uint32, nameSize uint32, returnID uint32) uint32 {
-			vmID := wasmBytePtr(ctx, mod, vmIDData, vmIDSize)
-			namePtr := wasmBytePtr(ctx, mod, nameData, nameSize)
+		WithParameterNames("vm_id_data", "vm_id_size", "queue_name_data", "queue_name_size", "return_queue_id").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, vmIDData, vmIDSize, nameData, nameSize, returnID uint32) uint32 {
+			vmID := wasmBytePtr(mod, vmIDData, vmIDSize)
+			namePtr := wasmBytePtr(mod, nameData, nameSize)
 			var returnIDPtr uint32
 			ret := uint32(internal.ProxyResolveSharedQueue(vmID, int(vmIDSize), namePtr, int(nameSize), &returnIDPtr))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(returnID, returnIDPtr))
 			return ret
 		}).
 		Export("proxy_resolve_shared_queue").
+		// proxy_dequeue_shared_queue gets data from the end of the queue.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_dequeue_shared_queue
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, queueID uint32, returnValueData uint32, returnValueSize uint32) uint32 {
+		WithParameterNames("queue_id", "payload_data", "payload_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, queueID, returnValueData, returnValueSize uint32) uint32 {
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			ret := uint32(internal.ProxyDequeueSharedQueue(queueID, &returnValueHostPtr, &returnValueSizePtr))
@@ -397,15 +445,26 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_dequeue_shared_queue").
+		// proxy_enqueue_shared_queue adds data to the front of the queue.
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_enqueue_shared_queue
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, queueID uint32, valueData uint32, valueSize uint32) uint32 {
-			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
+		WithParameterNames("queue_id", "payload_data", "payload_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, queueID, valueData, valueSize uint32) uint32 {
+			valuePtr := wasmBytePtr(mod, valueData, valueSize)
 			return uint32(internal.ProxyEnqueueSharedQueue(queueID, valuePtr, int(valueSize)))
 		}).
 		Export("proxy_enqueue_shared_queue").
+		// proxy_get_header_map_value gets the content of key from a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_get_map_value. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_map_value
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, returnValueData uint32, returnValueSize uint32) uint32 {
-			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
+		WithParameterNames("map_type", "key_data", "key_size", "return_value_data", "return_value_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, keyData, keySize, returnValueData,
+			returnValueSize uint32) uint32 {
+			keyPtr := wasmBytePtr(mod, keyData, keySize)
 			var retValDataHostPtr *byte
 			var retValSizePtr int
 			ret := uint32(internal.ProxyGetHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize), &retValDataHostPtr, &retValSizePtr))
@@ -413,38 +472,74 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_get_header_map_value").
+		// proxy_add_header_map_value adds a value to the key of a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_add_map_value. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_add_map_value
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
-			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
-			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
+		WithParameterNames("map_type", "key_data", "key_size", "value_data", "value_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, keyData, keySize, valueData, valueSize uint32) uint32 {
+			keyPtr := wasmBytePtr(mod, keyData, keySize)
+			valuePtr := wasmBytePtr(mod, valueData, valueSize)
 			return uint32(internal.ProxyAddHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize), valuePtr, int(valueSize)))
 		}).
 		Export("proxy_add_header_map_value").
+		// proxy_replace_header_map_value replaces any value of the key in a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_set_map_value. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_map_value
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32, valueData uint32, valueSize uint32) uint32 {
-			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
-			valuePtr := wasmBytePtr(ctx, mod, valueData, valueSize)
+		WithParameterNames("map_type", "key_data", "key_size", "value_data", "value_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, keyData, keySize, valueData, valueSize uint32) uint32 {
+			keyPtr := wasmBytePtr(mod, keyData, keySize)
+			valuePtr := wasmBytePtr(mod, valueData, valueSize)
 			return uint32(internal.ProxyReplaceHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize), valuePtr, int(valueSize)))
 		}).
 		Export("proxy_replace_header_map_value").
+		// proxy_continue_stream resume processing of paused stream.
+		//
+		// Note: This is similar to proxy_resume_downstream, proxy_resume_upstream, proxy_resume_http_request and
+		// proxy_resume_http_response in proxy-wasm spec. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_continue_stream
 		NewFunctionBuilder().
+		WithParameterNames("stream_type").
+		WithResultNames("call_result").
 		WithFunc(func(streamType uint32) uint32 {
 			return uint32(internal.ProxyContinueStream(internal.StreamType(streamType)))
 		}).
 		Export("proxy_continue_stream").
+		// proxy_close_stream closes a stream.
+		//
+		// Note: This is undocumented in proxy-wasm spec.
 		NewFunctionBuilder().
+		WithParameterNames("stream_type").
+		WithResultNames("call_result").
 		WithFunc(func(streamType uint32) uint32 {
 			return uint32(internal.ProxyCloseStream(internal.StreamType(streamType)))
 		}).
 		Export("proxy_close_stream").
+		// proxy_remove_header_map_value removes all values of the key in a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_remove_map_value. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_remove_map_value
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, keyData uint32, keySize uint32) uint32 {
-			keyPtr := wasmBytePtr(ctx, mod, keyData, keySize)
+		WithParameterNames("map_type", "key_data", "key_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, keyData, keySize uint32) uint32 {
+			keyPtr := wasmBytePtr(mod, keyData, keySize)
 			return uint32(internal.ProxyRemoveHeaderMapValue(internal.MapType(mapType), keyPtr, int(keySize)))
 		}).
 		Export("proxy_remove_header_map_value").
+		// proxy_get_header_map_pairs gets all key-value pairs from a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_get_map. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_map
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, returnValueData uint32, returnValueSize uint32) uint32 {
+		WithParameterNames("map_type", "return_map_data", "return_map_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, returnValueData, returnValueSize uint32) uint32 {
 			var returnValueHostPtr *byte
 			var returnValueSizePtr int
 			ret := uint32(internal.ProxyGetHeaderMapPairs(internal.MapType(mapType), &returnValueHostPtr, &returnValueSizePtr))
@@ -452,14 +547,27 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_get_header_map_pairs").
+		// proxy_set_header_map_pairs gets all key-value pairs from a given map.
+		//
+		// Note: proxy-wasm-spec calls this proxy_set_map. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_map
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, mapType uint32, mapData uint32, mapSize uint32) uint32 {
-			mapPtr := wasmBytePtr(ctx, mod, mapData, mapSize)
+		WithParameterNames("map_type", "map_data", "map_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, mapType, mapData, mapSize uint32) uint32 {
+			mapPtr := wasmBytePtr(mod, mapData, mapSize)
 			return uint32(internal.ProxySetHeaderMapPairs(internal.MapType(mapType), mapPtr, int(mapSize)))
 		}).
 		Export("proxy_set_header_map_pairs").
+		// proxy_get_buffer_bytes gets up to max_size bytes from the buffer, starting from offset.
+		//
+		// Note: proxy-wasm-spec calls this proxy_get_buffer, but the signature is incompatible. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_buffer
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, returnBufferData uint32, returnBufferSize uint32) uint32 {
+		WithParameterNames("buffer_type", "offset", "max_size", "return_buffer_data", "return_buffer_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, bufferType, start, maxSize, returnBufferData,
+			returnBufferSize uint32) uint32 {
 			var returnBufferDataHostPtr *byte
 			var returnBufferSizePtr int
 			ret := uint32(internal.ProxyGetBufferBytes(internal.BufferType(bufferType), int(start), int(maxSize), &returnBufferDataHostPtr, &returnBufferSizePtr))
@@ -467,18 +575,35 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_get_buffer_bytes").
+		// proxy_set_buffer_bytes replaces a byte range of the given buffer type.
+		//
+		// Note: proxy-wasm-spec calls this proxy_set_buffer, but the signature is incompatible. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_buffer
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, bufferType uint32, start uint32, maxSize uint32, bufferData uint32, bufferSize uint32) uint32 {
-			bufferPtr := wasmBytePtr(ctx, mod, bufferData, bufferSize)
+		WithParameterNames("buffer_type", "offset", "size", "buffer_data", "buffer_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, bufferType, start, maxSize, bufferData,
+			bufferSize uint32) uint32 {
+			bufferPtr := wasmBytePtr(mod, bufferData, bufferSize)
 			return uint32(internal.ProxySetBufferBytes(internal.BufferType(bufferType), int(start), int(maxSize), bufferPtr, int(bufferSize)))
 		}).
 		Export("proxy_set_buffer_bytes").
+		// proxy_http_call dispatches an HTTP call to upstream. Once the response is returned to the host,
+		// proxy_on_http_call_response will be called with a unique call identifier (return_callout_id).
+		//
+		// Note: proxy-wasm-spec calls this proxy_dispatch_http_call. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_dispatch_http_call
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, upstreamData uint32, upstreamSize uint32, headerData uint32, headerSize uint32, bodyData uint32, bodySize uint32, trailersData uint32, trailersSize uint32, timeout uint32, calloutIDPtr uint32) uint32 {
-			upstreamPtr := wasmBytePtr(ctx, mod, upstreamData, upstreamSize)
-			headerPtr := wasmBytePtr(ctx, mod, headerData, headerSize)
-			bodyPtr := wasmBytePtr(ctx, mod, bodyData, bodySize)
-			trailersPtr := wasmBytePtr(ctx, mod, trailersData, trailersSize)
+		WithParameterNames("upstream_name_data", "upstream_name_size", "headers_map_data", "headers_map_size",
+			"body_data", "body_size", "trailers_map_data", "trailers_map_size", "timeout_milliseconds",
+			"return_callout_id").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, upstreamData, upstreamSize, headerData, headerSize, bodyData,
+			bodySize, trailersData, trailersSize, timeout, calloutIDPtr uint32) uint32 {
+			upstreamPtr := wasmBytePtr(mod, upstreamData, upstreamSize)
+			headerPtr := wasmBytePtr(mod, headerData, headerSize)
+			bodyPtr := wasmBytePtr(mod, bodyData, bodySize)
+			trailersPtr := wasmBytePtr(mod, trailersData, trailersSize)
 			var calloutID uint32
 			ret := uint32(internal.ProxyHttpCall(upstreamPtr, int(upstreamSize), headerPtr, int(headerSize), bodyPtr, int(bodySize), trailersPtr, int(trailersSize), timeout, &calloutID))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(calloutIDPtr, calloutID))
@@ -496,10 +621,17 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_http_call").
+		// proxy_call_foreign_function calls a registered foreign function.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_call_foreign_function
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, funcNamePtr uint32, funcNameSize uint32, paramPtr uint32, paramSize uint32, returnData uint32, returnSize uint32) uint32 {
-			funcName := wasmBytePtr(ctx, mod, funcNamePtr, funcNameSize)
-			paramHostPtr := wasmBytePtr(ctx, mod, paramPtr, paramSize)
+		WithParameterNames("function_name_data", "function_name_size", "parameters_data", "parameters_size",
+			"return_results_data", "return_results_size").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, funcNamePtr, funcNameSize, paramPtr, paramSize, returnData,
+			returnSize uint32) uint32 {
+			funcName := wasmBytePtr(mod, funcNamePtr, funcNameSize)
+			paramHostPtr := wasmBytePtr(mod, paramPtr, paramSize)
 			var returnDataHostPtr *byte
 			var returnDataSizePtr int
 			ret := uint32(internal.ProxyCallForeignFunction(funcName, int(funcNameSize), paramHostPtr, int(paramSize), &returnDataHostPtr, &returnDataSizePtr))
@@ -507,42 +639,82 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 			return ret
 		}).
 		Export("proxy_call_foreign_function").
+		// proxy_set_tick_period_milliseconds sets the timer period. Once set, the host environment will call
+		// proxy_on_tick every tick_period milliseconds.
+		//
+		// Note: proxy-wasm spec calls this proxy_set_tick_period. See
+		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_tick_period
 		NewFunctionBuilder().
+		WithParameterNames("tick_period").
+		WithResultNames("call_result").
 		WithFunc(func(period uint32) uint32 {
 			return uint32(internal.ProxySetTickPeriodMilliseconds(period))
 		}).
 		Export("proxy_set_tick_period_milliseconds").
+		// proxy_set_effective_context changes the effective context. This function is usually used to change the
+		// context after receiving proxy_on_http_call_response, proxy_on_grpc_call_response or proxy_on_queue_ready.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_effective_context
 		NewFunctionBuilder().
+		WithParameterNames("context_id").
+		WithResultNames("call_result").
 		WithFunc(func(contextID uint32) uint32 {
 			return uint32(internal.ProxySetEffectiveContext(contextID))
 		}).
 		Export("proxy_set_effective_context").
+		// proxy_done indicates to the host environment that Wasm VM side is done processing current context. This can
+		// be used after returning false in proxy_on_done.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_done
 		NewFunctionBuilder().
+		WithResultNames("call_result").
 		WithFunc(func() uint32 {
 			return uint32(internal.ProxyDone())
 		}).
 		Export("proxy_done").
+		// proxy_define_metric defines a metric using a given name. It can be referred to in proxy_get_metric,
+		// proxy_increment_metric and proxy_record_metric using returned ID.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_define_metric
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, metricType uint32, metricNameData uint32, metricNameSize uint32, returnMetricIDPtr uint32) uint32 {
-			metricName := wasmBytePtr(ctx, mod, metricNameData, metricNameSize)
+		WithParameterNames("metric_type", "metric_name_data", "metric_name_size", "return_metric_id").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, metricType, metricNameData, metricNameSize,
+			returnMetricIDPtr uint32) uint32 {
+			metricName := wasmBytePtr(mod, metricNameData, metricNameSize)
 			var returnMetricID uint32
 			ret := uint32(internal.ProxyDefineMetric(internal.MetricType(metricType), metricName, int(metricNameSize), &returnMetricID))
 			handleMemoryStatus(mod.Memory().WriteUint32Le(returnMetricIDPtr, returnMetricID))
 			return ret
 		}).
 		Export("proxy_define_metric").
+		// proxy_increment_metric increments or decrements a metric value using an offset.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_increment_metric
 		NewFunctionBuilder().
+		WithParameterNames("metric_id", "offset").
+		WithResultNames("call_result").
 		WithFunc(func(metricID uint32, offset int64) uint32 {
 			return uint32(internal.ProxyIncrementMetric(metricID, offset))
 		}).
 		Export("proxy_increment_metric").
+		// proxy_record_metric sets the value of a metric.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_record_metric
 		NewFunctionBuilder().
+		WithParameterNames("metric_id", "value").
+		WithResultNames("call_result").
 		WithFunc(func(metricID uint32, value uint64) uint32 {
 			return uint32(internal.ProxyRecordMetric(metricID, value))
 		}).
 		Export("proxy_record_metric").
+		// proxy_get_metric gets the value of a metric.
+		//
+		// See https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_get_metric
 		NewFunctionBuilder().
-		WithFunc(func(ctx context.Context, mod api.Module, metricID uint32, returnMetricValue uint32) uint32 {
+		WithParameterNames("metric_id", "return_value").
+		WithResultNames("call_result").
+		WithFunc(func(ctx context.Context, mod api.Module, metricID, returnMetricValue uint32) uint32 {
 			var returnMetricValuePtr uint64
 			ret := uint32(internal.ProxyGetMetric(metricID, &returnMetricValuePtr))
 			handleMemoryStatus(mod.Memory().WriteUint64Le(returnMetricValue, returnMetricValuePtr))
