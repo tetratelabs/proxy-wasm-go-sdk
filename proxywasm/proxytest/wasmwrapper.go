@@ -577,10 +577,10 @@ func exportHostABI(ctx context.Context, r wazero.Runtime) error {
 		Export("proxy_get_buffer_bytes").
 		// proxy_set_buffer_bytes replaces a byte range of the given buffer type.
 		//
-		// Note: proxy-wasm-spec calls this proxy_set_buffer. See
+		// Note: proxy-wasm-spec calls this proxy_set_buffer, but the signature is incompatible. See
 		// https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT#proxy_set_buffer
 		NewFunctionBuilder().
-		WithParameterNames("buffer_type", "offset", "size", "buffer_data", "buffer_size", "flags").
+		WithParameterNames("buffer_type", "offset", "size", "buffer_data", "buffer_size").
 		WithResultNames("call_result").
 		WithFunc(func(ctx context.Context, mod api.Module, bufferType, start, maxSize, bufferData,
 			bufferSize uint32) uint32 {
