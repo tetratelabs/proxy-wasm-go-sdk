@@ -21,8 +21,7 @@ TinyGo's default memory allocator (Garbage Collector) is known to have some issu
 There's an alternative GC called [nottinygc](https://github.com/wasilibs/nottinygc) which not only resolves the memory related issues, but
 also improves the performance on production usage.
 
-The following images are [an end user's observation](https://envoyproxy.slack.com/archives/CM2CQ4XJ5/p1682627227131899?thread_ts=1676594315.815989&cid=CM2CQ4XJ5) 
-on the perf of their Go SDK-compiled plugin on a high-workload environment.
+The following images are an end user's observation on the perf of their Go SDK-compiled plugin on a high-workload environment.
 This clearly indicates that nottinygc performs pretty well compared to the default setting of TinyGo.
 
 ![img](https://user-images.githubusercontent.com/13513977/235026482-ff8dcc3b-a7dc-444d-a1af-8137c64e1d53.png)
