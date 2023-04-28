@@ -14,6 +14,21 @@ This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the of
 - [TinyGo](https://tinygo.org/) - This SDK depends on TinyGo and leverages its [WASI](https://github.com/WebAssembly/WASI) (WebAssembly System Interface) target. Please follow the official instruction [here](https://tinygo.org/getting-started/) for installing TinyGo.
 - [Envoy](https://www.envoyproxy.io) - To run compiled examples, you need to have Envoy binary. We recommend using [func-e](https://func-e.io) as the easiest way to get started with Envoy. Alternatively, you can follow [the official instruction](https://www.envoyproxy.io/docs/envoy/latest/start/install).
 
+
+## Dealing with memory issues
+
+TinyGo's default memory allocator (Garbage Collector) is known to have some issues when it's used in the high workload environment (e.g. [1](https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/349),[2](https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/375)).
+There's an alternative GC called [nottinygc](https://github.com/wasilibs/nottinygc) which not only resolves the memory related issues, but
+also improves the performance on production usage.
+
+The following images are an end user's observation on the perf of their Go SDK-compiled plugin on a high-workload environment.
+This clearly indicates that nottinygc performs pretty well compared to the default setting of TinyGo.
+
+![img](https://user-images.githubusercontent.com/13513977/235026482-ff8dcc3b-a7dc-444d-a1af-8137c64e1d53.png)
+![img](https://user-images.githubusercontent.com/13513977/235026493-97122fe3-9de0-4417-93a0-dd3a32bebce7.png)
+
+It can be enabled by adding a single line in your source code. Please refer to https://github.com/wasilibs/nottinygc for detail.
+
 ## Installation
 
 ```
