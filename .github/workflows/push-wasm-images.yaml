@@ -4,7 +4,7 @@ on:
     branches:
       - main
 env:
-  TINYGO_VERSION: 0.27.0
+  TINYGO_VERSION: 0.28.0
 
 jobs:
   build-and-push-wasm-images:
