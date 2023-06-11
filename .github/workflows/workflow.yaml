@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  TINYGO_VERSION: 0.27.0
+  TINYGO_VERSION: 0.28.0
 
 jobs:
   style:
@@ -56,10 +56,9 @@ jobs:
           "envoyproxy/envoy:v1.23-latest",
           "envoyproxy/envoy:v1.24-latest",
           "envoyproxy/envoy:v1.25-latest",
-          "istio/proxyv2:1.14.0",
-          "istio/proxyv2:1.15.0",
           "istio/proxyv2:1.16.0",
           "istio/proxyv2:1.17.0",
+          "istio/proxyv2:1.18.0",
         ]
     runs-on: ubuntu-latest
     steps:
