@@ -50,19 +50,18 @@ func SetEffectiveContext(contextID uint32) error {
 
 // RegisterSharedQueue registers the shared queue on this plugin context.
 // "Register" means that OnQueueReady is called for this plugin context whenever a new item is enqueued on that queueID.
-// Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Only available for types.PluginContext. The returned queueID can be used for Enqueue/DequeueSharedQueue.
 // Note that "name" must be unique across all Wasm VMs which share the same "vm_id".
 // That means you can use "vm_id" to separate shared queue namespace.
-func RegisterSharedQueue(name string) (ququeID uint32, err error) {
-	var queueID uint32
+func RegisterSharedQueue(name string) (queueID uint32, err error) {
 	ptr := internal.StringBytePtr(name)
 	st := internal.ProxyRegisterSharedQueue(ptr, len(name), &queueID)
 	return queueID, internal.StatusToError(st)
 }
 
 // ResolveSharedQueue acquires the queueID for the given vmID and queueName.
-// The returned ququeID can be used for Enqueue/DequeueSharedQueue.
-func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error) {
+// The returned queueID can be used for Enqueue/DequeueSharedQueue.
+func ResolveSharedQueue(vmID, queueName string) (queueID uint32, err error) {
 	var ret uint32
 	st := internal.ProxyResolveSharedQueue(internal.StringBytePtr(vmID),
 		len(vmID), internal.StringBytePtr(queueName), len(queueName), &ret)
