@@ -320,7 +320,7 @@ Please refer to [hostcall.go](../proxywasm/hostcall.go) for all the available ho
 
 ## Entrypoint
 
-When Envoy creates VMs, it calls `main` function of your program at startup phase before it tries to create `VMContext` inside VMs. Therfore you must pass your own implementation of `VMContext` in `main` function.
+When Envoy creates VMs, it calls `main` function of your program at startup phase before it tries to create `VMContext` inside VMs. Therefore you must pass your own implementation of `VMContext` in `main` function.
 
 [proxywasm](../proxywasm) package's `SetVMContext` function is the entrypoint used for that purpose. That being said, your `main` function should look like the following:
 
@@ -397,21 +397,21 @@ func DequeueSharedQueue(queueID uint32) ([]byte, error)
 
 // RegisterSharedQueue registers the shared queue on this plugin context.
 // "Register" means that OnQueueReady is called for this plugin context whenever a new item is enqueued on that queueID.
-// Only available for types.PluginContext. The returned ququeID can be used for Enqueue/DequeueSharedQueue.
+// Only available for types.PluginContext. The returned queueID can be used for Enqueue/DequeueSharedQueue.
 // Note that "name" must be unique across all Wasm VMs which share a same "vm_id".
 // That means you can use "vm_id" can be used for separating shared queue namespace.
 //
 // Only after RegisterSharedQueue is called, ResolveSharedQueue("this vm_id", "name") succeeds
 // to retrive queueID by other VMs.
-func RegisterSharedQueue(name string) (ququeID uint32, err error)
+func RegisterSharedQueue(name string) (queueID uint32, err error)
 
 // EnqueueSharedQueue enqueues an data to the shared queue of the given queueID.
 // In order to get queue id for a target queue, use "ResolveSharedQueue" first.
 func EnqueueSharedQueue(queueID uint32, data []byte) error
 
 // ResolveSharedQueue acquires the queueID for the given vm_id and queue name.
-// The returned ququeID can be used for Enqueue/DequeueSharedQueue.
-func ResolveSharedQueue(vmID, queueName string) (ququeID uint32, err error)
+// The returned queueID can be used for Enqueue/DequeueSharedQueue.
+func ResolveSharedQueue(vmID, queueName string) (queueID uint32, err error)
 ```
 
 Basically `RegisterSharedQueue` and `DequeueSharedQueue` are used by "consumer" of the queue 
