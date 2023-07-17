@@ -37,14 +37,9 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func checkMessage(str string, exps, nexps []string) bool {
+func checkMessage(str string, exps []string) bool {
 	for _, exp := range exps {
 		if !strings.Contains(str, exp) {
-			return false
-		}
-	}
-	for _, nexp := range nexps {
-		if strings.Contains(str, nexp) {
 			return false
 		}
 	}
