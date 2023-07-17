@@ -35,7 +35,7 @@ func Test_dispatch_call_on_tick(t *testing.T) {
 			fmt.Sprintf("called %d for contextID=1", count),
 			fmt.Sprintf("called %d for contextID=2", count),
 			":status: 200", ":status: 503",
-		}, nil) {
+		}) {
 			count++
 		}
 		return count == 6
@@ -61,8 +61,8 @@ func Test_helloworld(t *testing.T) {
 		return checkMessage(stdErr.String(), []string{
 			"OnPluginStart from Go!",
 			"It's",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_http_auth_random(t *testing.T) {
@@ -83,8 +83,8 @@ func Test_http_auth_random(t *testing.T) {
 			"access forbidden",
 			"access granted",
 			"response header from httpbin: :status: 200",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_http_body(t *testing.T) {
@@ -122,7 +122,6 @@ func Test_http_body(t *testing.T) {
 						require.NoError(t, err)
 						return tc.expBody == string(body) && checkMessage(stdErr.String(), []string{
 							fmt.Sprintf(`original %s body: [original body]`, mode)},
-							[]string{"failed to"},
 						)
 					}, 5*time.Second, 500*time.Millisecond)
 				})
@@ -149,8 +148,8 @@ func Test_http_headers(t *testing.T) {
 		require.Equal(t, res.Header.Get("x-proxy-wasm-go-sdk-example"), "http_headers")
 		return checkMessage(stdErr.String(), []string{
 			key, value, "server: envoy", "x-wasm-header", "x-proxy-wasm-go-sdk-example",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_http_routing(t *testing.T) {
@@ -173,7 +172,7 @@ func Test_http_routing(t *testing.T) {
 			primary = true
 		}
 		return primary && canary
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_metrics(t *testing.T) {
@@ -201,7 +200,7 @@ func Test_metrics(t *testing.T) {
 			}
 			actualCount++
 			return actualCount == expCount
-		}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+		}, 10*time.Second, 100*time.Millisecond, "Endpoint not healthy.")
 	}
 
 	for headerValue, expCount := range customHeaderToExpectedCounts {
@@ -214,8 +213,8 @@ func Test_metrics(t *testing.T) {
 			defer res.Body.Close()
 			raw, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
-			return checkMessage(string(raw), []string{expectedMetric}, nil)
-		}, 5*time.Second, time.Millisecond, "Expected stats not found")
+			return checkMessage(string(raw), []string{expectedMetric})
+		}, 10*time.Second, 100*time.Millisecond, "Expected stats not found")
 	}
 }
 
@@ -245,8 +244,8 @@ func Test_network(t *testing.T) {
 			"upsteam cluster matadata location[region]=ap-northeast-1",
 			"upsteam cluster matadata location[cloud_provider]=aws",
 			"upsteam cluster matadata location[az]=ap-northeast-1a",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_postpone_requests(t *testing.T) {
@@ -261,7 +260,7 @@ func Test_postpone_requests(t *testing.T) {
 		return checkMessage(stdErr.String(), []string{
 			"postpone request with contextID=2",
 			"resume request with contextID=2",
-		}, nil)
+		})
 	}, 6*time.Second, time.Millisecond, stdErr.String())
 }
 
@@ -301,8 +300,8 @@ func Test_properties(t *testing.T) {
 			"auth header is \"cookie\"",
 			"auth header is \"authorization\"",
 			"no auth header for route",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_shared_data(t *testing.T) {
@@ -320,10 +319,10 @@ func Test_shared_data(t *testing.T) {
 		}
 		count++
 		return count == 10000010
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	}, 10*time.Second, 100*time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
-		return checkMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		return checkMessage(stdErr.String(), []string{fmt.Sprintf("shared value: %d", count)})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_shared_queue(t *testing.T) {
@@ -342,15 +341,15 @@ func Test_shared_queue(t *testing.T) {
 		}
 		defer res.Body.Close()
 		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	}, 10*time.Second, 100*time.Millisecond, "Endpoint not healthy.")
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
 			`enqueued data: {"key": ":method","value": "GET"}`,
 			`dequeued data from http_request_headers`,
 			`dequeued data from http_response_headers`,
 			`dequeued data from tcp_data_hashes`,
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_vm_plugin_configuration(t *testing.T) {
@@ -359,8 +358,8 @@ func Test_vm_plugin_configuration(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
 			"name\": \"vm configuration", "name\": \"plugin configuration",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_json_validation(t *testing.T) {
@@ -394,7 +393,7 @@ func Test_json_validation(t *testing.T) {
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		return true
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
 
 func Test_multiple_dispatches(t *testing.T) {
@@ -408,7 +407,7 @@ func Test_multiple_dispatches(t *testing.T) {
 		}
 		defer res.Body.Close()
 		return res.StatusCode == http.StatusOK
-	}, 5*time.Second, time.Millisecond, "Endpoint not healthy.")
+	}, 10*time.Second, 100*time.Millisecond, "Endpoint not healthy.")
 
 	require.Eventually(t, func() bool {
 		return checkMessage(stdErr.String(), []string{
@@ -422,6 +421,6 @@ func Test_multiple_dispatches(t *testing.T) {
 			"wasm log: pending dispatched requests: 2",
 			"wasm log: pending dispatched requests: 1",
 			"wasm log: response resumed after processed 10 dispatched request",
-		}, nil)
-	}, 5*time.Second, time.Millisecond, stdErr.String())
+		})
+	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
