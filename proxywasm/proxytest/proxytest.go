@@ -162,6 +162,10 @@ func NewHostEmulator(opt *EmulatorOption) (host HostEmulator, reset func()) {
 		make(map[string][]byte),
 	}
 
+	for key, value := range opt.properties {
+		emulator.properties[key] = value
+	}
+
 	release := internal.RegisterMockWasmHost(emulator)
 
 	// set up state
