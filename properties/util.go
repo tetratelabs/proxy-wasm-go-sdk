@@ -29,7 +29,7 @@ func getPropertyUint64(path []string) (uint64, error) {
 }
 
 // getPropertyFloat64 returns a float64 property.
-func getPropertyFloat64(path []string) (float64, error) {
+func getPropertyFloat64(path []string) (float64, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return 0, err
@@ -49,7 +49,7 @@ func getPropertyBool(path []string) (bool, error) {
 }
 
 // getPropertyTimestamp returns a timestamp property.
-func getPropertyTimestamp(path []string) (time.Time, error) {
+func getPropertyTimestamp(path []string) (time.Time, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return time.Now(), err
@@ -60,7 +60,7 @@ func getPropertyTimestamp(path []string) (time.Time, error) {
 
 // getPropertyByteSliceMap retrieves a complex property object as a map of byte slices.
 // to be used when dealing with mixed type properties
-func getPropertyByteSliceMap(path []string) (map[string][]byte, error) {
+func getPropertyByteSliceMap(path []string) (map[string][]byte, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func getPropertyByteSliceMap(path []string) (map[string][]byte, error) {
 
 // getPropertyStringMap retrieves a complex property object as a map of string
 // to be used when dealing with string only type properties.
-func getPropertyStringMap(path []string) (map[string]string, error) {
+func getPropertyStringMap(path []string) (map[string]string, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func getPropertyStringMap(path []string) (map[string]string, error) {
 }
 
 // getPropertyStringSlice retrieves a  complex property object as a string slice.
-func getPropertyStringSlice(path []string) ([]string, error) {
+func getPropertyStringSlice(path []string) ([]string, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func getPropertyStringSlice(path []string) ([]string, error) {
 }
 
 // deserializeToStringSlice deserializes the given byte slice to string slice.
-func deserializeToStringSlice(bs []byte) []string {
+func deserializeToStringSlice(bs []byte) []string { //nolint:unused
 	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
 	ret := make([]string, numStrings)
 	idx := 4
@@ -106,7 +106,7 @@ func deserializeToStringSlice(bs []byte) []string {
 }
 
 // getPropertyByteSliceSlice retrieves a complex property object as a string slice.
-func getPropertyByteSliceSlice(path []string) ([][]byte, error) {
+func getPropertyByteSliceSlice(path []string) ([][]byte, error) { //nolint:unused
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func getPropertyByteSliceSlice(path []string) ([][]byte, error) {
 }
 
 // deserializeToByteSliceSlice deserializes the given bytes to string slice.
-func deserializeToByteSliceSlice(bs []byte) [][]byte {
+func deserializeToByteSliceSlice(bs []byte) [][]byte { //nolint:unused
 	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
 	ret := make([][]byte, numStrings)
 	idx := 4
@@ -135,37 +135,22 @@ func deserializeToUint64(bytes []byte) uint64 {
 }
 
 // deserializeToFloat64 deserializes the given bytes to float64.
-func deserializeToFloat64(bytes []byte) float64 {
+func deserializeToFloat64(bytes []byte) float64 { //nolint:unused
 	bits := binary.LittleEndian.Uint64(bytes)
 	float := math.Float64frombits(bits)
 	return float
 }
 
 // deserializeToTimestamp deserializes the given bytes to timestamp.
-func deserializeToTimestamp(data []byte) time.Time {
+func deserializeToTimestamp(data []byte) time.Time { //nolint:unused
 	nanos := int64(binary.LittleEndian.Uint64(data))
 	return time.Unix(0, nanos)
-}
-
-// deserializeProtobufToStringSlice deserializes the given bytes to string slice.
-func deserializeProtobufToStringSlice(data []byte) []string {
-	var ret []string
-	i := 0
-	for i < len(data) {
-		i++
-		length := int(data[i])
-		i++
-		str := string(data[i : i+length])
-		ret = append(ret, str)
-		i += length
-	}
-	return ret
 }
 
 // deserializeToByteMap deserializes the byte slice to key value map, used for mixed type maps
 //   - keys are always string
 //   - value are raw byte strings that need further parsing
-func deserializeToByteMap(bs []byte) map[string][]byte {
+func deserializeToByteMap(bs []byte) map[string][]byte { //nolint:unused
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
 	var sizeIndex = 4
 	var dataIndex = 4 + 4*2*int(numHeaders)
@@ -190,7 +175,7 @@ func deserializeToByteMap(bs []byte) map[string][]byte {
 // deserializeToStringMap deserializes the bytes to key value map, used for string only type maps
 //   - keys are always string
 //   - value are always string
-func deserializeToStringMap(bs []byte) map[string]string {
+func deserializeToStringMap(bs []byte) map[string]string { //nolint:unused
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
 	var sizeIndex = 4
 	var dataIndex = 4 + 4*2*int(numHeaders)
