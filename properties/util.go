@@ -9,7 +9,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
-// getPropertyString returns a string property
+// getPropertyString returns a string property.
 func getPropertyString(path []string) (string, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -18,7 +18,7 @@ func getPropertyString(path []string) (string, error) {
 	return string(b), nil
 }
 
-// getPropertyUint64 returns a uint64 property
+// getPropertyUint64 returns a uint64 property.
 func getPropertyUint64(path []string) (uint64, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -28,7 +28,7 @@ func getPropertyUint64(path []string) (uint64, error) {
 	return deserializeToUint64(b), nil
 }
 
-// getPropertyFloat64 returns a float64 property
+// getPropertyFloat64 returns a float64 property.
 func getPropertyFloat64(path []string) (float64, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -38,7 +38,7 @@ func getPropertyFloat64(path []string) (float64, error) {
 	return deserializeToFloat64(b), nil
 }
 
-// getPropertyBool returns a bool property
+// getPropertyBool returns a bool property.
 func getPropertyBool(path []string) (bool, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -48,7 +48,7 @@ func getPropertyBool(path []string) (bool, error) {
 	return b[0] != 0, nil
 }
 
-// getPropertyTimestamp returns a timestamp property
+// getPropertyTimestamp returns a timestamp property.
 func getPropertyTimestamp(path []string) (time.Time, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -58,7 +58,7 @@ func getPropertyTimestamp(path []string) (time.Time, error) {
 	return deserializeToTimestamp(b), nil
 }
 
-// getPropertyByteSliceMap retrieves a complex property object as a map of byte slices
+// getPropertyByteSliceMap retrieves a complex property object as a map of byte slices.
 // to be used when dealing with mixed type properties
 func getPropertyByteSliceMap(path []string) (map[string][]byte, error) {
 	b, err := proxywasm.GetProperty(path)
@@ -70,7 +70,7 @@ func getPropertyByteSliceMap(path []string) (map[string][]byte, error) {
 }
 
 // getPropertyStringMap retrieves a complex property object as a map of string
-// to be used when dealing with string only type properties
+// to be used when dealing with string only type properties.
 func getPropertyStringMap(path []string) (map[string]string, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -80,7 +80,7 @@ func getPropertyStringMap(path []string) (map[string]string, error) {
 	return deserializeToStringMap(b), nil
 }
 
-// getPropertyStringSlice retrieves a  complex property object as a string slice
+// getPropertyStringSlice retrieves a  complex property object as a string slice.
 func getPropertyStringSlice(path []string) ([]string, error) {
 	b, err := proxywasm.GetProperty(path)
 	if err != nil {
@@ -162,7 +162,7 @@ func deserializeProtobufToStringSlice(data []byte) []string {
 	return ret
 }
 
-// deserialize byte slice to key value map, used for mixed type maps
+// deserializeToByteMap deserializes the byte slice to key value map, used for mixed type maps
 //   - keys are always string
 //   - value are raw byte strings that need further parsing
 func deserializeToByteMap(bs []byte) map[string][]byte {
