@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	sharedDataKey                 = "shared_data_key"
-	sharedDataInitialValue uint64 = 10000000
+	sharedDataKey = "shared_data_key"
 )
 
 func main() {
@@ -48,8 +47,7 @@ type (
 
 // Override types.VMContext.
 func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
-	initialValueBuf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(initialValueBuf, sharedDataInitialValue)
+	initialValueBuf := make([]byte, 0) // Empty data to indicate that the data is not initialized.
 	if err := proxywasm.SetSharedData(sharedDataKey, initialValueBuf, 0); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnVMStart: %v", err)
 	}
@@ -81,18 +79,24 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 }
 
 func (ctx *httpContext) incrementData() (uint64, error) {
-	value, cas, err := proxywasm.GetSharedData(sharedDataKey)
+	data, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {
 		proxywasm.LogWarnf("error getting shared data on OnHttpRequestHeaders: %v", err)
 		return 0, err
 	}
 
+	var nextValue uint64
+	if len(data) > 0 {
+		nextValue = binary.LittleEndian.Uint64(data) + 1
+	} else {
+		nextValue = 1
+	}
+
 	buf := make([]byte, 8)
-	ret := binary.LittleEndian.Uint64(value) + 1
-	binary.LittleEndian.PutUint64(buf, ret)
+	binary.LittleEndian.PutUint64(buf, nextValue)
 	if err := proxywasm.SetSharedData(sharedDataKey, buf, cas); err != nil {
 		proxywasm.LogWarnf("error setting shared data on OnHttpRequestHeaders: %v", err)
 		return 0, err
 	}
-	return ret, err
+	return nextValue, err
 }

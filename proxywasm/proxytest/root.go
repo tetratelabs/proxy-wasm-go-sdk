@@ -158,7 +158,9 @@ func (r *rootHostEmulator) ProxyGetSharedData(keyData *byte, keySize int,
 	}
 
 	*returnValueSize = len(value.data)
-	*returnValueData = &value.data[0]
+	if len(value.data) > 0 {
+		*returnValueData = &value.data[0]
+	}
 	*returnCas = value.cas
 	return internal.StatusOK
 }
