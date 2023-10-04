@@ -526,8 +526,11 @@ func GetSharedData(key string) (value []byte, cas uint32, err error) {
 // Another VM may have already incremented the value, and the value you
 // see is already different from the one stored when you call this function.
 func SetSharedData(key string, data []byte, cas uint32) error {
-	st := internal.ProxySetSharedData(internal.StringBytePtr(key),
-		len(key), &data[0], len(data), cas)
+	var dataPtr *byte
+	if len(data) > 0 { // Empty data is allowed to set, so we need this check.
+		dataPtr = &data[0]
+	}
+	st := internal.ProxySetSharedData(internal.StringBytePtr(key), len(key), dataPtr, len(data), cas)
 	return internal.StatusToError(st)
 }
 
