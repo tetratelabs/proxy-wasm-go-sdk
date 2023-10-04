@@ -30,7 +30,7 @@ func TestData(t *testing.T) {
 
 		// Check Envoy logs.
 		logs := host.GetInfoLogs()
-		require.Contains(t, logs, "shared value: 10000001")
+		require.Contains(t, logs, "shared value: 1")
 
 		// Call OnHttpRequestHeaders again.
 		action = host.CallOnRequestHeaders(contextID, nil, false)
@@ -40,7 +40,7 @@ func TestData(t *testing.T) {
 
 		// Check Envoy logs.
 		logs = host.GetInfoLogs()
-		require.Contains(t, logs, "shared value: 10000003")
+		require.Contains(t, logs, "shared value: 3")
 	})
 }
 
