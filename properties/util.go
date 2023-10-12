@@ -1,198 +1,135 @@
 package properties
 
 import (
-	"encoding/binary"
-	"math"
 	"time"
-	"unsafe"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
-// getPropertyString returns a string property.
-func getPropertyString(path []string) (string, error) {
-	b, err := proxywasm.GetProperty(path)
+// getIstioFilterMetadata parses istio filter metadata
+func getIstioFilterMetadata(path []string) (IstioFilterMetadata, error) {
+	result := IstioFilterMetadata{}
+
+	config, err := getPropertyString(append(path, "config"))
 	if err != nil {
-		return "", err
+		return IstioFilterMetadata{}, nil
 	}
-	return string(b), nil
-}
+	result.Config = config
 
-// getPropertyUint64 returns a uint64 property.
-func getPropertyUint64(path []string) (uint64, error) {
-	b, err := proxywasm.GetProperty(path)
-	if err != nil {
-		return 0, err
-	}
-
-	return deserializeToUint64(b), nil
-}
-
-// getPropertyFloat64 returns a float64 property.
-func getPropertyFloat64(path []string) (float64, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
-	if err != nil {
-		return 0, err
+	services, err := getPropertyByteSliceSlice(append(path, "services"))
+	if err != nil || services == nil {
+		return result, nil
 	}
 
-	return deserializeToFloat64(b), nil
+	for _, service := range services {
+		if service == nil {
+			continue
+		}
+		istioService := IstioService{}
+		istioServiceMap := deserializeStringMap(service)
+
+		if host, ok := istioServiceMap["host"]; ok {
+			istioService.Host = host
+		}
+		if name, ok := istioServiceMap["name"]; ok {
+			istioService.Name = name
+		}
+		if namespace, ok := istioServiceMap["namespace"]; ok {
+			istioService.Namespace = namespace
+		}
+
+		result.Services = append(result.Services, istioService)
+	}
+
+	return result, nil
 }
 
 // getPropertyBool returns a bool property.
 func getPropertyBool(path []string) (bool, error) {
-	b, err := proxywasm.GetProperty(path)
+	bs, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return false, err
 	}
 
-	return b[0] != 0, nil
-}
-
-// getPropertyTimestamp returns a timestamp property.
-func getPropertyTimestamp(path []string) (time.Time, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
-	if err != nil {
-		return time.Now(), err
-	}
-
-	return deserializeToTimestamp(b), nil
+	return deserializeBool(bs)
 }
 
 // getPropertyByteSliceMap retrieves a complex property object as a map of byte slices.
 // to be used when dealing with mixed type properties
 func getPropertyByteSliceMap(path []string) (map[string][]byte, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
+	bs, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return deserializeToByteMap(b), nil
+	return deserializeByteSliceMap(bs), nil
+}
+
+// getPropertyByteSliceSlice retrieves a complex property object as a string slice.
+func getPropertyByteSliceSlice(path []string) ([][]byte, error) {
+	bs, err := proxywasm.GetProperty(path)
+	if err != nil {
+		return nil, err
+	}
+	return deserializeByteSliceSlice(bs), nil
+}
+
+// getPropertyFloat64 returns a float64 property.
+func getPropertyFloat64(path []string) (float64, error) {
+	bs, err := proxywasm.GetProperty(path)
+	if err != nil {
+		return 0, err
+	}
+
+	return deserializeFloat64(bs), nil
+}
+
+// getPropertyString returns a string property.
+func getPropertyString(path []string) (string, error) {
+	bs, err := proxywasm.GetProperty(path)
+	if err != nil {
+		return "", err
+	}
+	return string(bs), nil
 }
 
 // getPropertyStringMap retrieves a complex property object as a map of string
 // to be used when dealing with string only type properties.
-func getPropertyStringMap(path []string) (map[string]string, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
+func getPropertyStringMap(path []string) (map[string]string, error) {
+	bs, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return deserializeToStringMap(b), nil
+	return deserializeStringMap(bs), nil
 }
 
 // getPropertyStringSlice retrieves a  complex property object as a string slice.
-func getPropertyStringSlice(path []string) ([]string, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
+func getPropertyStringSlice(path []string) ([]string, error) {
+	bs, err := proxywasm.GetProperty(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return deserializeToStringSlice(b), nil
+	return deserializeStringSlice(bs), nil
 }
 
-// deserializeToStringSlice deserializes the given byte slice to string slice.
-func deserializeToStringSlice(bs []byte) []string { //nolint:unused
-	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
-	ret := make([]string, numStrings)
-	idx := 4
-	dataIdx := 4 + 8*numStrings
-	for i := 0; i < numStrings; i++ {
-		strLen := int(binary.LittleEndian.Uint64(bs[idx : idx+8]))
-		idx += 8
-		ret[i] = string(bs[dataIdx : dataIdx+strLen])
-		dataIdx += strLen + 2
-	}
-	return ret
-}
-
-// getPropertyByteSliceSlice retrieves a complex property object as a string slice.
-func getPropertyByteSliceSlice(path []string) ([][]byte, error) { //nolint:unused
-	b, err := proxywasm.GetProperty(path)
+// getPropertyTimestamp returns a timestamp property.
+func getPropertyTimestamp(path []string) (time.Time, error) {
+	bs, err := proxywasm.GetProperty(path)
 	if err != nil {
-		return nil, err
+		return time.Now().UTC(), err
 	}
-	return deserializeToByteSliceSlice(b), nil
+
+	return deserializeTimestamp(bs).UTC(), nil
 }
 
-// deserializeToByteSliceSlice deserializes the given bytes to string slice.
-func deserializeToByteSliceSlice(bs []byte) [][]byte { //nolint:unused
-	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
-	ret := make([][]byte, numStrings)
-	idx := 4
-	dataIdx := 4 + 8*numStrings
-	for i := 0; i < numStrings; i++ {
-		strLen := int(binary.LittleEndian.Uint64(bs[idx : idx+8]))
-		idx += 8
-		ret[i] = bs[dataIdx : dataIdx+strLen]
-		dataIdx += strLen + 2
+// getPropertyUint64 returns a uint64 property.
+func getPropertyUint64(path []string) (uint64, error) {
+	bs, err := proxywasm.GetProperty(path)
+	if err != nil {
+		return 0, err
 	}
-	return ret
-}
 
-// deserializeToUint64 deserializes  the given bytes  to uint64.
-func deserializeToUint64(bytes []byte) uint64 {
-	return binary.LittleEndian.Uint64(bytes)
-}
-
-// deserializeToFloat64 deserializes the given bytes to float64.
-func deserializeToFloat64(bytes []byte) float64 { //nolint:unused
-	bits := binary.LittleEndian.Uint64(bytes)
-	float := math.Float64frombits(bits)
-	return float
-}
-
-// deserializeToTimestamp deserializes the given bytes to timestamp.
-func deserializeToTimestamp(data []byte) time.Time { //nolint:unused
-	nanos := int64(binary.LittleEndian.Uint64(data))
-	return time.Unix(0, nanos)
-}
-
-// deserializeToByteMap deserializes the byte slice to key value map, used for mixed type maps
-//   - keys are always string
-//   - value are raw byte strings that need further parsing
-func deserializeToByteMap(bs []byte) map[string][]byte { //nolint:unused
-	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
-	var sizeIndex = 4
-	var dataIndex = 4 + 4*2*int(numHeaders)
-	ret := make(map[string][]byte)
-	for i := 0; i < int(numHeaders); i++ {
-		keySize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
-		sizeIndex += 4
-		keyPtr := bs[dataIndex : dataIndex+keySize]
-		key := *(*string)(unsafe.Pointer(&keyPtr))
-		dataIndex += keySize + 1
-
-		valueSize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
-		sizeIndex += 4
-		valuePtr := bs[dataIndex : dataIndex+valueSize]
-		value := *(*[]byte)(unsafe.Pointer(&valuePtr))
-		dataIndex += valueSize + 1
-		ret[key] = value
-	}
-	return ret
-}
-
-// deserializeToStringMap deserializes the bytes to key value map, used for string only type maps
-//   - keys are always string
-//   - value are always string
-func deserializeToStringMap(bs []byte) map[string]string { //nolint:unused
-	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
-	var sizeIndex = 4
-	var dataIndex = 4 + 4*2*int(numHeaders)
-	ret := make(map[string]string, numHeaders)
-	for i := 0; i < int(numHeaders); i++ {
-		keySize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
-		sizeIndex += 4
-		keyPtr := bs[dataIndex : dataIndex+keySize]
-		key := *(*string)(unsafe.Pointer(&keyPtr))
-		dataIndex += keySize + 1
-
-		valueSize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
-		sizeIndex += 4
-		valuePtr := bs[dataIndex : dataIndex+valueSize]
-		value := *(*string)(unsafe.Pointer(&valuePtr))
-		dataIndex += valueSize + 1
-		ret[key] = value
-	}
-	return ret
+	return deserializeUint64(bs), nil
 }

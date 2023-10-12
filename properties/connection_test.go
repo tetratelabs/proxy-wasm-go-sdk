@@ -1,7 +1,6 @@
 package properties
 
 import (
-	"encoding/binary"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,71 +9,86 @@ import (
 )
 
 func TestGetDownstreamRemoteAddress(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithProperty(sourceAddress, []byte("1.2.3.4"))
+	opt := proxytest.NewEmulatorOption().WithProperty(sourceAddress, []byte("10.244.0.1:63649"))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamRemoteAddress()
 	require.NoError(t, err)
-	require.Equal(t, "1.2.3.4", result)
+	require.Equal(t, "10.244.0.1:63649", result)
 }
 
 func TestGetDownstreamRemotePort(t *testing.T) {
-	var u64 [8]byte
-	binary.LittleEndian.PutUint64(u64[:], 1234)
-	opt := proxytest.NewEmulatorOption().WithProperty(sourcePort, u64[:])
+
+	opt := proxytest.NewEmulatorOption().WithProperty(sourcePort, serializeUint64(63649))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamRemotePort()
 	require.NoError(t, err)
-	require.Equal(t, uint64(1234), result)
+	require.Equal(t, uint64(63649), result)
 }
 
 func TestGetDownstreamLocalAddress(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithProperty(destinationAddress, []byte("1.2.3.4"))
+	opt := proxytest.NewEmulatorOption().WithProperty(destinationAddress, []byte("10.244.0.13:80"))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamLocalAddress()
 	require.NoError(t, err)
-	require.Equal(t, "1.2.3.4", result)
+	require.Equal(t, "10.244.0.13:80", result)
 }
 
 func TestGetDownstreamLocalPort(t *testing.T) {
-	var u64 [8]byte
-	binary.LittleEndian.PutUint64(u64[:], 1234)
-	opt := proxytest.NewEmulatorOption().WithProperty(destinationPort, u64[:])
+	opt := proxytest.NewEmulatorOption().WithProperty(destinationPort, serializeUint64(80))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamLocalPort()
 	require.NoError(t, err)
-	require.Equal(t, uint64(1234), result)
+	require.Equal(t, uint64(80), result)
 }
 
 func TestGetDownstreamConnectionID(t *testing.T) {
-	var u64 [8]byte
-	binary.LittleEndian.PutUint64(u64[:], 1234)
-	opt := proxytest.NewEmulatorOption().WithProperty(connectionID, u64[:])
+	opt := proxytest.NewEmulatorOption().WithProperty(connectionID, serializeUint64(1771))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamConnectionID()
 	require.NoError(t, err)
-	require.Equal(t, uint64(1234), result)
+	require.Equal(t, uint64(1771), result)
 }
 
 func TestIsDownstreamConnectionTls(t *testing.T) {
-	opt := proxytest.NewEmulatorOption().WithProperty(connectionMtls, []byte{1})
-	_, reset := proxytest.NewHostEmulator(opt)
-	defer reset()
+	tests := []struct {
+		name   string
+		input  bool
+		expect bool
+	}{
+		{
+			name:   "Downstream Connection TLS: False",
+			input:  false,
+			expect: false,
+		},
+		{
+			name:   "Downstream Connection TLS: True",
+			input:  true,
+			expect: true,
+		},
+	}
 
-	result, err := IsDownstreamConnectionTls()
-	require.NoError(t, err)
-	require.Equal(t, true, result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opt := proxytest.NewEmulatorOption().WithProperty(connectionMtls, serializeBool(tt.input))
+			_, reset := proxytest.NewHostEmulator(opt)
+			defer reset()
+
+			result, err := IsDownstreamConnectionTls()
+			require.NoError(t, err)
+			require.Equal(t, tt.expect, result)
+		})
+	}
 }
-
 func TestGetDownstreamRequestedServerName(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().WithProperty(connectionRequestedServerName, []byte("example.com"))
 	_, reset := proxytest.NewHostEmulator(opt)
@@ -159,13 +173,13 @@ func TestGetDownstreamUriSanPeerCertificate(t *testing.T) {
 
 func TestGetDownstreamSha256PeerCertificateDigest(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().WithProperty(connectionSha256PeerCertDigest,
-		[]byte{0x01, 0x02, 0x03, 0x04})
+		[]byte("b714f3d6f83efc2fddf80b8feda3e3b21b3e27b5"))
 	_, reset := proxytest.NewHostEmulator(opt)
 	defer reset()
 
 	result, err := GetDownstreamSha256PeerCertificateDigest()
 	require.NoError(t, err)
-	require.Equal(t, []byte{0x01, 0x02, 0x03, 0x04}, result)
+	require.Equal(t, "b714f3d6f83efc2fddf80b8feda3e3b21b3e27b5", result)
 }
 
 func TestGetDownstreamTerminationDetails(t *testing.T) {
