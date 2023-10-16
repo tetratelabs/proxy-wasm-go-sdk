@@ -2,17 +2,17 @@ package properties
 
 import "fmt"
 
-// Identifies the direction of the traffic relative to the local Envoy
+// EnvoyTrafficDirection identifies the direction of the traffic relative to the local Envoy.
 //
 // https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#enum-config-core-v3-trafficdirection
 type EnvoyTrafficDirection int
 
 const (
-	// ⁣Default option is unspecified
+	// Unspecified means that the direction is not specified.
 	Unspecified EnvoyTrafficDirection = iota
-	// The transport is used for incoming traffic
+	// Inbound means that the transport is used for incoming traffic.
 	Inbound
-	// ⁣The transport is used for outgoing traffic
+	// Outbound means that the transport is used for outgoing traffic.
 	Outbound
 )
 
@@ -28,7 +28,7 @@ func (t EnvoyTrafficDirection) String() string {
 	return "UNSPECIFIED"
 }
 
-// Identifies location of where either Envoy runs or where upstream hosts run
+// EnvoyLocality identifies location of where either Envoy runs or where upstream hosts run.
 //
 // https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#config-core-v3-locality
 type EnvoyLocality struct {
@@ -37,7 +37,7 @@ type EnvoyLocality struct {
 	Subzone string
 }
 
-// Version and identification for an Envoy extension
+// EnvoyExtension holds version and identification for an Envoy extension.
 //
 // https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#config-core-v3-extension
 type EnvoyExtension struct {
@@ -46,11 +46,11 @@ type EnvoyExtension struct {
 	TypeUrls []string
 }
 
-// Metadata provides additional inputs to filters based on matched listeners,
+// IstioFilterMetadata provides additional inputs to filters based on matched listeners,
 // filter chains, routes and endpoints. It is structured as a map, usually from
 // filter name (in reverse DNS format) to metadata specific to the filter. Metadata
 // key-values for a filter are merged as connection and request handling occurs,
-// with later values for the same key overriding earlier values
+// with later values for the same key overriding earlier values.
 //
 // https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#config-core-v3-metadata
 type IstioFilterMetadata struct {
@@ -58,14 +58,15 @@ type IstioFilterMetadata struct {
 	Services []IstioService
 }
 
+// IstioService holds information of the host, name and namespace of an Istio Service.
 type IstioService struct {
 	Host      string
 	Name      string
 	Namespace string
 }
 
-// Proxy stats name matchers for stats creation. Note this is in addition to the minimum Envoy stats that
-// Istio generates by default
+// IstioProxyStatsMatcher holds proxy stats name matches for stats creation. Note this is in addition to the minimum Envoy stats that
+// Istio generates by default.
 //
 // https://istio.io/latest/docs/reference/config/istio.mesh.v1alpha1/#ProxyConfig-ProxyStatsMatcher
 type IstioProxyStatsMatcher struct {
@@ -74,19 +75,19 @@ type IstioProxyStatsMatcher struct {
 	InclusionSuffixes []string
 }
 
-// TrafficInterceptionMode indicates how traffic to/from the workload is captured and sent to Envoy. This
+// IstioTrafficInterceptionMode indicates how traffic to/from the workload is captured and sent to Envoy. This
 // should not be confused with the CaptureMode in the API that indicates how the user wants traffic to be
-// intercepted for the listener. TrafficInterceptionMode is always derived from the Proxy metadata.
+// intercepted for the listener. IstioTrafficInterceptionMode is always derived from the Proxy metadata.
 //
 // https://pkg.go.dev/istio.io/istio/pilot/pkg/model#TrafficInterceptionMode
 type IstioTrafficInterceptionMode int
 
 const (
-	// InterceptionNone indicates that the workload is not using IPtables for traffic interception
+	// None indicates that the workload is not using IPtables for traffic interception.
 	None IstioTrafficInterceptionMode = iota
-	// InterceptionTproxy implies traffic intercepted by IPtables with TPROXY mode
+	// Tproxy implies traffic intercepted by IPtables with TPROXY mode.
 	Tproxy
-	// InterceptionRedirect implies traffic intercepted by IPtables with REDIRECT mode. This is our default mode
+	// Redirect implies traffic intercepted by IPtables with REDIRECT mode. This is our default mode.
 	Redirect
 )
 

@@ -42,7 +42,6 @@ func TestGetNodeMetaAnnotations(t *testing.T) {
 			input:  map[string]string{},
 			expect: map[string]string{},
 		},
-		// Add more test cases as needed
 	}
 
 	for _, tt := range tests {
@@ -209,7 +208,6 @@ func TestGetNodeMetaLabels(t *testing.T) {
 			input:  map[string]string{},
 			expect: map[string]string{},
 		},
-		// Add more test cases as needed
 	}
 
 	for _, tt := range tests {
