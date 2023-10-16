@@ -33,6 +33,10 @@ func deserializeBool(bs []byte) (bool, error) {
 //   - keys are always string
 //   - values are raw byte slices
 func serializeByteSliceMap(data map[string][]byte) []byte {
+	if len(data) == 0 {
+		return []byte{}
+	}
+
 	totalSize := 4
 	for key, value := range data {
 		totalSize += 4 + len(key) + 1 + 4 + len(value) + 1
@@ -58,10 +62,14 @@ func serializeByteSliceMap(data map[string][]byte) []byte {
 //   - keys are always string
 //   - value are raw byte strings that need further parsing
 func deserializeByteSliceMap(bs []byte) map[string][]byte { //nolint:unused
+	ret := make(map[string][]byte)
+	if len(bs) == 0 {
+		return ret
+	}
+
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
 	var sizeIndex = 4
 	var dataIndex = 4 + 4*2*int(numHeaders)
-	ret := make(map[string][]byte)
 	for i := 0; i < int(numHeaders); i++ {
 		keySize := int(binary.LittleEndian.Uint32(bs[sizeIndex : sizeIndex+4]))
 		sizeIndex += 4
@@ -83,6 +91,10 @@ func deserializeByteSliceMap(bs []byte) map[string][]byte { //nolint:unused
 // The resulting byte slice can be used for efficient storage or transmission.
 // Each byte slice in the input is prefixed with its length, allowing for efficient deserialization.
 func serializeByteSliceSlice(slices [][]byte) []byte {
+	if len(slices) == 0 {
+		return []byte{}
+	}
+
 	totalSize := 4
 	for _, slice := range slices {
 		totalSize += 8 + len(slice) + 2
@@ -102,6 +114,9 @@ func serializeByteSliceSlice(slices [][]byte) []byte {
 
 // deserializeByteSliceSlice deserializes the given bytes to string slice.
 func deserializeByteSliceSlice(bs []byte) [][]byte {
+	if len(bs) == 0 {
+		return [][]byte{}
+	}
 	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
 	ret := make([][]byte, numStrings)
 	idx := 4
@@ -136,6 +151,10 @@ func deserializeFloat64(bs []byte) float64 {
 // Each string in the slice is prefixed with its length, allowing for efficient deserialization.
 func serializeProtoStringSlice(strs []string) []byte {
 	var bs []byte
+	if len(strs) == 0 {
+		return bs
+	}
+
 	for _, str := range strs {
 		if len(str) > 255 {
 			panic("string length exceeds 255 characters")
@@ -150,6 +169,9 @@ func serializeProtoStringSlice(strs []string) []byte {
 // deserializeProtoStringSlice deserializes a protobuf encoded string slice
 func deserializeProtoStringSlice(bs []byte) []string {
 	ret := make([]string, 0)
+	if len(bs) == 0 {
+		return ret
+	}
 	i := 0
 	for i < len(bs) {
 		i++
@@ -170,9 +192,12 @@ func deserializeProtoStringSlice(bs []byte) []string {
 // This is followed by a series of 4-byte representations of the sizes of the keys and values.
 // Finally, the actual key and value data are appended.
 func serializeStringMap(m map[string]string) []byte {
+	headerBytes := make([]byte, 4)
+	if len(m) == 0 {
+		return headerBytes
+	}
 	var buf bytes.Buffer
 	numHeaders := uint32(len(m))
-	headerBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(headerBytes, numHeaders)
 	buf.Write(headerBytes)
 	var sizeData bytes.Buffer
@@ -203,6 +228,10 @@ func serializeStringMap(m map[string]string) []byte {
 //   - value are always string
 func deserializeStringMap(bs []byte) map[string]string {
 	numHeaders := binary.LittleEndian.Uint32(bs[0:4])
+	if numHeaders == 0 {
+		return map[string]string{}
+	}
+
 	var sizeIndex = 4
 	var dataIndex = 4 + 4*2*int(numHeaders)
 	ret := make(map[string]string, numHeaders)
@@ -227,6 +256,9 @@ func deserializeStringMap(bs []byte) map[string]string {
 // The resulting byte slice can be used for efficient storage or transmission.
 // Each string in the input is prefixed with its length, allowing for efficient deserialization.
 func serializeStringSlice(strings []string) []byte {
+	if len(strings) == 0 {
+		return make([]byte, 4)
+	}
 	totalSize := 4
 	for _, str := range strings {
 		totalSize += 8 + len(str) + 2
@@ -247,6 +279,9 @@ func serializeStringSlice(strings []string) []byte {
 // deserializeStringSlice deserializes the given byte slice to string slice.
 func deserializeStringSlice(bs []byte) []string {
 	numStrings := int(binary.LittleEndian.Uint32(bs[:4]))
+	if numStrings == 0 {
+		return []string{}
+	}
 	ret := make([]string, numStrings)
 	idx := 4
 	dataIdx := 4 + 8*numStrings

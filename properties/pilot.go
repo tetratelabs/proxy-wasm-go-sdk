@@ -31,57 +31,33 @@ var (
 
 // GetNodeMetaAnnotations returns the node annotations
 func GetNodeMetaAnnotations() (map[string]string, error) {
-	result, err := getPropertyStringMap(nodeMetaAnnotations)
-	if err != nil {
-		return make(map[string]string), err
-	}
-	return result, nil
+	return getPropertyStringMap(nodeMetaAnnotations)
 }
 
 // GetNodeMetaAppContainers returns the app containers of the node
 func GetNodeMetaAppContainers() (string, error) {
-	result, err := getPropertyString(nodeMetaAppContainers)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaAppContainers)
 }
 
 // GetNodeMetaClusterId returns the cluster ID of the node, which defines the
 // cluster the node belongs to
 func GetNodeMetaClusterId() (string, error) {
-	result, err := getPropertyString(nodeMetaClusterId)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaClusterId)
 }
 
 // GetNodeMetaEnvoyPrometheusPort returns the Envoy Prometheus port of the node
 func GetNodeMetaEnvoyPrometheusPort() (float64, error) {
-	result, err := getPropertyFloat64(nodeMetaEnvoyPrometheusPort)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeMetaEnvoyPrometheusPort)
 }
 
 // GetNodeMetaEnvoyStatusPort returns the Envoy status port of the node
 func GetNodeMetaEnvoyStatusPort() (float64, error) {
-	result, err := getPropertyFloat64(nodeMetaEnvoyStatusPort)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeMetaEnvoyStatusPort)
 }
 
 // GetNodeMetaInstanceIps returns the instance IPs of the node
 func GetNodeMetaInstanceIps() (string, error) {
-	result, err := getPropertyString(nodeMetaInstanceIps)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaInstanceIps)
 }
 
 // GetNodeMetaInterceptionMode returns the interception mode of the node
@@ -110,109 +86,61 @@ func GetNodeMetaInterceptionMode() (IstioTrafficInterceptionMode, error) {
 
 // GetNodeMetaIstioProxySha returns the Istio proxy SHA of the node
 func GetNodeMetaIstioProxySha() (string, error) {
-	result, err := getPropertyString(nodeMetaIstioProxySha)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaIstioProxySha)
 }
 
 // GetNodeMetaIstioVersion returns the Istio version of the node
 func GetNodeMetaIstioVersion() (string, error) {
-	result, err := getPropertyString(nodeMetaIstioVersion)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaIstioVersion)
 }
 
 // GetNodeMetaLabels returns the labels of the node
 func GetNodeMetaLabels() (map[string]string, error) {
-	result, err := getPropertyStringMap(nodeMetaLabels)
-	if err != nil {
-		return make(map[string]string), err
-	}
-	return result, nil
+	return getPropertyStringMap(nodeMetaLabels)
 }
 
 // GetNodeMetaMeshId returns the mesh ID of the node
 func GetNodeMetaMeshId() (string, error) {
-	result, err := getPropertyString(nodeMetaMeshId)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaMeshId)
 }
 
 // GetNodeMetaName returns the name of the node
 func GetNodeMetaName() (string, error) {
-	result, err := getPropertyString(nodeMetaName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaName)
 }
 
 // GetNodeMetaNamespace returns the namespace of the node
 func GetNodeMetaNamespace() (string, error) {
-	result, err := getPropertyString(nodeMetaNamespace)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaNamespace)
 }
 
 // GetNodeMetaNodeName returns the node name of the node
 func GetNodeMetaNodeName() (string, error) {
-	result, err := getPropertyString(nodeMetaNodeName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaNodeName)
 }
 
 // GetNodeMetaOwner returns the owner of the node (opaque string). Typically, this is the
 // owning controller of of the workload instance (ex: k8s deployment for a k8s pod)
 func GetNodeMetaOwner() (string, error) {
-	result, err := getPropertyString(nodeMetaOwner)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaOwner)
 }
 
 // GetNodeMetaPilotSan returns the pilot SAN (subject alternate names) of the node's xDS server
 func GetNodeMetaPilotSan() ([]string, error) {
-	result, err := getPropertyStringSlice(nodeMetaPilotSan)
-	if err != nil {
-		return make([]string, 0), err
-	}
-	return result, nil
+	return getPropertyStringSlice(nodeMetaPilotSan)
 }
 
 // GetNodeMetaPodPorts returns the pod ports of the node. This is used to lookup named ports
 func GetNodeMetaPodPorts() (string, error) {
-	result, err := getPropertyString(nodeMetaPodPorts)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaPodPorts)
 }
 
 // GetNodeMetaServiceAccount returns the service account of the node
 func GetNodeMetaServiceAccount() (string, error) {
-	result, err := getPropertyString(nodeMetaServiceAccount)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaServiceAccount)
 }
 
 // GetNodeMetaWorkloadName returns the workload name of the node
 func GetNodeMetaWorkloadName() (string, error) {
-	result, err := getPropertyString(nodeMetaWorkloadName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaWorkloadName)
 }

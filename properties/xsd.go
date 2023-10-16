@@ -16,11 +16,7 @@ var (
 //
 // Example value: "outbound|80||httpbin.org".
 func GetXdsClusterName() (string, error) {
-	result, err := getPropertyString(xdsClusterName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(xdsClusterName)
 }
 
 // GetXdsClusterMetadata returns the upstream cluster metadata.
@@ -32,11 +28,7 @@ func GetXdsClusterMetadata() (IstioFilterMetadata, error) {
 // the request response path, cfr getRouteName()). This matches the
 // <spec.http.name> in an istio VirtualService CR.
 func GetXdsRouteName() (string, error) {
-	result, err := getPropertyString(xdsRouteName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(xdsRouteName)
 }
 
 // GetXdsRouteMetadata returns the upstream route metadata.
@@ -51,9 +43,5 @@ func GetXdsUpstreamHostMetadata() (IstioFilterMetadata, error) {
 
 // GetXdsListenerFilterChainName returns the listener filter chain name.
 func GetXdsListenerFilterChainName() (string, error) {
-	result, err := getPropertyString(xdsListenerFilterChainName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(xdsListenerFilterChainName)
 }

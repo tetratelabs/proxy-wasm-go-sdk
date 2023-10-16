@@ -16,20 +16,12 @@ var (
 
 // GetResponseCode returns the response HTTP status code.
 func GetResponseCode() (uint64, error) {
-	result, err := getPropertyUint64(responseCode)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(responseCode)
 }
 
 // GetResponseCodeDetails returns the internal response code details (subject to change).
 func GetResponseCodeDetails() (string, error) {
-	result, err := getPropertyString(responseCodeDetails)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(responseCodeDetails)
 }
 
 // GetResponseFlags returns additional details about the response beyond the standard
@@ -37,55 +29,31 @@ func GetResponseCodeDetails() (string, error) {
 //
 // https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#config-access-log-format-response-flags
 func GetResponseFlags() (uint64, error) {
-	result, err := getPropertyUint64(responseFlags)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(responseFlags)
 }
 
 // GetResponseGrpcStatusCode returns the response gRPC status code.
 func GetResponseGrpcStatusCode() (uint64, error) {
-	result, err := getPropertyUint64(responseGrpcStatusCode)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(responseGrpcStatusCode)
 }
 
 // GetResponseHeaders returns all response headers indexed by the lower-cased header name.
 func GetResponseHeaders() (map[string]string, error) {
-	result, err := getPropertyStringMap(responseHeaders)
-	if err != nil {
-		return map[string]string{}, err
-	}
-	return result, nil
+	return getPropertyStringMap(responseHeaders)
 }
 
 // GetResponseTrailers returns all response trailers indexed by the lower-cased trailer name.
 func GetResponseTrailers() (map[string]string, error) {
-	result, err := getPropertyStringMap(responseTrailers)
-	if err != nil {
-		return map[string]string{}, err
-	}
-	return result, nil
+	return getPropertyStringMap(responseTrailers)
 }
 
 // GetResponseSize returns the size of the response body.
 func GetResponseSize() (uint64, error) {
-	result, err := getPropertyUint64(responseSize)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(responseSize)
 }
 
 // GetResponseTotalSize returns the total size of the response including the approximate
 // uncompressed size of the headers and the trailers.
 func GetResponseTotalSize() (uint64, error) {
-	result, err := getPropertyUint64(responseTotalSize)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(responseTotalSize)
 }
