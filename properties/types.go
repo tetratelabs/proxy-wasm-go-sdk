@@ -16,6 +16,9 @@ const (
 	Outbound
 )
 
+// String converts the EnvoyTrafficDirection enum value to its corresponding string representation.
+// It returns "UNSPECIFIED" for Unspecified, "INBOUND" for Inbound, and "OUTBOUND" for Outbound.
+// If the enum value doesn't match any of the predefined values, it defaults to "UNSPECIFIED".
 func (t EnvoyTrafficDirection) String() string {
 	switch t {
 	case Unspecified:
