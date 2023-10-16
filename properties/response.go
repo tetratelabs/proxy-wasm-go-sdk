@@ -34,7 +34,7 @@ func GetResponseCodeDetails() (string, error) {
 
 // GetResponseFlags returns additional details about the response beyond the standard
 // response code encoded as a bit-vector.
-//	
+//
 // https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#config-access-log-format-response-flags
 func GetResponseFlags() (uint64, error) {
 	result, err := getPropertyUint64(responseFlags)
