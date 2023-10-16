@@ -8,12 +8,12 @@ import "fmt"
 type EnvoyTrafficDirection int
 
 const (
-	// Unspecified means that the direction is not specified.
-	Unspecified EnvoyTrafficDirection = iota
-	// Inbound means that the transport is used for incoming traffic.
-	Inbound
-	// Outbound means that the transport is used for outgoing traffic.
-	Outbound
+	// EnvoyTrafficDirectionUnspecified means that the direction is not specified.
+	EnvoyTrafficDirectionUnspecified EnvoyTrafficDirection = iota
+	// EnvoyTrafficDirectionInbound means that the transport is used for incoming traffic.
+	EnvoyTrafficDirectionInbound
+	// EnvoyTrafficDirectionOutbound means that the transport is used for outgoing traffic.
+	EnvoyTrafficDirectionOutbound
 )
 
 // String converts the EnvoyTrafficDirection enum value to its corresponding string representation.
@@ -21,11 +21,11 @@ const (
 // If the enum value doesn't match any of the predefined values, it defaults to "UNSPECIFIED".
 func (t EnvoyTrafficDirection) String() string {
 	switch t {
-	case Unspecified:
+	case EnvoyTrafficDirectionUnspecified:
 		return "UNSPECIFIED"
-	case Inbound:
+	case EnvoyTrafficDirectionInbound:
 		return "INBOUND"
-	case Outbound:
+	case EnvoyTrafficDirectionOutbound:
 		return "OUTBOUND"
 	}
 	return "UNSPECIFIED"
@@ -86,12 +86,12 @@ type IstioProxyStatsMatcher struct {
 type IstioTrafficInterceptionMode int
 
 const (
-	// None indicates that the workload is not using IPtables for traffic interception.
-	None IstioTrafficInterceptionMode = iota
-	// Tproxy implies traffic intercepted by IPtables with TPROXY mode.
-	Tproxy
-	// Redirect implies traffic intercepted by IPtables with REDIRECT mode. This is our default mode.
-	Redirect
+	// IstioTrafficInterceptionModeNone indicates that the workload is not using IPtables for traffic interception.
+	IstioTrafficInterceptionModeNone IstioTrafficInterceptionMode = iota
+	// IstioTrafficInterceptionModeTproxy implies traffic intercepted by IPtables with TPROXY mode.
+	IstioTrafficInterceptionModeTproxy
+	// IstioTrafficInterceptionModeRedirect implies traffic intercepted by IPtables with REDIRECT mode. This is our default mode.
+	IstioTrafficInterceptionModeRedirect
 )
 
 // String converts the IstioTrafficInterceptionMode enum value to its corresponding string representation.
@@ -99,11 +99,11 @@ const (
 // If the enum value doesn't match any of the predefined values, it defaults to "REDIRECT".
 func (t IstioTrafficInterceptionMode) String() string {
 	switch t {
-	case None:
+	case IstioTrafficInterceptionModeNone:
 		return "NONE"
-	case Tproxy:
+	case IstioTrafficInterceptionModeTproxy:
 		return "TPROXY"
-	case Redirect:
+	case IstioTrafficInterceptionModeRedirect:
 		return "REDIRECT"
 	}
 	return "REDIRECT"
@@ -116,12 +116,12 @@ func (t IstioTrafficInterceptionMode) String() string {
 func ParseIstioTrafficInterceptionMode(s string) (IstioTrafficInterceptionMode, error) {
 	switch s {
 	case "NONE":
-		return None, nil
+		return IstioTrafficInterceptionModeNone, nil
 	case "TPROXY":
-		return Tproxy, nil
+		return IstioTrafficInterceptionModeTproxy, nil
 	case "REDIRECT":
-		return Redirect, nil
+		return IstioTrafficInterceptionModeRedirect, nil
 	default:
-		return Redirect, fmt.Errorf("invalid IstioTrafficInterceptionMode: %s", s)
+		return IstioTrafficInterceptionModeRedirect, fmt.Errorf("invalid IstioTrafficInterceptionMode: %s", s)
 	}
 }
