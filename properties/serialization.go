@@ -172,27 +172,29 @@ func deserializeProtoStringSlice(bs []byte) []string {
 func serializeStringMap(m map[string]string) []byte {
 	var buf bytes.Buffer
 	numHeaders := uint32(len(m))
-	binary.Write(&buf, binary.LittleEndian, numHeaders)
+	headerBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(headerBytes, numHeaders)
+	buf.Write(headerBytes)
 	var sizeData bytes.Buffer
 	var data bytes.Buffer
-
 	for key, value := range m {
 		keySize := uint32(len(key))
-		binary.Write(&sizeData, binary.LittleEndian, keySize)
+		keySizeBytes := make([]byte, 4)
+		binary.LittleEndian.PutUint32(keySizeBytes, keySize)
+		sizeData.Write(keySizeBytes)
 		keyData := *(*[]byte)(unsafe.Pointer(&key))
 		data.Write(keyData)
 		data.WriteByte(0)
 		valueSize := uint32(len(value))
-		binary.Write(&sizeData, binary.LittleEndian, valueSize)
+		valueSizeBytes := make([]byte, 4)
+		binary.LittleEndian.PutUint32(valueSizeBytes, valueSize)
+		sizeData.Write(valueSizeBytes)
 		valueData := *(*[]byte)(unsafe.Pointer(&value))
 		data.Write(valueData)
 		data.WriteByte(0)
 	}
-
-	// Combine size data and actual data into the main buffer
 	buf.Write(sizeData.Bytes())
 	buf.Write(data.Bytes())
-
 	return buf.Bytes()
 }
 
