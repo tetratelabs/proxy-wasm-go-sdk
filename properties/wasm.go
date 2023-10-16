@@ -78,7 +78,7 @@ func GetRouteName() (string, error) {
 func GetListenerDirection() (EnvoyTrafficDirection, error) {
 	result, err := getPropertyUint64(listenerDirection)
 	if err != nil {
-		return EnvoyTrafficDirection(Unspecified), err
+		return EnvoyTrafficDirectionUnspecified, err
 	}
 	return EnvoyTrafficDirection(int(result)), nil
 }

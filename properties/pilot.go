@@ -75,11 +75,11 @@ func GetNodeMetaInstanceIps() (string, error) {
 func GetNodeMetaInterceptionMode() (IstioTrafficInterceptionMode, error) {
 	result, err := getPropertyString(nodeMetaInterceptionMode)
 	if err != nil {
-		return Redirect, err
+		return IstioTrafficInterceptionModeRedirect, err
 	}
 	mode, err := ParseIstioTrafficInterceptionMode(result)
 	if err != nil {
-		return Redirect, err
+		return IstioTrafficInterceptionModeRedirect, err
 	}
 	return mode, nil
 }

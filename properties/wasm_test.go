@@ -67,17 +67,17 @@ func TestGetListenerDirection(t *testing.T) {
 		{
 			name:           "Unspecified",
 			input:          0,
-			expectedResult: Unspecified,
+			expectedResult: EnvoyTrafficDirectionUnspecified,
 		},
 		{
 			name:           "Inbound",
 			input:          1,
-			expectedResult: Inbound,
+			expectedResult: EnvoyTrafficDirectionInbound,
 		},
 		{
 			name:           "Outound",
 			input:          2,
-			expectedResult: Outbound,
+			expectedResult: EnvoyTrafficDirectionOutbound,
 		},
 	}
 

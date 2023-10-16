@@ -12,9 +12,9 @@ func TestEnvoyTrafficDirectionString(t *testing.T) {
 		input    EnvoyTrafficDirection
 		expected string
 	}{
-		{Unspecified, "UNSPECIFIED"},
-		{Inbound, "INBOUND"},
-		{Outbound, "OUTBOUND"},
+		{EnvoyTrafficDirectionUnspecified, "UNSPECIFIED"},
+		{EnvoyTrafficDirectionInbound, "INBOUND"},
+		{EnvoyTrafficDirectionOutbound, "OUTBOUND"},
 		{EnvoyTrafficDirection(9999), "UNSPECIFIED"},
 	}
 
@@ -29,9 +29,9 @@ func TestIstioTrafficInterceptionModeString(t *testing.T) {
 		input    IstioTrafficInterceptionMode
 		expected string
 	}{
-		{None, "NONE"},
-		{Tproxy, "TPROXY"},
-		{Redirect, "REDIRECT"},
+		{IstioTrafficInterceptionModeNone, "NONE"},
+		{IstioTrafficInterceptionModeTproxy, "TPROXY"},
+		{IstioTrafficInterceptionModeRedirect, "REDIRECT"},
 		{IstioTrafficInterceptionMode(9999), "REDIRECT"},
 	}
 
@@ -47,10 +47,10 @@ func TestParseIstioTrafficInterceptionMode(t *testing.T) {
 		expected IstioTrafficInterceptionMode
 		err      error
 	}{
-		{"NONE", None, nil},
-		{"TPROXY", Tproxy, nil},
-		{"REDIRECT", Redirect, nil},
-		{"INVALID", Redirect, fmt.Errorf("invalid IstioTrafficInterceptionMode: INVALID")},
+		{"NONE", IstioTrafficInterceptionModeNone, nil},
+		{"TPROXY", IstioTrafficInterceptionModeTproxy, nil},
+		{"REDIRECT", IstioTrafficInterceptionModeRedirect, nil},
+		{"INVALID", IstioTrafficInterceptionModeRedirect, fmt.Errorf("invalid IstioTrafficInterceptionMode: INVALID")},
 	}
 
 	for _, test := range tests {

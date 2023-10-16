@@ -118,25 +118,25 @@ func TestGetNodeMetaInterceptionMode(t *testing.T) {
 		{
 			name:           "Valid TPROXY mode",
 			propertyValue:  []byte("TPROXY"),
-			expectedResult: Tproxy,
+			expectedResult: IstioTrafficInterceptionModeTproxy,
 			expectedError:  nil,
 		},
 		{
 			name:           "Valid REDIRECT mode",
 			propertyValue:  []byte("REDIRECT"),
-			expectedResult: Redirect,
+			expectedResult: IstioTrafficInterceptionModeRedirect,
 			expectedError:  nil,
 		},
 		{
 			name:           "Valid NONE mode",
 			propertyValue:  []byte("NONE"),
-			expectedResult: None,
+			expectedResult: IstioTrafficInterceptionModeNone,
 			expectedError:  nil,
 		},
 		{
 			name:           "Invalid mode",
 			propertyValue:  []byte("INVALID_MODE"),
-			expectedResult: Redirect,
+			expectedResult: IstioTrafficInterceptionModeRedirect,
 			expectedError:  fmt.Errorf("invalid IstioTrafficInterceptionMode: INVALID_MODE"),
 		},
 	}
