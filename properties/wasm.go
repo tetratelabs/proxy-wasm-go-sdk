@@ -39,53 +39,33 @@ var (
 //
 // This matches <metadata.name>.<metadata.namespace> in an istio WasmPlugin CR.
 func GetPluginName() (string, error) {
-	result, err := getPropertyString(pluginName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(pluginName)
 }
 
 // GetPluginRootId returns the plugin root id.
 //
 // This matches the <spec.pluginName> in the istio WasmPlugin CR.
 func GetPluginRootId() (string, error) {
-	result, err := getPropertyString(pluginRootId)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(pluginRootId)
 }
 
 // GetPluginVmId returns the plugin vm id.
 func GetPluginVmId() (string, error) {
-	result, err := getPropertyString(pluginVmId)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(pluginVmId)
 }
 
 // GetClusterName returns the upstream cluster name.
 //
 // Example value: "outbound|80||httpbin.org".
 func GetClusterName() (string, error) {
-	result, err := getPropertyString(clusterName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(clusterName)
 }
 
 // GetRouteName returns the route name, only available in the response path (cfr getXdsRouteName()).
 //
 // This matches the <spec.http.name> in the istio VirtualService CR.
 func GetRouteName() (string, error) {
-	result, err := getPropertyString(routeName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(routeName)
 }
 
 // GetListenerDirection returns the listener direction.
@@ -110,11 +90,7 @@ func GetListenerDirection() (EnvoyTrafficDirection, error) {
 // Example value:
 // router~10.244.0.22~istio-ingress-6d78c67d85-qsbtz.istio-ingress~istio-ingress.svc.cluster.local
 func GetNodeId() (string, error) {
-	result, err := getPropertyString(nodeId)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeId)
 }
 
 // GetNodeCluster returns the node cluster, which defines the local service cluster
@@ -125,11 +101,7 @@ func GetNodeId() (string, error) {
 //
 // Example value: istio-ingress.istio-ingress
 func GetNodeCluster() (string, error) {
-	result, err := getPropertyString(nodeCluster)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeCluster)
 }
 
 // GetNodeDynamicParams returns the node dynamic parameters. These may vary at
@@ -139,11 +111,7 @@ func GetNodeCluster() (string, error) {
 // context provider. The shard ID dynamic parameter then appears in this field during
 // future discovery requests
 func GetNodeDynamicParams() (string, error) {
-	result, err := getPropertyString(nodeDynamicParams)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeDynamicParams)
 }
 
 // GetNodeLocality returns the node locality.
@@ -187,31 +155,19 @@ func GetNodeLocality() (EnvoyLocality, error) {
 //
 // Example: “envoy” or “grpc”.
 func GetNodeUserAgentName() (string, error) {
-	result, err := getPropertyString(nodeUserAgentName)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeUserAgentName)
 }
 
 // GetNodeUserAgentVersion returns the node user agent version.
 //
 // Example “1.12.2” or “abcd1234”, or “SpecialEnvoyBuild”.
 func GetNodeUserAgentVersion() (string, error) {
-	result, err := getPropertyString(nodeUserAgentVersion)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeUserAgentVersion)
 }
 
 // GetNodeUserAgentBuildVersion returns the node user agent build version.
 func GetNodeUserAgentBuildVersion() (string, error) {
-	result, err := getPropertyString(nodeUserAgentBuildVersion)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeUserAgentBuildVersion)
 }
 
 // GetNodeExtensions returns the node extensions.
@@ -260,11 +216,7 @@ func GetNodeClientFeatures() ([]string, error) {
 
 // GetNodeListeningAddresses returns the node listening addresses.
 func GetNodeListeningAddresses() ([]string, error) {
-	result, err := getPropertyStringSlice(nodeListeningAddresses)
-	if err != nil {
-		return []string{}, err
-	}
-	return result, nil
+	return getPropertyStringSlice(nodeListeningAddresses)
 }
 
 // GetClusterMetadata returns the cluster metadata.

@@ -35,11 +35,7 @@ var (
 
 // GetNodeMetaProxyConfigBinaryPath returns the path to the proxy binary
 func GetNodeMetaProxyConfigBinaryPath() (string, error) {
-	result, err := getPropertyString(nodeMetaProxyConfigBinaryPath)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaProxyConfigBinaryPath)
 }
 
 // GetNodeMetaProxyConfigConcurrency returns the concurrency configuration of the proxy which
@@ -47,53 +43,33 @@ func GetNodeMetaProxyConfigBinaryPath() (string, error) {
 // on CPU requests/limits. If set to 0, all cores on the machine will be used. Default is 2 worker
 // threads
 func GetNodeMetaProxyConfigConcurrency() (float64, error) {
-	result, err := getPropertyFloat64(nodeMetaProxyConfigConcurrency)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeMetaProxyConfigConcurrency)
 }
 
 // GetNodeMetaProxyConfigConfigPath returns the path to the proxy configuration, Proxy agent
 // generates the actual configuration and stores it in this directory
 func GetNodeMetaProxyConfigConfigPath() (string, error) {
-	result, err := getPropertyString(nodeMetaProxyConfigConfigPath)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeMetaProxyConfigConfigPath)
 }
 
 // GetNodeProxyConfigControlPlaneAuthPolicy returns the control plane authentication policy of
 // the proxy. The authenticationPolicy defines how the proxy is authenticated when it connects
 // to the control plane. Default is set to MUTUAL_TLS
 func GetNodeProxyConfigControlPlaneAuthPolicy() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigControlPlaneAuthPolicy)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigControlPlaneAuthPolicy)
 }
 
 // GetNodeProxyConfigDiscoveryAddress returns the discovery address of the proxy. The discovery
 // service exposes xDS over an mTLS connection. The inject configuration may override this value
 func GetNodeProxyConfigDiscoveryAddress() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigDiscoveryAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigDiscoveryAddress)
 }
 
 // GetNodeProxyConfigDrainDuration returns the drain duration of the proxy, the time in seconds
 // that Envoy will drain connections during a hot restart. MUST be >=1s (e.g., 1s/1m/1h).
 // Default drain duration is 45s
 func GetNodeProxyConfigDrainDuration() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigDrainDuration)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigDrainDuration)
 }
 
 // GetNodeProxyConfigExtraStatTags returns the extra stat tags of the proxy to extract from the
@@ -101,11 +77,7 @@ func GetNodeProxyConfigDrainDuration() (string, error) {
 // Each additional tag needs to be present in this list. Extra tags emitted by the telemetry
 // extensions must be listed here so that they can be processed and exposed as Prometheus metrics
 func GetNodeProxyConfigExtraStatTags() ([]string, error) {
-	result, err := getPropertyStringSlice(nodeProxyConfigExtraStatTags)
-	if err != nil {
-		return make([]string, 0), err
-	}
-	return result, nil
+	return getPropertyStringSlice(nodeProxyConfigExtraStatTags)
 }
 
 // GetNodeProxyConfigHoldApplicationUntilProxyStarts returns whether to hold the application until
@@ -113,21 +85,13 @@ func GetNodeProxyConfigExtraStatTags() ([]string, error) {
 // behavior. This feature adds hooks to delay application startup until the pod proxy is ready to
 // accept traffic, mitigating some startup race conditions. Default value is ‘false’
 func GetNodeProxyConfigHoldApplicationUntilProxyStarts() (bool, error) {
-	result, err := getPropertyBool(nodeProxyConfigHoldApplicationUntilProxyStarts)
-	if err != nil {
-		return false, err
-	}
-	return result, nil
+	return getPropertyBool(nodeProxyConfigHoldApplicationUntilProxyStarts)
 }
 
 // GetNodeProxyConfigProxyAdminPort returns the admin port of the proxy for administrative commands.
 // Default port is 15000
 func GetNodeProxyConfigProxyAdminPort() (float64, error) {
-	result, err := getPropertyFloat64(nodeProxyConfigProxyAdminPort)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeProxyConfigProxyAdminPort)
 }
 
 // GetNodeProxyConfigProxyStatsMatcher returns the proxy stats matcher, which defines
@@ -178,11 +142,7 @@ func GetNodeProxyConfigProxyStatsMatcher() (IstioProxyStatsMatcher, error) {
 // When the RDS service receives API calls from Envoy, it uses the value of the service-node
 // flag to compute routes that are relative to the service instances located at that IP address
 func GetNodeProxyConfigServiceCluster() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigServiceCluster)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigServiceCluster)
 }
 
 // GetNodeProxyConfigStatNameLength returns the stat name length of the proxy, The length
@@ -192,21 +152,13 @@ func GetNodeProxyConfigServiceCluster() (string, error) {
 // character name per metric. Increase the value of this field if you find that the metrics
 // from Envoys are truncated
 func GetNodeProxyConfigStatNameLength() (float64, error) {
-	result, err := getPropertyFloat64(nodeProxyConfigStatNameLength)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeProxyConfigStatNameLength)
 }
 
 // GetNodeProxyConfigStatusPort returns the port on which the agent should listen
 // for administrative commands such as readiness probe. Default is set to port 15020
 func GetNodeProxyConfigStatusPort() (float64, error) {
-	result, err := getPropertyFloat64(nodeProxyConfigStatusPort)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyFloat64(nodeProxyConfigStatusPort)
 }
 
 // GetNodeProxyConfigTerminationDrainDuration returns the stat name length of the proxy,
@@ -216,39 +168,23 @@ func GetNodeProxyConfigStatusPort() (float64, error) {
 // the termination_drain_duration and then kills any remaining active Envoy processes.
 // If not set, a default of 5s will be applied
 func GetNodeProxyConfigTerminationDrainDuration() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigTerminationDrainDuration)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigTerminationDrainDuration)
 }
 
 // GetNodeProxyConfigTracingDatadogAddress returns the address of the Datadog
 // service (e.g. datadog-agent.sre.svc.cluster.local:8126)
 func GetNodeProxyConfigTracingDatadogAddress() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigTracingDatadogAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigTracingDatadogAddress)
 }
 
 // GetNodeProxyConfigTracingOpenCensusAgentAddress returns the gRPC address for
 // the OpenCensus agent (e.g. dns://authority/host:port or unix:path)
 func GetNodeProxyConfigTracingOpenCensusAgentAddress() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigTracingOpenCensusAgentAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigTracingOpenCensusAgentAddress)
 }
 
 // GetNodeProxyConfigTracingZipkinAddress returns address of the Zipkin service
 // (e.g. zipkin.sre.svc.cluster.local:9411)
 func GetNodeProxyConfigTracingZipkinAddress() (string, error) {
-	result, err := getPropertyString(nodeProxyConfigTracingZipkinAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(nodeProxyConfigTracingZipkinAddress)
 }

@@ -20,116 +20,68 @@ var (
 
 // GetUpstreamAddress returns the upstream connection remote address.
 func GetUpstreamAddress() (string, error) {
-	result, err := getPropertyString(upstreamAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamAddress)
 }
 
 // GetUpstreamPort returns the upstream connection remote port.
 func GetUpstreamPort() (uint64, error) {
-	result, err := getPropertyUint64(upstreamPort)
-	if err != nil {
-		return 0, err
-	}
-	return result, nil
+	return getPropertyUint64(upstreamPort)
 }
 
 // GetUpstreamTlsVersion returns the TLS version of the upstream TLS connection.
 func GetUpstreamTlsVersion() (string, error) {
-	result, err := getPropertyString(upstreamTlsVersion)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamTlsVersion)
 }
 
 // GetUpstreamSubjectLocalCertificate returns the subject field of the local
 // certificate in the upstream TLS connection.
 func GetUpstreamSubjectLocalCertificate() (string, error) {
-	result, err := getPropertyString(upstreamSubjectLocalCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamSubjectLocalCertificate)
 }
 
 // GetUpstreamSubjectPeerCertificate returns the subject field of the peer
 // certificate in the upstream TLS connection.
 func GetUpstreamSubjectPeerCertificate() (string, error) {
-	result, err := getPropertyString(upstreamSubjectPeerCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamSubjectPeerCertificate)
 }
 
 // GetUpstreamDnsSanLocalCertificate returns the first DNS entry in the SAN
 // field of the local certificate in the upstream TLS connection.
 func GetUpstreamDnsSanLocalCertificate() (string, error) {
-	result, err := getPropertyString(upstreamDnsSanLocalCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamDnsSanLocalCertificate)
 }
 
 // GetUpstreamDnsSanPeerCertificate returns the first DNS entry in the SAN
 // field of the peer certificate in the upstream TLS connection.
 func GetUpstreamDnsSanPeerCertificate() (string, error) {
-	result, err := getPropertyString(upstreamDnsSanPeerCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamDnsSanPeerCertificate)
 }
 
 // GetUpstreamUriSanLocalCertificate returns the first URI entry in the SAN
 // field of the local certificate in the upstream TLS connection.
 func GetUpstreamUriSanLocalCertificate() (string, error) {
-	result, err := getPropertyString(upstreamUriSanLocalCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamUriSanLocalCertificate)
 }
 
 // GetUpstreamUriSanPeerCertificate returns the first URI entry in the SAN
 // field of the peer certificate in the upstream TLS connection.
 func GetUpstreamUriSanPeerCertificate() (string, error) {
-	result, err := getPropertyString(upstreamUriSanPeerCertificate)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamUriSanPeerCertificate)
 }
 
 // GetUpstreamSha256PeerCertificateDigest returns the SHA256 digest of the
 // peer certificate in the upstream TLS connection if present.
 func GetUpstreamSha256PeerCertificateDigest() (string, error) {
-	result, err := getPropertyString(upstreamSha256PeerCertificateDigest)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamSha256PeerCertificateDigest)
 }
 
 // GetUpstreamLocalAddress returns the local address of the upstream connection.
 func GetUpstreamLocalAddress() (string, error) {
-	result, err := getPropertyString(upstreamLocalAddress)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamLocalAddress)
 }
 
 // GetUpstreamTransportFailureReason returns the upstream transport failure
 // reason e.g. certificate validation failed.
 func GetUpstreamTransportFailureReason() (string, error) {
-	result, err := getPropertyString(upstreamTransportFailureReason)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+	return getPropertyString(upstreamTransportFailureReason)
 }
