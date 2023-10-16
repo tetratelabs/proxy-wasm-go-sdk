@@ -170,6 +170,7 @@ func TestSerializeAndDeserializeStringSlice(t *testing.T) {
 		{input: []string{"", "empty", ""}},
 	}
 
+	//require.Equal(t, "", serializeStringSlice(nil))
 	for _, test := range tests {
 		serialized := serializeStringSlice(test.input)
 		deserialized := deserializeStringSlice(serialized)
