@@ -241,9 +241,9 @@ func Test_network(t *testing.T) {
 			"upstream data received",
 			"connection complete!",
 			"remote address: 127.0.0.1:",
-			"upsteam cluster matadata location[region]=ap-northeast-1",
-			"upsteam cluster matadata location[cloud_provider]=aws",
-			"upsteam cluster matadata location[az]=ap-northeast-1a",
+			"upstream cluster matadata location[region]=ap-northeast-1",
+			"upstream cluster matadata location[cloud_provider]=aws",
+			"upstream cluster matadata location[az]=ap-northeast-1a",
 		})
 	}, 10*time.Second, 100*time.Millisecond, stdErr.String())
 }
