@@ -93,6 +93,45 @@ func PluginDone() {
 	internal.ProxyDone()
 }
 
+func RedisInit(
+	cluster string,
+	username string,
+	password string,
+) (calloutID uint32, err error) {
+	c := internal.StringBytePtr(cluster)
+	u := internal.StringBytePtr(username)
+	p := internal.StringBytePtr(password)
+	switch st := internal.ProxyRedisInit(c, len(cluster), u, len(username), p, len(password), 86400); st {
+	case internal.StatusOK:
+		// internal.RegisterHttpCallout(calloutID, callBack)
+		return calloutID, nil
+	default:
+		return 0, internal.StatusToError(st)
+	}
+}
+
+func DispatchRedisCall(
+	cluster string,
+	query string,
+	callBack func(status, responseSize uint32),
+) (calloutID uint32, err error) {
+	qp := internal.StringBytePtr(query)
+	ql := len(query)
+
+	u := internal.StringBytePtr(cluster)
+	switch st := internal.ProxyRedisCall(u, len(cluster), qp, ql, &calloutID); st {
+	case internal.StatusOK:
+		internal.RegisterRedisCallout(calloutID, callBack)
+		return calloutID, nil
+	default:
+		return 0, internal.StatusToError(st)
+	}
+}
+
+func GetRedisCallResponse(start, maxSize int) ([]byte, error) {
+	return getBuffer(internal.BufferTypeRedisCallResponse, start, maxSize)
+}
+
 // DispatchHttpCall is for dispatching HTTP calls to a remote cluster. This can be used by all contexts
 // including Tcp and Root contexts. "cluster" arg specifies the remote cluster the host will send
 // the request against with "headers", "body", and "trailers" arguments. "callBack" function is called if the host successfully

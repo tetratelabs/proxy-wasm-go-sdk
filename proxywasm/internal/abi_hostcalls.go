@@ -76,6 +76,14 @@ func ProxyHttpCall(upstreamData *byte, upstreamSize int, headerData *byte, heade
 	bodyData *byte, bodySize int, trailersData *byte, trailersSize int, timeout uint32, calloutIDPtr *uint32,
 ) Status
 
+//export proxy_redis_init
+func ProxyRedisInit(upstreamData *byte, upstreamSize int, usernameData *byte, usernameSize int,
+	passwordData *byte, passwordSize int, timeout uint32,
+) Status
+
+//export proxy_redis_call
+func ProxyRedisCall(upstreamData *byte, upstreamSize int, queryData *byte, querySize int, calloutIDPtr *uint32) Status
+
 //export proxy_call_foreign_function
 func ProxyCallForeignFunction(funcNamePtr *byte, funcNameSize int, paramPtr *byte, paramSize int, returnData **byte, returnSize *int) Status
 
