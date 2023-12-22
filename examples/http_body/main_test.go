@@ -264,7 +264,7 @@ func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
 			// Create http context.
 			id := host.InitializeHttpContext()
 
-			for _, frame := range []string{"frame1...", "frame2..."} {
+			for _, frame := range []string{"frame1...", "frame2...", "frame3..."} {
 				// Call OnRequestHeaders without "content-length"
 				action := host.CallOnRequestBody(id, []byte(frame), false /* end of stream */)
 
@@ -282,7 +282,7 @@ func TestEchoBodyContext_OnHttpRequestBody(t *testing.T) {
 			localResponse := host.GetSentLocalResponse(id)
 			require.NotNil(t, localResponse)
 			require.Equal(t, uint32(200), localResponse.StatusCode)
-			require.Equal(t, "frame1...frame2...", string(localResponse.Data))
+			require.Equal(t, "frame1...frame2...frame3...", string(localResponse.Data))
 		})
 	})
 }
