@@ -1,6 +1,6 @@
 ## multiple_dispatches
 
-This example dispatches multiple http calls to remote clusters while pausing the original http response processing from the upsteam.
+This example dispatches multiple http calls to remote clusters while pausing the original http response processing from the upstream.
 Once the plugin recieved all the responses to all dispatched calls, it adds an http header to the original http response, and resumes it 
 inside the dispatched callback.
 

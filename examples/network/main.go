@@ -103,7 +103,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 
 	for _, metadata := range metadataKeyValues {
 		key, value := metadata[0], metadata[1]
-		proxywasm.LogInfof("upsteam cluster matadata location[%s]=%s", string(key), string(value))
+		proxywasm.LogInfof("upstream cluster metadata location[%s]=%s", string(key), string(value))
 	}
 
 	data, err := proxywasm.GetUpstreamData(0, dataSize)
