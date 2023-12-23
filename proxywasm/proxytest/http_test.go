@@ -85,13 +85,15 @@ func TestBodyBuffering(t *testing.T) {
 			name:     "buffered",
 			buffered: true,
 			action:   types.ActionPause,
-			logged:   "11111",
+			// The first chunk has been buffered, therefore it will be retrieved when calling GetHttpRequestBody at the end of stream.
+			logged: "1111122222",
 		},
 		{
 			name:     "unbuffered",
 			buffered: false,
 			action:   types.ActionContinue,
-			logged:   "22222",
+			// The first chunk has not been buffered, therefore it will not be retrieved when calling GetHttpRequestBody at the end of stream.
+			logged: "22222",
 		},
 	}
 

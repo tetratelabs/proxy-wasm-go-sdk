@@ -416,7 +416,7 @@ func (h *httpHostEmulator) CallOnRequestBody(contextID uint32, body []byte, endO
 
 	cs.requestBody = append(cs.requestBodyBuffer, body...)
 	cs.action = internal.ProxyOnRequestBody(contextID,
-		len(body), endOfStream)
+		len(cs.requestBody), endOfStream)
 	if cs.action == types.ActionPause {
 		// Buffering requested
 		cs.requestBodyBuffer = cs.requestBody
@@ -435,7 +435,7 @@ func (h *httpHostEmulator) CallOnResponseBody(contextID uint32, body []byte, end
 
 	cs.responseBody = append(cs.responseBodyBuffer, body...)
 	cs.action = internal.ProxyOnResponseBody(contextID,
-		len(body), endOfStream)
+		len(cs.responseBody), endOfStream)
 	if cs.action == types.ActionPause {
 		// Buffering requested
 		cs.responseBodyBuffer = cs.responseBody

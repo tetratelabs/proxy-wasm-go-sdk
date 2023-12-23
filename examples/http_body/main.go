@@ -69,16 +69,14 @@ type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultHttpContext
-	modifyResponse        bool
-	totalRequestBodySize  int
-	totalResponseBodySize int
-	bufferOperation       string
+	modifyResponse  bool
+	bufferOperation string
 }
 
 // Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	mode, err := proxywasm.GetHttpRequestHeader("buffer-replace-at")
-	if mode == "response" {
+	if err == nil && mode == "response" {
 		ctx.modifyResponse = true
 	}
 
@@ -112,13 +110,12 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 		return types.ActionContinue
 	}
 
-	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
 		return types.ActionPause
 	}
-
-	originalBody, err := proxywasm.GetHttpRequestBody(0, ctx.totalRequestBodySize)
+	// Being the body never been sent upstream so far, bodySize is the total size of the body received.
+	originalBody, err := proxywasm.GetHttpRequestBody(0, bodySize)
 	if err != nil {
 		proxywasm.LogErrorf("failed to get request body: %v", err)
 		return types.ActionContinue
@@ -160,13 +157,12 @@ func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) ty
 		return types.ActionContinue
 	}
 
-	ctx.totalResponseBodySize += bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
 		return types.ActionPause
 	}
 
-	originalBody, err := proxywasm.GetHttpResponseBody(0, ctx.totalResponseBodySize)
+	originalBody, err := proxywasm.GetHttpResponseBody(0, bodySize)
 	if err != nil {
 		proxywasm.LogErrorf("failed to get response body: %v", err)
 		return types.ActionContinue
@@ -189,7 +185,7 @@ func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) ty
 }
 
 type echoBodyContext struct {
-	// mbed the default plugin context
+	// Embed the default plugin context
 	// so that you don't need to reimplement all the methods by yourself.
 	types.DefaultHttpContext
 	totalRequestBodySize int
@@ -197,14 +193,13 @@ type echoBodyContext struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
-	ctx.totalRequestBodySize += bodySize
+	ctx.totalRequestBodySize = bodySize
 	if !endOfStream {
 		// Wait until we see the entire body to replace.
 		return types.ActionPause
 	}
-
 	// Send the request body as the response body.
-	body, _ := proxywasm.GetHttpRequestBody(0, ctx.totalRequestBodySize)
+	body, _ := proxywasm.GetHttpRequestBody(0, bodySize)
 	if err := proxywasm.SendHttpResponse(200, nil, body, -1); err != nil {
 		panic(err)
 	}
