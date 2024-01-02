@@ -62,11 +62,6 @@ type setBodyContext struct {
 }
 
 // Override types.DefaultHttpContext.
-func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	return types.ActionContinue
-}
-
-// Override types.DefaultHttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("OnHttpRequestBody called. BodySize: %d, totalRequestBodyReadSize: %d, endOfStream: %v", bodySize, ctx.totalRequestBodyReadSize, endOfStream)
 
