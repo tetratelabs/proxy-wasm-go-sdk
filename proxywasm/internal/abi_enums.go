@@ -19,6 +19,7 @@ const (
 	BufferTypeVMConfiguration      BufferType = 6
 	BufferTypePluginConfiguration  BufferType = 7
 	BufferTypeCallData             BufferType = 8
+	BufferTypeRedisCallResponse	   BufferType = 9
 )
 
 type LogLevel uint32
