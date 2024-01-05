@@ -20,12 +20,18 @@ import (
 
 type (
 	pluginContextState struct {
-		context       types.PluginContext
-		httpCallbacks map[uint32]*httpCallbackAttribute
+		context        types.PluginContext
+		httpCallbacks  map[uint32]*httpCallbackAttribute
+		redisCallbacks map[uint32]*redisCallbackAttribute
 	}
 
 	httpCallbackAttribute struct {
 		callback        func(numHeaders, bodySize, numTrailers int)
+		callerContextID uint32
+	}
+
+	redisCallbackAttribute struct {
+		callback        func(status, responseSize int)
 		callerContextID uint32
 	}
 )
@@ -55,11 +61,16 @@ func RegisterHttpCallout(calloutID uint32, callback func(numHeaders, bodySize, n
 	currentState.registerHttpCallOut(calloutID, callback)
 }
 
+func RegisterRedisCallout(calloutID uint32, callback func(status, responseSize int)) {
+	currentState.registerRedisCallOut(calloutID, callback)
+}
+
 func (s *state) createPluginContext(contextID uint32) {
 	ctx := s.vmContext.NewPluginContext(contextID)
 	s.pluginContexts[contextID] = &pluginContextState{
-		context:       ctx,
-		httpCallbacks: map[uint32]*httpCallbackAttribute{},
+		context:        ctx,
+		httpCallbacks:  map[uint32]*httpCallbackAttribute{},
+		redisCallbacks: map[uint32]*redisCallbackAttribute{},
 	}
 
 	// NOTE: this is a temporary work around for avoiding nil pointer panic
@@ -112,6 +123,11 @@ func (s *state) createHttpContext(contextID uint32, pluginContextID uint32) bool
 func (s *state) registerHttpCallOut(calloutID uint32, callback func(numHeaders, bodySize, numTrailers int)) {
 	r := s.pluginContexts[s.contextIDToRootID[s.activeContextID]]
 	r.httpCallbacks[calloutID] = &httpCallbackAttribute{callback: callback, callerContextID: s.activeContextID}
+}
+
+func (s *state) registerRedisCallOut(calloutID uint32, callback func(status, responseSize int)) {
+	r := s.pluginContexts[s.contextIDToRootID[s.activeContextID]]
+	r.redisCallbacks[calloutID] = &redisCallbackAttribute{callback: callback, callerContextID: s.activeContextID}
 }
 
 func (s *state) setActiveContextID(contextID uint32) {

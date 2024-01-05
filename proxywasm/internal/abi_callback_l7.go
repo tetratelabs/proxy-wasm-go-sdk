@@ -129,3 +129,31 @@ func proxyOnHttpCallResponse(pluginContextID, calloutID uint32, numHeaders, body
 		cb.callback(numHeaders, bodySize, numTrailers)
 	}
 }
+
+//export proxy_on_redis_call_response
+func proxyOnRedisCallResponse(pluginContextID, calloutID uint32, status, responseSize int) {
+	root, ok := currentState.pluginContexts[pluginContextID]
+	if !ok {
+		panic("redis_call_response on invalid plugin context")
+	}
+
+	cb := root.redisCallbacks[calloutID]
+	if cb == nil {
+		panic("invalid callout id")
+	}
+
+	ctxID := cb.callerContextID
+	currentState.setActiveContextID(ctxID)
+	delete(root.redisCallbacks, calloutID)
+
+	// Check if the context is already deleted.
+	// For example, if the connection expired before the call response arrival,
+	// proxy_on_http_call_response is called AFTER ProxyOnDelete is called for the context id.
+	// In that case, if the callback continues response or make local reply, then the subsequent
+	// callbacks (for example OnHttpResponseHeaders) would follow and result in calling callback
+	// for already-deleted context id. See https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/261 for detail.
+	if _, ok := currentState.contextIDToRootID[ctxID]; ok {
+		ProxySetEffectiveContext(ctxID)
+		cb.callback(status, responseSize)
+	}
+}
