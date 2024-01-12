@@ -38,6 +38,16 @@ func TestGetResponseFlags(t *testing.T) {
 	require.Equal(t, uint64(123), result)
 }
 
+func TestGetResponseFlagsShort(t *testing.T) {
+	opt := proxytest.NewEmulatorOption().WithProperty(responseFlags, serializeUint64(123))
+	_, reset := proxytest.NewHostEmulator(opt)
+	defer reset()
+
+	result, err := GetResponseFlagsShort()
+	require.NoError(t, err)
+	require.Equal(t, "FailedLocalHealthCheck,LocalReset,NoHealthyUpstream,UpstreamConnectionFailure,UpstreamConnectionTermination,UpstreamRemoteReset", result)
+}
+
 func TestGetResponseGrpcStatusCode(t *testing.T) {
 	opt := proxytest.NewEmulatorOption().WithProperty(responseGrpcStatusCode, serializeUint64(200))
 	_, reset := proxytest.NewHostEmulator(opt)
