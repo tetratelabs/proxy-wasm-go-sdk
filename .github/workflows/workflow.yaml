@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  TINYGO_VERSION: 0.30.0
+  TINYGO_VERSION: 0.31.2
 
 jobs:
   style:
@@ -18,7 +18,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.21'
+          go-version: '1.22'
 
       - name: checkout
         uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.21'
+          go-version: '1.22'
 
       - name: checkout
         uses: actions/checkout@v3
@@ -51,19 +51,19 @@ jobs:
       matrix:
         envoy-image: [
           "envoyproxy/envoy-dev:latest",
-          "envoyproxy/envoy:v1.21-latest",
-          "envoyproxy/envoy:v1.22-latest",
-          "envoyproxy/envoy:v1.23-latest",
           "envoyproxy/envoy:v1.24-latest",
           "envoyproxy/envoy:v1.25-latest",
           "envoyproxy/envoy:v1.26-latest",
           "envoyproxy/envoy:v1.27-latest",
           "envoyproxy/envoy:v1.28-latest",
+          "envoyproxy/envoy:v1.29-latest",
+          "envoyproxy/envoy:v1.30-latest",
           "istio/proxyv2:1.16.0",
           "istio/proxyv2:1.17.0",
           "istio/proxyv2:1.18.0",
           "istio/proxyv2:1.19.0",
           "istio/proxyv2:1.20.0",
+          "istio/proxyv2:1.21.0",
         ]
     runs-on: ubuntu-latest
     steps:
@@ -83,7 +83,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.21'
+          go-version: '1.22'
 
       - name: Install TinyGo
         run: |

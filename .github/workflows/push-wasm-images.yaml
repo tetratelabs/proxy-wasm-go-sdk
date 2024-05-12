@@ -4,7 +4,7 @@ on:
     branches:
       - main
 env:
-  TINYGO_VERSION: 0.30.0
+  TINYGO_VERSION: 0.31.2
 
 jobs:
   build-and-push-wasm-images:
@@ -14,7 +14,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.21'
+          go-version: '1.22'
 
       - name: Install TinyGo
         run: |
