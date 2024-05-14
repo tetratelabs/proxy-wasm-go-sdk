@@ -64,6 +64,7 @@ jobs:
           "istio/proxyv2:1.19.0",
           "istio/proxyv2:1.20.0",
           "istio/proxyv2:1.21.0",
+          "istio/proxyv2:1.22.0",
         ]
     runs-on: ubuntu-latest
     steps:
