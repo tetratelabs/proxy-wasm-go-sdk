@@ -57,5 +57,4 @@ We welcome contributions from the community! See [CONTRIBUTING.md](doc/CONTRIBUT
 - [WebAssembly for Proxies (AssemblyScript SDK)](https://github.com/solo-io/proxy-runtime)
 - [WebAssembly for Proxies (C++ SDK)](https://github.com/proxy-wasm/proxy-wasm-cpp-sdk)
 - [WebAssembly for Proxies (Rust SDK)](https://github.com/proxy-wasm/proxy-wasm-rust-sdk)
-- [WebAssembly for Proxies (Zig SDK)](https://github.com/mathetake/proxy-wasm-zig-sdk)
 - [TinyGo - Go compiler for small places](https://tinygo.org/)
