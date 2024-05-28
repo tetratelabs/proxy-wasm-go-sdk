@@ -1,5 +1,5 @@
-goimports := golang.org/x/tools/cmd/goimports@v0.7.0
-golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+goimports := golang.org/x/tools/cmd/goimports@v0.21.0
+golangci_lint := github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.0
 
 
 .PHONY: build.example
@@ -40,7 +40,10 @@ run:
 
 .PHONY: lint
 lint:
-	@go run $(golangci_lint) run
+	@find . -name "go.mod" \
+	| grep go.mod \
+	| xargs -I {} bash -c 'dirname {}' \
+	| xargs -I {} bash -c 'echo "=> {}"; cd {}; go run $(golangci_lint) run; '
 
 .PHONY: format
 format:

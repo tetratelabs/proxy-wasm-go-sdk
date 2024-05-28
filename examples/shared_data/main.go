@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,13 +31,15 @@ func main() {
 }
 
 type (
-	vmContext     struct{}
+	// vmContext implements types.VMContext.
+	vmContext struct{}
+	// pluginContext implements types.PluginContext.
 	pluginContext struct {
 		// Embed the default plugin context here,
 		// so that we don't need to reimplement all the methods.
 		types.DefaultPluginContext
 	}
-
+	// httpContext implements types.HttpContext.
 	httpContext struct {
 		// Embed the default http context here,
 		// so that we don't need to reimplement all the methods.
@@ -45,7 +47,7 @@ type (
 	}
 )
 
-// Override types.VMContext.
+// OnVMStart implements types.VMContext.
 func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	initialValueBuf := make([]byte, 0) // Empty data to indicate that the data is not initialized.
 	if err := proxywasm.SetSharedData(sharedDataKey, initialValueBuf, 0); err != nil {
@@ -54,17 +56,17 @@ func (*vmContext) OnVMStart(vmConfigurationSize int) types.OnVMStartStatus {
 	return types.OnVMStartStatusOK
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpContext{}
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	for {
 		value, err := ctx.incrementData()
@@ -78,6 +80,7 @@ func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	return types.ActionContinue
 }
 
+// incrementData increments the shared data value by 1.
 func (ctx *httpContext) incrementData() (uint64, error) {
 	data, cas, err := proxywasm.GetSharedData(sharedDataKey)
 	if err != nil {

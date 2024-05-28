@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,33 +26,36 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &setBodyContext{}
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	return types.OnPluginStartStatusOK
 }
 
+// setBodyContext implements types.HttpContext.
 type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
@@ -61,7 +64,7 @@ type setBodyContext struct {
 	receivedChunks           int
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestBody implements types.HttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("OnHttpRequestBody called. BodySize: %d, totalRequestBodyReadSize: %d, endOfStream: %v", bodySize, ctx.totalRequestBodyReadSize, endOfStream)
 
@@ -87,7 +90,7 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 				{"powered-by", "proxy-wasm-go-sdk"},
 			}, []byte(patternFound), -1); err != nil {
 				proxywasm.LogCriticalf("failed to send local response: %v", err)
-				proxywasm.ResumeHttpRequest()
+				_ = proxywasm.ResumeHttpRequest()
 			} else {
 				proxywasm.LogInfo("local 403 response sent")
 			}

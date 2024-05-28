@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,26 +23,25 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )
 
-const (
-	receiverVMID = "receiver"
-	queueName    = "http_headers"
-)
+const receiverVMID = "receiver"
 
 func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &senderPluginContext{contextID: contextID}
 }
 
+// senderPluginContext implements types.PluginContext.
 type senderPluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -51,11 +50,7 @@ type senderPluginContext struct {
 	contextID uint32
 }
 
-func newPluginContext(uint32) types.PluginContext {
-	return &senderPluginContext{}
-}
-
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *senderPluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	// Get Plugin configuration.
 	config, err := proxywasm.GetPluginConfiguration()
@@ -67,7 +62,7 @@ func (ctx *senderPluginContext) OnPluginStart(pluginConfigurationSize int) types
 	return types.OnPluginStartStatusOK
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *senderPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	// If this PluginContext is not configured for Http, then return nil.
 	if ctx.config != "http" {
@@ -93,6 +88,7 @@ func (ctx *senderPluginContext) NewHttpContext(contextID uint32) types.HttpConte
 	}
 }
 
+// senderHttpContext implements types.HttpContext.
 type senderHttpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -100,7 +96,7 @@ type senderHttpContext struct {
 	contextID, requestHeadersQueueID, responseHeadersQueueID uint32
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *senderHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	headers, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
@@ -117,7 +113,7 @@ func (ctx *senderHttpContext) OnHttpRequestHeaders(int, bool) types.Action {
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpResponseHeaders implements types.HttpContext.
 func (ctx *senderHttpContext) OnHttpResponseHeaders(int, bool) types.Action {
 	headers, err := proxywasm.GetHttpResponseHeaders()
 	if err != nil {
@@ -134,6 +130,7 @@ func (ctx *senderHttpContext) OnHttpResponseHeaders(int, bool) types.Action {
 	return types.ActionContinue
 }
 
+// NewTcpContext implements types.PluginContext.
 func (ctx *senderPluginContext) NewTcpContext(contextID uint32) types.TcpContext {
 	// If this PluginContext is not configured for Tcp, then return nil.
 	if ctx.config != "tcp" {
@@ -153,6 +150,7 @@ func (ctx *senderPluginContext) NewTcpContext(contextID uint32) types.TcpContext
 	}
 }
 
+// senderTcpContext implements types.TcpContext.
 type senderTcpContext struct {
 	types.DefaultTcpContext
 	// Embed the default http context here,
@@ -161,6 +159,7 @@ type senderTcpContext struct {
 	contextID        uint32
 }
 
+// OnUpstreamData implements types.TcpContext.
 func (ctx *senderTcpContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue

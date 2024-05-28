@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,17 +29,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -47,7 +49,7 @@ type pluginContext struct {
 	shouldEchoBody bool
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	if ctx.shouldEchoBody {
 		return &echoBodyContext{}
@@ -55,7 +57,7 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &setBodyContext{}
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration()
 	if err != nil {
@@ -65,6 +67,7 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 	return types.OnPluginStartStatusOK
 }
 
+// setBodyContext implements types.HttpContext.
 type setBodyContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
@@ -73,7 +76,7 @@ type setBodyContext struct {
 	bufferOperation string
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	mode, err := proxywasm.GetHttpRequestHeader("buffer-replace-at")
 	if err == nil && mode == "response" {
@@ -104,7 +107,7 @@ func (ctx *setBodyContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestBody implements types.HttpContext.
 func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	if ctx.modifyResponse {
 		return types.ActionContinue
@@ -137,7 +140,7 @@ func (ctx *setBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) typ
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpResponseHeaders implements types.HttpContext.
 func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	if !ctx.modifyResponse {
 		return types.ActionContinue
@@ -151,7 +154,7 @@ func (ctx *setBodyContext) OnHttpResponseHeaders(numHeaders int, endOfStream boo
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpResponseBody implements types.HttpContext.
 func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) types.Action {
 	if !ctx.modifyResponse {
 		return types.ActionContinue
@@ -184,6 +187,7 @@ func (ctx *setBodyContext) OnHttpResponseBody(bodySize int, endOfStream bool) ty
 	return types.ActionContinue
 }
 
+// echoBodyContext implements types.HttpContext.
 type echoBodyContext struct {
 	// Embed the default plugin context
 	// so that you don't need to reimplement all the methods by yourself.
@@ -191,7 +195,7 @@ type echoBodyContext struct {
 	totalRequestBodySize int
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestBody implements types.HttpContext.
 func (ctx *echoBodyContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	ctx.totalRequestBodySize = bodySize
 	if !endOfStream {

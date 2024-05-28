@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,28 +27,31 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpAuthRandom{contextID: contextID}
 }
 
+// httpAuthRandom implements types.HttpContext.
 type httpAuthRandom struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -56,7 +59,7 @@ type httpAuthRandom struct {
 	contextID uint32
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	hs, err := proxywasm.GetHttpRequestHeaders()
 	if err != nil {
@@ -77,6 +80,7 @@ func (ctx *httpAuthRandom) OnHttpRequestHeaders(numHeaders int, endOfStream bool
 	return types.ActionPause
 }
 
+// httpCallResponseCallback is a callback function when the http call response is received after dispatching.
 func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 	hs, err := proxywasm.GetHttpCallResponseHeaders()
 	if err != nil {
@@ -91,20 +95,20 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 	b, err := proxywasm.GetHttpCallResponseBody(0, bodySize)
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get response body: %v", err)
-		proxywasm.ResumeHttpRequest()
+		_ = proxywasm.ResumeHttpRequest()
 		return
 	}
 
 	s := fnv.New32a()
 	if _, err := s.Write(b); err != nil {
 		proxywasm.LogCriticalf("failed to calculate hash: %v", err)
-		proxywasm.ResumeHttpRequest()
+		_ = proxywasm.ResumeHttpRequest()
 		return
 	}
 
 	if s.Sum32()%2 == 0 {
 		proxywasm.LogInfo("access granted")
-		proxywasm.ResumeHttpRequest()
+		_ = proxywasm.ResumeHttpRequest()
 		return
 	}
 
@@ -114,6 +118,6 @@ func httpCallResponseCallback(numHeaders, bodySize, numTrailers int) {
 		{"powered-by", "proxy-wasm-go-sdk!!"},
 	}, []byte(body), -1); err != nil {
 		proxywasm.LogErrorf("failed to send local response: %v", err)
-		proxywasm.ResumeHttpRequest()
+		_ = proxywasm.ResumeHttpRequest()
 	}
 }

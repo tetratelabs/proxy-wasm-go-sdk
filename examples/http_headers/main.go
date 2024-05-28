@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,17 +27,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -49,7 +51,7 @@ type pluginContext struct {
 	headerValue string
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpHeaders{
 		contextID:   contextID,
@@ -58,6 +60,7 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	}
 }
 
+// OnPluginStart implements types.PluginContext.
 func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	proxywasm.LogDebug("loading plugin config")
 	data, err := proxywasm.GetPluginConfiguration()
@@ -88,6 +91,7 @@ func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlugi
 	return types.OnPluginStartStatusOK
 }
 
+// httpHeaders implements types.HttpContext.
 type httpHeaders struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -97,7 +101,7 @@ type httpHeaders struct {
 	headerValue string
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	err := proxywasm.ReplaceHttpRequestHeader("test", "best")
 	if err != nil {
@@ -115,7 +119,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpResponseHeaders implements types.HttpContext.
 func (ctx *httpHeaders) OnHttpResponseHeaders(_ int, _ bool) types.Action {
 	proxywasm.LogInfof("adding header: %s=%s", ctx.headerName, ctx.headerValue)
 
@@ -143,7 +147,7 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(_ int, _ bool) types.Action {
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpStreamDone implements types.HttpContext.
 func (ctx *httpHeaders) OnHttpStreamDone() {
 	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

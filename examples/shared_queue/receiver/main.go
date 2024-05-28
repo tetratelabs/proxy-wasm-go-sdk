@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,17 +25,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &receiverPluginContext{contextID: contextID}
 }
 
+// receiverPluginContext implements types.PluginContext.
 type receiverPluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -44,7 +46,7 @@ type receiverPluginContext struct {
 	queueName string
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *receiverPluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	// Get Plugin configuration.
 	config, err := proxywasm.GetPluginConfiguration()
@@ -63,7 +65,7 @@ func (ctx *receiverPluginContext) OnPluginStart(pluginConfigurationSize int) typ
 	return types.OnPluginStartStatusOK
 }
 
-// Override types.DefaultPluginContext.
+// OnQueueReady implements types.PluginContext.
 func (ctx *receiverPluginContext) OnQueueReady(queueID uint32) {
 	data, err := proxywasm.DequeueSharedQueue(queueID)
 	switch err {
