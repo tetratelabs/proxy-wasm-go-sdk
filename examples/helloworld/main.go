@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,25 +28,26 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &helloWorld{}
 }
 
+// helloWorld implements types.PluginContext.
 type helloWorld struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
-	contextID uint32
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *helloWorld) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	rand.Seed(time.Now().UnixNano())
 
@@ -58,12 +59,12 @@ func (ctx *helloWorld) OnPluginStart(pluginConfigurationSize int) types.OnPlugin
 	return types.OnPluginStartStatusOK
 }
 
-// Override types.DefaultPluginContext.
+// OnTick implements types.PluginContext.
 func (ctx *helloWorld) OnTick() {
 	t := time.Now().UnixNano()
 	proxywasm.LogInfof("It's %d: random value: %d", t, rand.Uint64())
 	proxywasm.LogInfof("OnTick called")
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (*helloWorld) NewHttpContext(uint32) types.HttpContext { return &types.DefaultHttpContext{} }

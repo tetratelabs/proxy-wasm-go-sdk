@@ -16,19 +16,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
-// vmContext implements types.VMContext interface of proxy-wasm-go SDK.
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
-// pluginContext implements types.PluginContext interface of proxy-wasm-go SDK.
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -43,7 +43,7 @@ type pluginConfiguration struct {
 	requiredKeys []string
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	data, err := proxywasm.GetPluginConfiguration()
 	if err != nil && err != types.ErrorStatusNotFound {
@@ -59,7 +59,7 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 	return types.OnPluginStartStatusOK
 }
 
-// parsePluginConfiguration parses the json plugin confiuration data and returns pluginConfiguration.
+// parsePluginConfiguration parses the json plugin configuration data and returns pluginConfiguration.
 // Note that this parses the json data by gjson, since TinyGo doesn't support encoding/json.
 // You can also try https://github.com/mailru/easyjson, which supports decoding to a struct.
 func parsePluginConfiguration(data []byte) (pluginConfiguration, error) {
@@ -81,12 +81,12 @@ func parsePluginConfiguration(data []byte) (pluginConfiguration, error) {
 	return *config, nil
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &payloadValidationContext{requiredKeys: ctx.configuration.requiredKeys}
 }
 
-// payloadValidationContext implements types.HttpContext interface of proxy-wasm-go SDK.
+// payloadValidationContext implements types.HttpContext.
 type payloadValidationContext struct {
 	// Embed the default root http context here,
 	// so that we don't need to reimplement all the methods.
@@ -95,9 +95,7 @@ type payloadValidationContext struct {
 	requiredKeys         []string
 }
 
-var _ types.HttpContext = (*payloadValidationContext)(nil)
-
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (*payloadValidationContext) OnHttpRequestHeaders(numHeaders int, _ bool) types.Action {
 	contentType, err := proxywasm.GetHttpRequestHeader("content-type")
 	if err != nil || contentType != "application/json" {
@@ -113,7 +111,7 @@ func (*payloadValidationContext) OnHttpRequestHeaders(numHeaders int, _ bool) ty
 	return types.ActionContinue
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestBody implements types.HttpContext.
 func (ctx *payloadValidationContext) OnHttpRequestBody(bodySize int, endOfStream bool) types.Action {
 	ctx.totalRequestBodySize += bodySize
 	if !endOfStream {

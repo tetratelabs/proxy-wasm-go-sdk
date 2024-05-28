@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,28 +25,31 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &metricPluginContext{}
 }
 
+// metricPluginContext implements types.PluginContext.
 type metricPluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *metricPluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &metricHttpContext{}
 }
 
+// metricHttpContext implements types.HttpContext.
 type metricHttpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -58,9 +61,11 @@ const (
 	customHeaderValueTagKey = "value"
 )
 
+// counters is a map from custom header value to a counter metric.
+// Note that Proxy-Wasm plugins are single threaded, so no need to use a lock.
 var counters = map[string]proxywasm.MetricCounter{}
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *metricHttpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	customHeaderValue, err := proxywasm.GetHttpRequestHeader(customHeaderKey)
 	if err == nil {

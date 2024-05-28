@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{
 		contextID: contextID,
@@ -39,6 +40,7 @@ func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -47,7 +49,7 @@ type pluginContext struct {
 	postponed []uint32
 }
 
-// Override types.DefaultPluginContext.
+// OnPluginStart implements types.PluginContext.
 func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
 	if err := proxywasm.SetTickPeriodMilliSeconds(tickMilliseconds); err != nil {
 		proxywasm.LogCriticalf("failed to set tick period: %v", err)
@@ -56,18 +58,18 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 	return types.OnPluginStartStatusOK
 }
 
-// Override types.DefaultPluginContext.
+// OnTick implements types.PluginContext.
 func (ctx *pluginContext) OnTick() {
 	for len(ctx.postponed) > 0 {
 		httpCtxId, tail := ctx.postponed[0], ctx.postponed[1:]
 		proxywasm.LogInfof("resume request with contextID=%v", httpCtxId)
-		proxywasm.SetEffectiveContext(httpCtxId)
-		proxywasm.ResumeHttpRequest()
+		_ = proxywasm.SetEffectiveContext(httpCtxId)
+		_ = proxywasm.ResumeHttpRequest()
 		ctx.postponed = tail
 	}
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpContext{
 		contextID: contextID,
@@ -75,6 +77,7 @@ func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	}
 }
 
+// httpContext implements types.HttpContext.
 type httpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -83,7 +86,7 @@ type httpContext struct {
 	pluginCtx *pluginContext
 }
 
-// Override types.DefaultHttpContext.
+// OnHttpRequestHeaders implements types.HttpContext.
 func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
 	proxywasm.LogInfof("postpone request with contextID=%d", ctx.contextID)
 	ctx.pluginCtx.postponed = append(ctx.pluginCtx.postponed, ctx.contextID)

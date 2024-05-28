@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,28 +27,31 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultPluginContext
 }
 
-// Override types.DefaultPluginContext.
+// NewHttpContext implements types.PluginContext.
 func (*pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &httpContext{contextID: contextID}
 }
 
+// httpContext implements types.HttpContext.
 type httpContext struct {
 	// Embed the default http context here,
 	// so that we don't need to reimplement all the methods.
@@ -61,7 +64,7 @@ type httpContext struct {
 
 const totalDispatchNum = 10
 
-// Override types.DefaultHttpContext.
+// OnHttpResponseHeaders implements types.HttpContext.
 func (ctx *httpContext) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {
 	// On each request response, we dispatch the http calls `totalDispatchNum` times.
 	// Note: DispatchHttpCall is asynchronously processed, so each loop is non-blocking.
@@ -86,9 +89,9 @@ func (ctx *httpContext) dispatchCallback(numHeaders, bodySize, numTrailers int) 
 	if ctx.pendingDispatchedRequest == 0 {
 		// This case, all the dispatched request was processed.
 		// Adds a response header to the original response.
-		proxywasm.AddHttpResponseHeader("total-dispatched", strconv.Itoa(totalDispatchNum))
+		_ = proxywasm.AddHttpResponseHeader("total-dispatched", strconv.Itoa(totalDispatchNum))
 		// And then contniue the original reponse.
-		proxywasm.ResumeHttpResponse()
+		_ = proxywasm.ResumeHttpResponse()
 		proxywasm.LogInfof("response resumed after processed %d dispatched request", totalDispatchNum)
 	} else {
 		proxywasm.LogInfof("pending dispatched requests: %d", ctx.pendingDispatchedRequest)

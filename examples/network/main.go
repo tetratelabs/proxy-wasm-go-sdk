@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Tetrate
+// Copyright 2020-2024 Tetrate
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,17 +23,19 @@ func main() {
 	proxywasm.SetVMContext(&vmContext{})
 }
 
+// vmContext implements types.VMContext.
 type vmContext struct {
 	// Embed the default VM context here,
 	// so that we don't need to reimplement all the methods.
 	types.DefaultVMContext
 }
 
-// Override types.DefaultVMContext.
+// NewPluginContext implements types.VMContext.
 func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	return &pluginContext{counter: proxywasm.DefineCounterMetric("proxy_wasm_go.connection_counter")}
 }
 
+// pluginContext implements types.PluginContext.
 type pluginContext struct {
 	// Embed the default plugin context here,
 	// so that we don't need to reimplement all the methods.
@@ -41,11 +43,12 @@ type pluginContext struct {
 	counter proxywasm.MetricCounter
 }
 
-// Override types.DefaultPluginContext.
+// NewTcpContext implements types.PluginContext.
 func (ctx *pluginContext) NewTcpContext(contextID uint32) types.TcpContext {
 	return &networkContext{counter: ctx.counter}
 }
 
+// networkContext implements types.TcpContext.
 type networkContext struct {
 	// Embed the default tcp context here,
 	// so that we don't need to reimplement all the methods.
@@ -53,13 +56,13 @@ type networkContext struct {
 	counter proxywasm.MetricCounter
 }
 
-// Override types.DefaultTcpContext.
+// OnNewConnection implements types.TcpContext.
 func (ctx *networkContext) OnNewConnection() types.Action {
 	proxywasm.LogInfo("new connection!")
 	return types.ActionContinue
 }
 
-// Override types.DefaultTcpContext.
+// OnDownstreamData implements types.TcpContext.
 func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -75,13 +78,12 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 	return types.ActionContinue
 }
 
-// Override types.DefaultTcpContext.
+// OnDownstreamClose implements types.TcpContext.
 func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	proxywasm.LogInfo("downstream connection close!")
-	return
 }
 
-// Override types.DefaultTcpContext.
+// OnUpstreamData implements types.TcpContext.
 func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
@@ -115,7 +117,7 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	return types.ActionContinue
 }
 
-// Override types.DefaultTcpContext.
+// OnStreamDone implements types.TcpContext.
 func (ctx *networkContext) OnStreamDone() {
 	ctx.counter.Increment(1)
 	proxywasm.LogInfo("connection complete!")

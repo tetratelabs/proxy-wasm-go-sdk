@@ -34,14 +34,15 @@ func TestProperties_OnHttpRequestHeaders(t *testing.T) {
 
 			// Check Envoy logs.
 			logs := host.GetInfoLogs()
-			require.Contains(t, logs, fmt.Sprintf("no auth header for route"))
+			require.Contains(t, logs, "no auth header for route")
 			require.Contains(t, logs, fmt.Sprintf("%d finished", id))
 		})
 
 		// Set property
 		path := "auth"
 		data := "cookie"
-		host.SetProperty(append(propertyPrefix, path), []byte(data))
+		err := host.SetProperty(append(propertyPrefix, path), []byte(data))
+		require.NoError(t, err)
 
 		// Get property
 		actualData, _ := host.GetProperty(append(propertyPrefix, path))
