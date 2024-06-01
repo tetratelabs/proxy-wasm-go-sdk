@@ -12,14 +12,10 @@ This document explains the things you should know when writing programs with thi
 
 # TinyGo vs the official Go compiler
 
-This SDK relies on the TinyGo, a compiler implementation of Go programming language specification. So first of all, we answer the question "Why not the official Go?".
-
-There are several reasons why we cannot use the official Go compiler. Tl;dr is that as of this writing, the official compiler cannot produce Wasm binary which can run outside web browsers, and therefore cannot produce Proxy-Wasm compatible binaries.
-
-For those who are insterested in the detail, please refer to the related issues in the Go repository: 
-- https://github.com/golang/go/issues/25612
-- https://github.com/golang/go/issues/31105
-- https://github.com/golang/go/issues/38248
+This SDK relies on the TinyGo, a compiler implementation of Go programming language specification.
+So first of all, we answer the question "Why not the official Go?".
+As of this writing, the official compiler cannot produce Proxy-Wasm compatible binaries since the exported functions are not supported in the official Go compiler yet.
+Please refer to the [discussion](https://github.com/golang/go/issues/65199), which has already been accepted as a proposal.
 
 # Wasm VM, Plugin and Envoy configuration
 
