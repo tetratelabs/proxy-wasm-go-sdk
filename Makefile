@@ -67,11 +67,13 @@ check:
 # and push to ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples.
 # See https://github.com/solo-io/wasm/blob/master/spec/spec-compat.md for details.
 # Only-used in github workflow on the main branch, and not for developers.
+repository := ghcr.io/tetratelabs/proxy-wasm-go-sdk-example
+
 .PHONY: wasm_image.build_push
 wasm_image.build_push:
 	@for f in `find ./examples -type f -name "main.go"`; do \
 		name=`echo $$f | sed -e 's/\\//-/g' | sed -e 's/\.-examples-//g' -e 's/\-main\.go//g'` ; \
-		ref=ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples:$$name; \
+		ref=${repository}:$$name; \
 		docker build -t $$ref . -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$(dirname $$f)/main.wasm; \
 		docker push $$ref; \
 	done
@@ -85,7 +87,7 @@ wasm_image.build_push:
 wasm_image.build_push_oci:
 	@for f in `find ./examples -type f -name "main.go"`; do \
 		name=`echo $$f | sed -e 's/\\//-/g' | sed -e 's/\.-examples-//g' -e 's/\-main\.go//g'` ; \
-		ref=ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples:$$name-oci; \
+		ref=${repository}:$$name-oci; \
 		buildah bud -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$(dirname $$f)/main.wasm -t $$ref .; \
 		buildah push $$ref; \
 	done
