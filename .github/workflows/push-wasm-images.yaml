@@ -4,7 +4,7 @@ on:
     branches:
       - main
 env:
-  TINYGO_VERSION: 0.31.2
+  TINYGO_VERSION: 0.32.0
 
 jobs:
   build-and-push-wasm-images:
@@ -32,7 +32,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build/Push Docker images
         run: make wasm_image.build_push
