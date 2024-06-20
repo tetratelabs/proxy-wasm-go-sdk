@@ -462,7 +462,7 @@ Internally, `runtime.GC` is called whenever the heap runs out (see
 [1](https://tinygo.org/lang-support/#garbage-collection),
 [2](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_conservative.go#L218-L239)) in TinyGo.
 
-TinyGo allows us to disable GC, so theoretically, we can implement our own GC algorithms tailored for Proxy-Wasm through `alloc(uintptr)` [interface](https://github.com/tinygo-org/tinygo/blob/v0.14.1/src/runtime/gc_none.go#L13) with `-gc=none` option. 
+TinyGo allows us to disable GC, so theoretically, we can implement our own GC algorithms tailored for Proxy-Wasm through with `-gc=custom` and the build tag `-tags=custommalloc`. 
 For example, create an arena for each context and free the arena when the context is destroyed. However, it is difficult to implement that 
 since internally we need to use global maps (implicitly causes allocation outside the context scope, globally) for saving the Virtual Machine's state (e.g. context id to context implementation mapping).
 So this is not implemented yet, and that is a future TODO.
