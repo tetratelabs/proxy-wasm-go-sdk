@@ -26,14 +26,6 @@ test.examples:
 	| xargs -I {} bash -c 'dirname {}' \
 	| xargs -I {} bash -c 'cd {} && go test ./...'
 
-.PHONY: test.e2e
-test.e2e:
-	@go test -v ./e2e -count=1
-
-.PHONY: test.e2e.single
-test.e2e.single:
-	@go test -v ./e2e -run '/${name}' -count=1
-
 .PHONY: run
 run:
 	@envoy -c ./examples/${name}/envoy.yaml --concurrency 2 --log-format '%v'
@@ -62,35 +54,6 @@ check:
 		echo "The following differences will fail CI until committed:"; \
 		git diff --exit-code; \
 	fi
-
-# Build docker images of *compat* variant of Wasm Image Specification with built example binaries,
-# and push to ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples.
-# See https://github.com/solo-io/wasm/blob/master/spec/spec-compat.md for details.
-# Only-used in github workflow on the main branch, and not for developers.
-repository := ghcr.io/tetratelabs/proxy-wasm-go-sdk-example
-
-.PHONY: wasm_image.build_push
-wasm_image.build_push:
-	@for f in `find ./examples -type f -name "main.go"`; do \
-		name=`echo $$f | sed -e 's/\\//-/g' | sed -e 's/\.-examples-//g' -e 's/\-main\.go//g'` ; \
-		ref=${repository}:$$name; \
-		docker build -t $$ref . -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$(dirname $$f)/main.wasm; \
-		docker push $$ref; \
-	done
-
-# Build OCI images of *compat* variant of Wasm Image Specification with built example binaries,
-# and push to ghcr.io/tetratelabs/proxy-wasm-go-sdk-examples.
-# See https://github.com/solo-io/wasm/blob/master/spec/spec-compat.md for details.
-# Only-used in github workflow on the main branch, and not for developers.
-# Requires "buildah" CLI.
-.PHONY: wasm_image.build_push_oci
-wasm_image.build_push_oci:
-	@for f in `find ./examples -type f -name "main.go"`; do \
-		name=`echo $$f | sed -e 's/\\//-/g' | sed -e 's/\.-examples-//g' -e 's/\-main\.go//g'` ; \
-		ref=${repository}:$$name-oci; \
-		buildah bud -f examples/wasm-image.Dockerfile --build-arg WASM_BINARY_PATH=$$(dirname $$f)/main.wasm -t $$ref .; \
-		buildah push $$ref; \
-	done
 
 .PHONY: tidy
 tidy: ## Runs go mod tidy on every module
