@@ -8,9 +8,4 @@
 > we strongly recommend migrating to the Rust or C++ SDK due to the memory issue of TinyGo described in the link above.
 > 
 > We keep this repository open and not archived for the existing users, but we cannot provide any support or guarantee for the future development of this SDK.
-
-# WebAssembly for Proxies (Go SDK) [![Build](https://github.com/tetratelabs/proxy-wasm-go-sdk/workflows/Test/badge.svg)](https://github.com/tetratelabs/proxy-wasm-go-sdk/actions) [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-
-The Go SDK for
- [Proxy-Wasm](https://github.com/proxy-wasm/spec), enabling developers to write Proxy-Wasm plugins in Go. 
-This SDK is powered by [TinyGo](https://tinygo.org/) and does not support the official Go compiler.
+> However, at any time, we may decide to archive this repository if we see no reason to keep it open.
