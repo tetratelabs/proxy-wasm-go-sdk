@@ -1,4 +1,5 @@
-> [!WARNING] We are no longer recommending this SDK or Wasm in general for anyone due to the fundamental memory issue of TinyGo (See [the detailed explanation](https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/450#issuecomment-2253729297) by a long-time community member)
+> [!WARNING] 
+> We are no longer recommending this SDK or Wasm in general for anyone due to the fundamental memory issue of TinyGo (See [the detailed explanation](https://github.com/tetratelabs/proxy-wasm-go-sdk/issues/450#issuecomment-2253729297) by a long-time community member)
 > as well as [the project state of Proxy-Wasm in general](https://github.com/envoyproxy/envoy/issues/35420).
 > If you are not in a position where you have to run untrusted binaries (like for example, you run Envoy proxies while your client gives you the binaries to run), we recommend using other extension mechanism 
 > such as Lua or External Processing which should be comparable or better or worse depending on the use case. 
