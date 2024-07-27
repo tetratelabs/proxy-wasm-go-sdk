@@ -5,7 +5,7 @@
 > such as Lua or External Processing which should be comparable or better or worse depending on the use case. 
 > 
 > If you are already using this SDK, but still want to continue using Wasm for some reason instead of Lua or External Processing, 
-> we strongly recommend migrating to the Rust or C++ SDK due to the memory issue of TinyGo described in the like above.
+> we strongly recommend migrating to the Rust or C++ SDK due to the memory issue of TinyGo described in the link above.
 > 
 > We keep this repository open and not archived for the existing users, but we cannot provide any support or guarantee for the future development of this SDK.
 
